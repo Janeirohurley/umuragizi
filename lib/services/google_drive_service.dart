@@ -122,6 +122,12 @@ class GoogleDriveService {
     }
   }
 
+  static Future<void> autoSync() async {
+    if (await isSyncEnabled) {
+      syncData();
+    }
+  }
+
   static Future<Map<String, dynamic>> _exportAllData() async {
     final animals = DatabaseService.getAllAnimaux().map((a) => {
       'id': a.id,
@@ -247,91 +253,122 @@ class GoogleDriveService {
   }
 
   static Future<void> _importData(Map<String, dynamic> data) async {
-    await DatabaseService.animalBox.clear();
-    await DatabaseService.alimentationBox.clear();
-    await DatabaseService.santeBox.clear();
-    await DatabaseService.croissanceBox.clear();
-    await DatabaseService.rappelBox.clear();
+    // Merger les données au lieu de les écraser
+    await _mergeAnimals(data['animals'] as List);
+    await _mergeAlimentations(data['alimentations'] as List);
+    await _mergeSantes(data['santes'] as List);
+    await _mergeCroissances(data['croissances'] as List);
+    await _mergeRappels(data['rappels'] as List);
+  }
+
+  static Future<void> _mergeAnimals(List animalsList) async {
+    final existingIds = DatabaseService.getAllAnimaux().map((a) => a.id).toSet();
     
-    for (final animalData in data['animals'] as List) {
-      final animal = Animal(
-        id: animalData['id'],
-        nom: animalData['nom'],
-        espece: animalData['espece'],
-        race: animalData['race'],
-        sexe: animalData['sexe'],
-        dateNaissance: DateTime.parse(animalData['dateNaissance']),
-        photoPath: animalData['photoPath'],
-        photoBase64: animalData['photoBase64'],
-        identifiant: animalData['identifiant'],
-        dateAjout: DateTime.parse(animalData['dateAjout']),
-        notes: animalData['notes'],
-        mereId: animalData['mereId'],
-        prixAchat: animalData['prixAchat']?.toDouble(),
-      );
-      await DatabaseService.ajouterAnimal(animal);
+    for (final animalData in animalsList) {
+      if (!existingIds.contains(animalData['id'])) {
+        final animal = Animal(
+          id: animalData['id'],
+          nom: animalData['nom'],
+          espece: animalData['espece'],
+          race: animalData['race'],
+          sexe: animalData['sexe'],
+          dateNaissance: DateTime.parse(animalData['dateNaissance']),
+          photoPath: animalData['photoPath'],
+          photoBase64: animalData['photoBase64'],
+          identifiant: animalData['identifiant'],
+          dateAjout: DateTime.parse(animalData['dateAjout']),
+          notes: animalData['notes'],
+          mereId: animalData['mereId'],
+          prixAchat: animalData['prixAchat']?.toDouble(),
+        );
+        await DatabaseService.ajouterAnimal(animal);
+      }
     }
+  }
+
+  static Future<void> _mergeAlimentations(List alimentationsList) async {
+    final existingIds = DatabaseService.getAllAlimentations().map((a) => a.id).toSet();
     
-    for (final alimentationData in data['alimentations'] as List) {
-      final alimentation = Alimentation(
-        id: alimentationData['id'],
-        animalId: alimentationData['animalId'],
-        date: DateTime.parse(alimentationData['date']),
-        typeAliment: alimentationData['typeAliment'],
-        quantite: alimentationData['quantite'].toDouble(),
-        unite: alimentationData['unite'],
-        notes: alimentationData['notes'],
-        prixUnitaire: alimentationData['prixUnitaire']?.toDouble(),
-      );
-      await DatabaseService.ajouterAlimentation(alimentation);
+    for (final alimentationData in alimentationsList) {
+      if (!existingIds.contains(alimentationData['id'])) {
+        final alimentation = Alimentation(
+          id: alimentationData['id'],
+          animalId: alimentationData['animalId'],
+          date: DateTime.parse(alimentationData['date']),
+          typeAliment: alimentationData['typeAliment'],
+          quantite: alimentationData['quantite'].toDouble(),
+          unite: alimentationData['unite'],
+          notes: alimentationData['notes'],
+          prixUnitaire: alimentationData['prixUnitaire']?.toDouble(),
+        );
+        await DatabaseService.ajouterAlimentation(alimentation);
+      }
     }
+  }
+
+  static Future<void> _mergeSantes(List santesList) async {
+    final existingIds = DatabaseService.getAllSantes().map((s) => s.id).toSet();
     
-    for (final santeData in data['santes'] as List) {
-      final sante = Sante(
-        id: santeData['id'],
-        animalId: santeData['animalId'],
-        date: DateTime.parse(santeData['date']),
-        type: santeData['type'],
-        description: santeData['description'],
-        veterinaire: santeData['veterinaire'],
-        cout: santeData['cout']?.toDouble(),
-        notes: santeData['notes'],
-      );
-      await DatabaseService.ajouterSante(sante);
+    for (final santeData in santesList) {
+      if (!existingIds.contains(santeData['id'])) {
+        final sante = Sante(
+          id: santeData['id'],
+          animalId: santeData['animalId'],
+          date: DateTime.parse(santeData['date']),
+          type: santeData['type'],
+          description: santeData['description'],
+          veterinaire: santeData['veterinaire'],
+          cout: santeData['cout']?.toDouble(),
+          notes: santeData['notes'],
+        );
+        await DatabaseService.ajouterSante(sante);
+      }
     }
+  }
+
+  static Future<void> _mergeCroissances(List croissancesList) async {
+    final existingIds = DatabaseService.getAllCroissances().map((c) => c.id).toSet();
     
-    for (final croissanceData in data['croissances'] as List) {
-      final croissance = Croissance(
-        id: croissanceData['id'],
-        animalId: croissanceData['animalId'],
-        date: DateTime.parse(croissanceData['date']),
-        poids: croissanceData['poids'].toDouble(),
-        taille: croissanceData['taille']?.toDouble(),
-        notes: croissanceData['notes'],
-      );
-      await DatabaseService.ajouterCroissance(croissance);
+    for (final croissanceData in croissancesList) {
+      if (!existingIds.contains(croissanceData['id'])) {
+        final croissance = Croissance(
+          id: croissanceData['id'],
+          animalId: croissanceData['animalId'],
+          date: DateTime.parse(croissanceData['date']),
+          poids: croissanceData['poids'].toDouble(),
+          taille: croissanceData['taille']?.toDouble(),
+          notes: croissanceData['notes'],
+        );
+        await DatabaseService.ajouterCroissance(croissance);
+      }
     }
+  }
+
+  static Future<void> _mergeRappels(List rappelsList) async {
+    final existingIds = DatabaseService.getTousLesRappels().map((r) => r.id).toSet();
     
-    for (final rappelData in data['rappels'] as List) {
-      final rappel = Rappel(
-        id: rappelData['id'],
-        animalId: rappelData['animalId'],
-        titre: rappelData['titre'],
-        description: rappelData['description'],
-        dateRappel: DateTime.parse(rappelData['dateRappel']),
-        type: rappelData['type'],
-        estComplete: rappelData['estComplete'],
-        dateCompletion: rappelData['dateCompletion'] != null 
-            ? DateTime.parse(rappelData['dateCompletion']) 
-            : null,
-        recurrent: rappelData['recurrent'],
-        intervalleJours: rappelData['intervalleJours'],
-        intervalleHeures: rappelData['intervalleHeures'],
-        dateFin: rappelData['dateFin'] != null 
-            ? DateTime.parse(rappelData['dateFin']) 
-            : null,
-      );
-      await DatabaseService.ajouterRappel(rappel);
+    for (final rappelData in rappelsList) {
+      if (!existingIds.contains(rappelData['id'])) {
+        final rappel = Rappel(
+          id: rappelData['id'],
+          animalId: rappelData['animalId'],
+          titre: rappelData['titre'],
+          description: rappelData['description'],
+          dateRappel: DateTime.parse(rappelData['dateRappel']),
+          type: rappelData['type'],
+          estComplete: rappelData['estComplete'],
+          dateCompletion: rappelData['dateCompletion'] != null 
+              ? DateTime.parse(rappelData['dateCompletion']) 
+              : null,
+          recurrent: rappelData['recurrent'],
+          intervalleJours: rappelData['intervalleJours'],
+          intervalleHeures: rappelData['intervalleHeures'],
+          dateFin: rappelData['dateFin'] != null 
+              ? DateTime.parse(rappelData['dateFin']) 
+              : null,
+        );
+        await DatabaseService.ajouterRappel(rappel);
+      }
     }
   }
 }

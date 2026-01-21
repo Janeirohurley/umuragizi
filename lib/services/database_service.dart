@@ -1,5 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/models.dart';
+import 'google_drive_service.dart';
 
 class DatabaseService {
   static const String animalBoxName = 'animals';
@@ -36,10 +37,12 @@ class DatabaseService {
   // CRUD Animaux
   static Future<void> ajouterAnimal(Animal animal) async {
     await animalBox.put(animal.id, animal);
+    GoogleDriveService.autoSync();
   }
 
   static Future<void> modifierAnimal(Animal animal) async {
     await animalBox.put(animal.id, animal);
+    GoogleDriveService.autoSync();
   }
 
   static Future<void> supprimerAnimal(String id) async {
@@ -61,6 +64,7 @@ class DatabaseService {
     for (var r in rappels) {
       await r.delete();
     }
+    GoogleDriveService.autoSync();
   }
 
   static List<Animal> getTousLesAnimaux() {
@@ -74,6 +78,7 @@ class DatabaseService {
   // CRUD Alimentation
   static Future<void> ajouterAlimentation(Alimentation alimentation) async {
     await alimentationBox.put(alimentation.id, alimentation);
+    GoogleDriveService.autoSync();
   }
 
   static List<Alimentation> getAlimentationsParAnimal(String animalId) {
@@ -83,11 +88,13 @@ class DatabaseService {
 
   static Future<void> supprimerAlimentation(String id) async {
     await alimentationBox.delete(id);
+    GoogleDriveService.autoSync();
   }
 
   // CRUD Santé
   static Future<void> ajouterSante(Sante sante) async {
     await santeBox.put(sante.id, sante);
+    GoogleDriveService.autoSync();
   }
 
   static List<Sante> getSantesParAnimal(String animalId) {
@@ -97,11 +104,13 @@ class DatabaseService {
 
   static Future<void> supprimerSante(String id) async {
     await santeBox.delete(id);
+    GoogleDriveService.autoSync();
   }
 
   // CRUD Croissance
   static Future<void> ajouterCroissance(Croissance croissance) async {
     await croissanceBox.put(croissance.id, croissance);
+    GoogleDriveService.autoSync();
   }
 
   static List<Croissance> getCroissancesParAnimal(String animalId) {
@@ -111,15 +120,18 @@ class DatabaseService {
 
   static Future<void> supprimerCroissance(String id) async {
     await croissanceBox.delete(id);
+    GoogleDriveService.autoSync();
   }
 
   // CRUD Rappels
   static Future<void> ajouterRappel(Rappel rappel) async {
     await rappelBox.put(rappel.id, rappel);
+    GoogleDriveService.autoSync();
   }
 
   static Future<void> modifierRappel(Rappel rappel) async {
     await rappelBox.put(rappel.id, rappel);
+    GoogleDriveService.autoSync();
   }
 
   static List<Rappel> getRappelsParAnimal(String animalId) {
@@ -161,6 +173,7 @@ class DatabaseService {
 
   static Future<void> supprimerRappel(String id) async {
     await rappelBox.delete(id);
+    GoogleDriveService.autoSync();
   }
 
   static Future<void> marquerRappelComplete(String id) async {
@@ -201,6 +214,7 @@ class DatabaseService {
         );
         await ajouterRappel(nouveauRappel);
       }
+      GoogleDriveService.autoSync();
     }
   }
 
