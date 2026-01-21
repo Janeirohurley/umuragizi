@@ -25,6 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isBackingUp = false;
   bool _isRestoring = false;
   DateTime? _lastSyncDate;
+  String? _userEmail;
 
   @override
   void initState() {
@@ -35,9 +36,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _checkGoogleDriveConnection() async {
     final isConnected = await GoogleDriveService.isSyncEnabled;
     final lastSync = await GoogleDriveService.getLastSyncDate();
+    final email = await GoogleDriveService.getUserEmail();
     setState(() {
       _isGoogleDriveConnected = isConnected;
       _lastSyncDate = lastSync;
+      _userEmail = email;
     });
   }
 
@@ -419,6 +422,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           GoogleDriveSettingCard(
             isConnected: _isGoogleDriveConnected,
             lastSyncDate: _lastSyncDate,
+            userEmail: _userEmail,
             onToggle: _toggleGoogleDrive,
           ),
           if (_isGoogleDriveConnected) ...[

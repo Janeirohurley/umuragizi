@@ -6,12 +6,14 @@ import '../widgets/widgets.dart';
 class GoogleDriveSettingCard extends StatelessWidget {
   final bool isConnected;
   final DateTime? lastSyncDate;
+  final String? userEmail;
   final Function(bool) onToggle;
 
   const GoogleDriveSettingCard({
     super.key,
     required this.isConnected,
     this.lastSyncDate,
+    this.userEmail,
     required this.onToggle,
   });
 
@@ -38,7 +40,7 @@ class GoogleDriveSettingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Google Drive',
+                  isConnected && userEmail != null ? userEmail! : 'Google Drive',
                   style: AppTheme.cardTitle.copyWith(
                     color: AppTheme.textPrimaryOf(context),
                   ),

@@ -135,6 +135,13 @@ class GoogleDriveService {
     }
   }
 
+  static Future<String?> getUserEmail() async {
+    if (_currentUser != null) {
+      return _currentUser!.email;
+    }
+    return null;
+  }
+
   static Future<DateTime?> getLastSyncDate() async {
     final prefs = await SharedPreferences.getInstance();
     final lastSyncString = prefs.getString(_lastSyncKey);
