@@ -15,6 +15,7 @@ class GoogleDriveService {
   static const _syncEnabledKey = 'google_drive_sync_enabled';
   static const _authStateKey = 'google_drive_auth_state';
   static const _lastSyncKey = 'google_drive_last_sync';
+  static const _pendingSyncKey = 'google_drive_pending_sync';
   static const _backupFileName = 'umuragizi_backup.json';
   
   static GoogleSignIn? _googleSignIn;
@@ -131,7 +132,30 @@ class GoogleDriveService {
 
   static Future<void> autoSync() async {
     if (await isSyncEnabled) {
-      syncData();
+      final success = await syncData();
+      if (!success) {
+        // Marquer comme synchronisation en attente si échec
+        await _setPendingSync(true);
+      }
+    }
+  }
+
+  static Future<void> _setPendingSync(bool pending) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_pendingSyncKey, pending);
+  }
+
+  static Future<bool> hasPendingSync() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_pendingSyncKey) ?? false;
+  }
+
+  static Future<void> checkPendingSync() async {
+    if (await hasPendingSync() && await isSyncEnabled) {
+      final success = await syncData();
+      if (success) {
+        await _setPendingSync(false);
+      }
     }
   }
 

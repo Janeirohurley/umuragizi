@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'services/database_service.dart';
 import 'services/background_task_service.dart';
 import 'services/google_drive_service.dart';
@@ -28,11 +29,18 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
+  final Connectivity _connectivity = Connectivity();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Démarrer le service de background seulement s'il y a des rappels
+    _initConnectivity();
+    _connectivity.onConnectivityChanged.listen((List<ConnectivityResult> results) {
+      if (results.isNotEmpty) {
+        _updateConnectionStatus(results.first);
+      }
+    });
     BackgroundTaskService.startPeriodicCheck();
   }
 
@@ -47,6 +55,25 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       BackgroundTaskService.resumeFromBackground();
+      GoogleDriveService.checkPendingSync(); // Vérifier sync en attente
+    }
+  }
+
+  Future<void> _initConnectivity() async {
+    try {
+      final results = await _connectivity.checkConnectivity();
+      if (results.isNotEmpty) {
+        _updateConnectionStatus(results.first);
+      }
+    } catch (e) {
+      // Ignorer les erreurs de connectivité
+    }
+  }
+
+  void _updateConnectionStatus(ConnectivityResult result) {
+    // Vérifier sync en attente quand connexion revient
+    if (result != ConnectivityResult.none) {
+      GoogleDriveService.checkPendingSync();
     }
   }
 
