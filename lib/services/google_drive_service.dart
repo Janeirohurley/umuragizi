@@ -14,6 +14,8 @@ class GoogleDriveService {
   ];
   static const _syncEnabledKey = 'google_drive_sync_enabled';
   static const _authStateKey = 'google_drive_auth_state';
+  static const _lastSyncKey = 'google_drive_last_sync';
+  static const _backupFileName = 'umuragizi_backup.json';
   
   static GoogleSignIn? _googleSignIn;
   static drive.DriveApi? _driveApi;
@@ -114,6 +116,11 @@ class GoogleDriveService {
     try {
       final data = await _exportAllData();
       await _uploadToGoogleDrive(data);
+      
+      // Sauvegarder la date de dernière synchronisation
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_lastSyncKey, DateTime.now().toIso8601String());
+      
       print('Sauvegarde réussie');
       return true;
     } catch (e) {
@@ -126,6 +133,15 @@ class GoogleDriveService {
     if (await isSyncEnabled) {
       syncData();
     }
+  }
+
+  static Future<DateTime?> getLastSyncDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastSyncString = prefs.getString(_lastSyncKey);
+    if (lastSyncString != null) {
+      return DateTime.parse(lastSyncString);
+    }
+    return null;
   }
 
   static Future<Map<String, dynamic>> _exportAllData() async {
@@ -204,18 +220,33 @@ class GoogleDriveService {
   static Future<void> _uploadToGoogleDrive(Map<String, dynamic> data) async {
     try {
       final jsonData = jsonEncode(data);
-      final fileName = 'umuragizi_backup_${DateTime.now().millisecondsSinceEpoch}.json';
       
-      final driveFile = drive.File()
-        ..name = fileName;
+      // Chercher le fichier existant
+      final existingFiles = await _driveApi!.files.list(
+        q: "name='$_backupFileName'",
+        pageSize: 1,
+      );
       
       final media = drive.Media(
         Stream.fromIterable([utf8.encode(jsonData)]),
         jsonData.length,
       );
       
-      final result = await _driveApi!.files.create(driveFile, uploadMedia: media);
-      print('Fichier uploadé avec ID: ${result.id}');
+      if (existingFiles.files?.isNotEmpty == true) {
+        // Mettre à jour le fichier existant
+        final fileId = existingFiles.files!.first.id!;
+        await _driveApi!.files.update(
+          drive.File()..name = _backupFileName,
+          fileId,
+          uploadMedia: media,
+        );
+        print('Fichier mis à jour avec ID: $fileId');
+      } else {
+        // Créer un nouveau fichier
+        final driveFile = drive.File()..name = _backupFileName;
+        final result = await _driveApi!.files.create(driveFile, uploadMedia: media);
+        print('Nouveau fichier créé avec ID: ${result.id}');
+      }
     } catch (e) {
       print('Erreur upload: $e');
       rethrow;
@@ -227,8 +258,8 @@ class GoogleDriveService {
     
     try {
       final files = await _driveApi!.files.list(
-        q: "name contains 'umuragizi_backup'",
-        orderBy: 'createdTime desc',
+        q: "name='$_backupFileName'",
+        orderBy: 'modifiedTime desc',
         pageSize: 1,
       );
       

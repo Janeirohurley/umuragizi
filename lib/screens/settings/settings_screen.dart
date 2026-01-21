@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../services/export_import_service.dart';
 import '../../services/google_drive_service.dart';
@@ -22,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isGoogleDriveConnected = false;
   bool _isBackingUp = false;
   bool _isRestoring = false;
+  DateTime? _lastSyncDate;
 
   @override
   void initState() {
@@ -31,7 +33,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _checkGoogleDriveConnection() async {
     final isConnected = await GoogleDriveService.isSyncEnabled;
-    setState(() => _isGoogleDriveConnected = isConnected);
+    final lastSync = await GoogleDriveService.getLastSyncDate();
+    setState(() {
+      _isGoogleDriveConnected = isConnected;
+      _lastSyncDate = lastSync;
+    });
   }
 
   void _showThemeDialog() {
@@ -218,6 +224,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
       
       final success = await GoogleDriveService.syncData();
+      if (success) {
+        await _checkGoogleDriveConnection(); // Mettre à jour la date de sync
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -402,7 +411,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: _isGoogleDriveConnected ? Icons.cloud_done : Icons.cloud_off,
             iconColor: _isGoogleDriveConnected ? AppTheme.successGreen : AppTheme.errorRed,
             title: _isGoogleDriveConnected ? 'Google Drive connecté' : 'Connecter Google Drive',
-            subtitle: _isGoogleDriveConnected ? 'Synchronisation activée' : 'Activer la synchronisation cloud',
+            subtitle: _isGoogleDriveConnected 
+                ? (_lastSyncDate != null 
+                    ? 'Dernière sync: ${DateFormat('dd/MM/yyyy à HH:mm').format(_lastSyncDate!)}'
+                    : 'Synchronisation activée')
+                : 'Activer la synchronisation cloud',
             onTap: _isGoogleDriveConnected ? null : _connectGoogleDrive,
             trailing: _isGoogleDriveConnected
                 ? Row(
