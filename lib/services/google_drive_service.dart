@@ -3,16 +3,22 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'database_service.dart';
 import '../models/models.dart';
 
 class GoogleDriveService {
-  static const _scopes = [drive.DriveApi.driveFileScope];
+  static const _scopes = [
+    drive.DriveApi.driveFileScope,
+    'https://www.googleapis.com/auth/drive.file'
+  ];
   static const _syncEnabledKey = 'google_drive_sync_enabled';
+  static const _authStateKey = 'google_drive_auth_state';
   
   static GoogleSignIn? _googleSignIn;
   static drive.DriveApi? _driveApi;
   static GoogleSignInAccount? _currentUser;
+  static bool _isInitialized = false;
 
   static GoogleSignIn get _getGoogleSignIn {
     _googleSignIn ??= GoogleSignIn(
@@ -21,19 +27,31 @@ class GoogleDriveService {
     return _googleSignIn!;
   }
 
+  static Future<void> initialize() async {
+    if (_isInitialized) return;
+    
+    await _restoreAuthState();
+    _isInitialized = true;
+  }
+
   static Future<bool> get isSyncEnabled async {
-    final box = await Hive.openBox('settings');
-    final isEnabled = box.get(_syncEnabledKey, defaultValue: false);
-    if (isEnabled) {
+    await initialize();
+    final prefs = await SharedPreferences.getInstance();
+    final isEnabled = prefs.getBool(_authStateKey) ?? false;
+    if (isEnabled && _currentUser == null) {
       _currentUser = _getGoogleSignIn.currentUser;
-      return _currentUser != null;
+      if (_currentUser != null) {
+        final authHeaders = await _currentUser!.authHeaders;
+        final authenticateClient = GoogleAuthClient(authHeaders);
+        _driveApi = drive.DriveApi(authenticateClient);
+      }
     }
-    return false;
+    return isEnabled && _currentUser != null;
   }
 
   static Future<void> setSyncEnabled(bool enabled) async {
-    final box = await Hive.openBox('settings');
-    await box.put(_syncEnabledKey, enabled);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_authStateKey, enabled);
     if (!enabled) {
       await _disconnect();
     }
@@ -59,18 +77,47 @@ class GoogleDriveService {
     await _getGoogleSignIn.signOut();
     _driveApi = null;
     _currentUser = null;
-    final box = await Hive.openBox('settings');
-    await box.put(_syncEnabledKey, false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_authStateKey, false);
+  }
+
+  static Future<void> disconnect() async {
+    await _disconnect();
+  }
+
+  static Future<void> _restoreAuthState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isAuthenticated = prefs.getBool(_authStateKey) ?? false;
+    
+    if (isAuthenticated) {
+      try {
+        _currentUser = await _getGoogleSignIn.signInSilently();
+        if (_currentUser != null) {
+          final authHeaders = await _currentUser!.authHeaders;
+          final authenticateClient = GoogleAuthClient(authHeaders);
+          _driveApi = drive.DriveApi(authenticateClient);
+        } else {
+          await prefs.setBool(_authStateKey, false);
+        }
+      } catch (e) {
+        await prefs.setBool(_authStateKey, false);
+      }
+    }
   }
 
   static Future<bool> syncData() async {
-    if (!await isSyncEnabled || _driveApi == null) return false;
+    if (!await isSyncEnabled || _driveApi == null) {
+      print('Sync non activé ou DriveApi null');
+      return false;
+    }
     
     try {
       final data = await _exportAllData();
       await _uploadToGoogleDrive(data);
+      print('Sauvegarde réussie');
       return true;
     } catch (e) {
+      print('Erreur sync: $e');
       return false;
     }
   }
@@ -149,19 +196,24 @@ class GoogleDriveService {
   }
 
   static Future<void> _uploadToGoogleDrive(Map<String, dynamic> data) async {
-    final jsonData = jsonEncode(data);
-    final fileName = 'smart_farm_backup_${DateTime.now().millisecondsSinceEpoch}.json';
-    
-    final driveFile = drive.File()
-      ..name = fileName
-      ..parents = ['appDataFolder'];
-    
-    final media = drive.Media(
-      Stream.fromIterable([utf8.encode(jsonData)]),
-      jsonData.length,
-    );
-    
-    await _driveApi!.files.create(driveFile, uploadMedia: media);
+    try {
+      final jsonData = jsonEncode(data);
+      final fileName = 'umuragizi_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      
+      final driveFile = drive.File()
+        ..name = fileName;
+      
+      final media = drive.Media(
+        Stream.fromIterable([utf8.encode(jsonData)]),
+        jsonData.length,
+      );
+      
+      final result = await _driveApi!.files.create(driveFile, uploadMedia: media);
+      print('Fichier uploadé avec ID: ${result.id}');
+    } catch (e) {
+      print('Erreur upload: $e');
+      rethrow;
+    }
   }
 
   static Future<bool> restoreData() async {
@@ -169,7 +221,7 @@ class GoogleDriveService {
     
     try {
       final files = await _driveApi!.files.list(
-        q: "parents in 'appDataFolder' and name contains 'smart_farm_backup'",
+        q: "name contains 'umuragizi_backup'",
         orderBy: 'createdTime desc',
         pageSize: 1,
       );

@@ -92,7 +92,7 @@ class NotificationService {
     try {
       const androidDetails = AndroidNotificationDetails(
         'reminder_channel',
-        'Rappels SmartFarm',
+        'Rappels umuragizi',
         channelDescription: 'Notifications pour les rappels d\'animaux',
         importance: Importance.high,
         priority: Priority.high,

@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'services/database_service.dart';
 import 'services/background_task_service.dart';
+import 'services/google_drive_service.dart';
 import 'providers/animal_provider.dart';
 import 'providers/rappel_provider.dart';
 import 'providers/theme_provider.dart';
@@ -14,6 +15,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('fr_FR', null);
   await DatabaseService.init();
+  await GoogleDriveService.initialize();
   // Ne pas initialiser les notifications au démarrage
   runApp(const MainApp());
 }
@@ -64,7 +66,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            title: 'SmartFarm',
+            title: 'umuragizi',
             debugShowCheckedModeBanner: false,
             theme: themeProvider.themeData,
             home: FutureBuilder<bool>(
@@ -117,7 +119,7 @@ class _SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'SmartFarm',
+              'umuragizi',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,

@@ -82,7 +82,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _isExporting = true);
     try {
       final file = await ExportImportService.saveExportToFile();
-      await Share.shareXFiles([XFile(file.path)], text: 'Export SmartFarm');
+      await Share.shareXFiles([XFile(file.path)], text: 'Export umuragizi');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -147,6 +147,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _disconnectGoogleDrive() async {
+    try {
+      await GoogleDriveService.disconnect();
+      await _checkGoogleDriveConnection();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Déconnecté de Google Drive'),
+            backgroundColor: AppTheme.infoBlue,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de déconnexion: $e'),
+            backgroundColor: AppTheme.errorRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _connectGoogleDrive() async {
     try {
       final success = await GoogleDriveService.authenticate();
@@ -183,6 +211,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _backupToGoogleDrive() async {
     setState(() => _isBackingUp = true);
     try {
+      // Vérifier d'abord la connexion
+      final isConnected = await GoogleDriveService.isSyncEnabled;
+      if (!isConnected) {
+        throw Exception('Google Drive non connecté');
+      }
+      
       final success = await GoogleDriveService.syncData();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -195,6 +229,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     } catch (e) {
+      print('Erreur backup: $e'); // Debug
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -260,7 +295,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: AppTheme.spacingLarge),
               Text(
-                'SmartFarm',
+                'umuragizi',
                 style: AppTheme.sectionTitle.copyWith(
                   fontSize: 24,
                   color: AppTheme.textPrimaryOf(context),
@@ -370,7 +405,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: _isGoogleDriveConnected ? 'Synchronisation activée' : 'Activer la synchronisation cloud',
             onTap: _isGoogleDriveConnected ? null : _connectGoogleDrive,
             trailing: _isGoogleDriveConnected
-                ? Icon(Icons.check_circle, color: AppTheme.successGreen)
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                        onPressed: _disconnectGoogleDrive,
+                        child: Text('Déconnecter', style: TextStyle(color: AppTheme.errorRed)),
+                      ),
+                      Icon(Icons.check_circle, color: AppTheme.successGreen),
+                    ],
+                  )
                 : Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
           ),
           if (_isGoogleDriveConnected) ...[

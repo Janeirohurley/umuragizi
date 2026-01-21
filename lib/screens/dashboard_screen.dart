@@ -195,7 +195,7 @@ class _AccueilTabState extends State<_AccueilTab> {
               ),
               SizedBox(height: AppTheme.spacingXSmall),
               Text(
-                'Smart Farm',
+                'umuragizi',
                 style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
               ),
             ],

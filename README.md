@@ -1,10 +1,10 @@
-# Smart Farm 🐄
+# umuragizi 🐄
 
 Une application mobile moderne de gestion d'élevage développée avec Flutter, conçue pour simplifier la vie des éleveurs et améliorer le bien-être animal.
 
 ## 📱 Aperçu
 
-Smart Farm est une solution complète qui permet aux éleveurs de gérer efficacement leur cheptel, de suivre la santé des animaux, de planifier les soins et d'optimiser leurs coûts d'exploitation.
+umuragizi est une solution complète qui permet aux éleveurs de gérer efficacement leur cheptel, de suivre la santé des animaux, de planifier les soins et d'optimiser leurs coûts d'exploitation.
 
 ## ✨ Fonctionnalités Principales
 
@@ -129,7 +129,7 @@ flutter run
 
 ## 🤝 Contribution
 
-Smart Farm est un projet open source. Les contributions sont les bienvenues pour améliorer l'application et aider la communauté agricole.
+umuragizi est un projet open source. Les contributions sont les bienvenues pour améliorer l'application et aider la communauté agricole.
 
 ## 📄 Licence
 
@@ -137,4 +137,4 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 ---
 
-**Smart Farm** - *Moderniser l'élevage, préserver l'avenir* 🌱
+**umuragizi** - *Moderniser l'élevage, préserver l'avenir* 🌱

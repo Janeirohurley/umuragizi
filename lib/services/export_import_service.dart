@@ -72,7 +72,7 @@ class ExportImportService {
   static Future<File> saveExportToFile() async {
     final jsonData = await exportData();
     final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/smartfarm_export_${DateTime.now().millisecondsSinceEpoch}.json');
+    final file = File('${directory.path}/umuragizi_export_${DateTime.now().millisecondsSinceEpoch}.json');
     await file.writeAsString(jsonData);
     return file;
   }
