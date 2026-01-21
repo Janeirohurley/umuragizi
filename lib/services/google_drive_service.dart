@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'database_service.dart';
 import '../models/models.dart';
 import 'sync_notification_service.dart';
+import 'background_sync_service.dart';
 
 class GoogleDriveService {
   static const _scopes = [
@@ -147,6 +148,8 @@ class GoogleDriveService {
         // Marquer comme synchronisation en attente si échec
         await _setPendingSync(true);
         await SyncNotificationService.showSyncPending();
+        // Programmer une tâche en arrière-plan
+        await BackgroundSyncService.schedulePendingSync();
       }
     }
   }
@@ -204,7 +207,6 @@ class GoogleDriveService {
       'race': a.race,
       'sexe': a.sexe,
       'dateNaissance': a.dateNaissance.toIso8601String(),
-      'photoPath': a.photoPath,
       'photoBase64': a.photoBase64,
       'identifiant': a.identifiant,
       'dateAjout': a.dateAjout.toIso8601String(),
@@ -356,7 +358,7 @@ class GoogleDriveService {
           race: animalData['race'],
           sexe: animalData['sexe'],
           dateNaissance: DateTime.parse(animalData['dateNaissance']),
-          photoPath: animalData['photoPath'],
+          photoPath: null, // Ne pas restaurer photoPath
           photoBase64: animalData['photoBase64'],
           identifiant: animalData['identifiant'],
           dateAjout: DateTime.parse(animalData['dateAjout']),

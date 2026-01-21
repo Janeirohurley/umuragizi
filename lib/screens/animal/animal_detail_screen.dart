@@ -581,8 +581,6 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
                       base64Decode(animal.photoBase64!),
                       fit: BoxFit.cover,
                     )
-                  else if (animal.photoPath != null)
-                    Image.asset(animal.photoPath!, fit: BoxFit.cover)
                   else
                     Container(
                       color: AppTheme.primaryPurple,

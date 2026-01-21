@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 import '../../providers/animal_provider.dart';
 import '../../models/models.dart';
 import '../../utils/app_theme.dart';
@@ -303,11 +304,11 @@ class _ModernAnimalCard extends StatelessWidget {
                 color: _getColorForEspece(animal.espece).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
               ),
-              child: animal.photoPath != null
+              child: animal.photoBase64 != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                      child: Image.asset(
-                        animal.photoPath!,
+                      child: Image.memory(
+                        base64Decode(animal.photoBase64!),
                         fit: BoxFit.cover,
                         width: 60,
                         height: 60,

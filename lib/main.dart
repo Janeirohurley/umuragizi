@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'services/database_service.dart';
 import 'services/background_task_service.dart';
 import 'services/google_drive_service.dart';
+import 'services/background_sync_service.dart';
 import 'providers/animal_provider.dart';
 import 'providers/rappel_provider.dart';
 import 'providers/theme_provider.dart';
@@ -17,7 +19,13 @@ void main() async {
   await initializeDateFormatting('fr_FR', null);
   await DatabaseService.init();
   await GoogleDriveService.initialize();
-  // Ne pas initialiser les notifications au démarrage
+  await BackgroundSyncService.initialize();
+  
+  // Programmer la synchronisation périodique
+  if (await GoogleDriveService.isSyncEnabled) {
+    await BackgroundSyncService.schedulePeriodicSync();
+  }
+  
   runApp(const MainApp());
 }
 
@@ -36,11 +44,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initConnectivity();
-    _connectivity.onConnectivityChanged.listen((List<ConnectivityResult> results) {
-      if (results.isNotEmpty) {
-        _updateConnectionStatus(results.first);
-      }
-    });
+    _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
     BackgroundTaskService.startPeriodicCheck();
   }
 
@@ -55,7 +59,18 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       BackgroundTaskService.resumeFromBackground();
-      GoogleDriveService.checkPendingSync(); // Vérifier sync en attente
+      // Vérifier et exécuter la sync en attente quand l'app revient
+      _checkAndExecutePendingSync();
+    }
+  }
+
+  Future<void> _checkAndExecutePendingSync() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasPending = prefs.getBool('google_drive_pending_sync') ?? false;
+    
+    if (hasPending && await GoogleDriveService.isSyncEnabled) {
+      // Exécuter la sync en attente dans l'app principale
+      GoogleDriveService.checkPendingSync();
     }
   }
 
@@ -63,17 +78,25 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
     try {
       final results = await _connectivity.checkConnectivity();
       if (results.isNotEmpty) {
-        _updateConnectionStatus(results.first);
+        _handleConnectionChange(results.first);
       }
     } catch (e) {
       // Ignorer les erreurs de connectivité
     }
   }
 
-  void _updateConnectionStatus(ConnectivityResult result) {
+  void _handleConnectionChange(ConnectivityResult result) {
     // Vérifier sync en attente quand connexion revient
     if (result != ConnectivityResult.none) {
       GoogleDriveService.checkPendingSync();
+      // Programmer une tâche de sync en arrière-plan
+      BackgroundSyncService.schedulePendingSync();
+    }
+  }
+
+  void _updateConnectionStatus(List<ConnectivityResult> results) {
+    if (results.isNotEmpty) {
+      _handleConnectionChange(results.first);
     }
   }
 
