@@ -9,6 +9,7 @@ import '../../services/google_drive_service.dart';
 import '../../providers/theme_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
+import '../../widgets/google_drive_setting_card.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -150,6 +151,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       } finally {
         if (mounted) setState(() => _isImporting = false);
       }
+    }
+  }
+
+  Future<void> _toggleGoogleDrive(bool value) async {
+    if (value) {
+      await _connectGoogleDrive();
+    } else {
+      await _disconnectGoogleDrive();
     }
   }
 
@@ -407,28 +416,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: AppTheme.spacingMedium),
-          _buildSettingCard(
-            icon: _isGoogleDriveConnected ? Icons.cloud_done : Icons.cloud_off,
-            iconColor: _isGoogleDriveConnected ? AppTheme.successGreen : AppTheme.errorRed,
-            title: _isGoogleDriveConnected ? 'Google Drive connecté' : 'Connecter Google Drive',
-            subtitle: _isGoogleDriveConnected 
-                ? (_lastSyncDate != null 
-                    ? 'Dernière sync: ${DateFormat('dd/MM/yyyy à HH:mm').format(_lastSyncDate!)}'
-                    : 'Synchronisation activée')
-                : 'Activer la synchronisation cloud',
-            onTap: _isGoogleDriveConnected ? null : _connectGoogleDrive,
-            trailing: _isGoogleDriveConnected
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextButton(
-                        onPressed: _disconnectGoogleDrive,
-                        child: Text('Déconnecter', style: TextStyle(color: AppTheme.errorRed)),
-                      ),
-                      Icon(Icons.check_circle, color: AppTheme.successGreen),
-                    ],
-                  )
-                : Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
+          GoogleDriveSettingCard(
+            isConnected: _isGoogleDriveConnected,
+            lastSyncDate: _lastSyncDate,
+            onToggle: _toggleGoogleDrive,
           ),
           if (_isGoogleDriveConnected) ...[
             const SizedBox(height: AppTheme.spacingMedium),
