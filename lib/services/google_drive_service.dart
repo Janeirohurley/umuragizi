@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'database_service.dart';
 import '../models/models.dart';
+import 'sync_notification_service.dart';
 
 class GoogleDriveService {
   static const _scopes = [
@@ -16,6 +17,7 @@ class GoogleDriveService {
   static const _authStateKey = 'google_drive_auth_state';
   static const _lastSyncKey = 'google_drive_last_sync';
   static const _pendingSyncKey = 'google_drive_pending_sync';
+  static const _syncInProgressKey = 'google_drive_sync_in_progress';
   static const _backupFileName = 'umuragizi_backup.json';
   
   static GoogleSignIn? _googleSignIn;
@@ -114,6 +116,10 @@ class GoogleDriveService {
       return false;
     }
     
+    // Marquer sync en cours et notifier
+    await _setSyncInProgress(true);
+    await SyncNotificationService.showSyncStarted();
+    
     try {
       final data = await _exportAllData();
       await _uploadToGoogleDrive(data);
@@ -122,9 +128,13 @@ class GoogleDriveService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_lastSyncKey, DateTime.now().toIso8601String());
       
+      await _setSyncInProgress(false);
+      await SyncNotificationService.showSyncSuccess();
       print('Sauvegarde réussie');
       return true;
     } catch (e) {
+      await _setSyncInProgress(false);
+      await SyncNotificationService.showSyncError();
       print('Erreur sync: $e');
       return false;
     }
@@ -136,6 +146,7 @@ class GoogleDriveService {
       if (!success) {
         // Marquer comme synchronisation en attente si échec
         await _setPendingSync(true);
+        await SyncNotificationService.showSyncPending();
       }
     }
   }
@@ -143,6 +154,16 @@ class GoogleDriveService {
   static Future<void> _setPendingSync(bool pending) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_pendingSyncKey, pending);
+  }
+
+  static Future<void> _setSyncInProgress(bool inProgress) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_syncInProgressKey, inProgress);
+  }
+
+  static Future<bool> isSyncInProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_syncInProgressKey) ?? false;
   }
 
   static Future<bool> hasPendingSync() async {

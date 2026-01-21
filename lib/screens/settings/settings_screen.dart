@@ -24,6 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isGoogleDriveConnected = false;
   bool _isBackingUp = false;
   bool _isRestoring = false;
+  bool _isSyncInProgress = false;
   DateTime? _lastSyncDate;
   String? _userEmail;
 
@@ -37,10 +38,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isConnected = await GoogleDriveService.isSyncEnabled;
     final lastSync = await GoogleDriveService.getLastSyncDate();
     final email = await GoogleDriveService.getUserEmail();
+    final syncInProgress = await GoogleDriveService.isSyncInProgress();
     setState(() {
       _isGoogleDriveConnected = isConnected;
       _lastSyncDate = lastSync;
       _userEmail = email;
+      _isSyncInProgress = syncInProgress;
     });
   }
 
@@ -432,8 +435,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               iconColor: AppTheme.primaryPurple,
               title: 'Sauvegarder sur Drive',
               subtitle: 'Synchroniser vos données',
-              onTap: _isBackingUp ? null : _backupToGoogleDrive,
-              trailing: _isBackingUp
+              onTap: (_isBackingUp || _isSyncInProgress) ? null : _backupToGoogleDrive,
+              trailing: (_isBackingUp || _isSyncInProgress)
                   ? const SizedBox(
                       width: AppTheme.iconSizeMedium,
                       height: AppTheme.iconSizeMedium,
