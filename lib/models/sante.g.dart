@@ -26,7 +26,7 @@ class SanteAdapter extends TypeAdapter<Sante> {
       veterinaire: fields[6] as String?,
       notes: fields[7] as String?,
       cout: fields[8] as double?,
-      estPaye: fields[9] as bool? ?? true,
+      estPaye: fields[9] as bool,
     );
   }
 

@@ -24,10 +24,10 @@ class AnimalAdapter extends TypeAdapter<Animal> {
       sexe: fields[4] as String,
       dateNaissance: fields[5] as DateTime,
       photoPath: fields[6] as String?,
+      photoBase64: fields[10] as String?,
       identifiant: fields[7] as String,
       dateAjout: fields[8] as DateTime,
       notes: fields[9] as String?,
-      photoBase64: fields[10] as String?,
       mereId: fields[11] as String?,
       prixAchat: fields[12] as double?,
     );
@@ -51,14 +51,14 @@ class AnimalAdapter extends TypeAdapter<Animal> {
       ..write(obj.dateNaissance)
       ..writeByte(6)
       ..write(obj.photoPath)
+      ..writeByte(10)
+      ..write(obj.photoBase64)
       ..writeByte(7)
       ..write(obj.identifiant)
       ..writeByte(8)
       ..write(obj.dateAjout)
       ..writeByte(9)
       ..write(obj.notes)
-      ..writeByte(10)
-      ..write(obj.photoBase64)
       ..writeByte(11)
       ..write(obj.mereId)
       ..writeByte(12)

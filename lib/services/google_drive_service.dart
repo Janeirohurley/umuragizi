@@ -8,6 +8,7 @@ import 'database_service.dart';
 import '../models/models.dart';
 import 'sync_notification_service.dart';
 import 'background_sync_service.dart';
+import '../utils/debouncer.dart';
 
 class GoogleDriveService {
   static const _scopes = [
@@ -141,17 +142,21 @@ class GoogleDriveService {
     }
   }
 
+  static final _syncDebouncer = Debouncer(milliseconds: 10000);
+
   static Future<void> autoSync() async {
-    if (await isSyncEnabled) {
-      final success = await syncData();
-      if (!success) {
-        // Marquer comme synchronisation en attente si échec
-        await _setPendingSync(true);
-        await SyncNotificationService.showSyncPending();
-        // Programmer une tâche en arrière-plan
-        await BackgroundSyncService.schedulePendingSync();
+    _syncDebouncer.run(() async {
+      if (await isSyncEnabled) {
+        final success = await syncData();
+        if (!success) {
+          // Marquer comme synchronisation en attente si échec
+          await _setPendingSync(true);
+          await SyncNotificationService.showSyncPending();
+          // Programmer une tâche en arrière-plan
+          await BackgroundSyncService.schedulePendingSync();
+        }
       }
-    }
+    });
   }
 
   static Future<void> _setPendingSync(bool pending) async {

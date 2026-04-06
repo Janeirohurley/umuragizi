@@ -8,6 +8,7 @@ import '../utils/app_theme.dart';
 import '../utils/page_transitions.dart';
 import '../widgets/widgets.dart';
 import 'animal/animal_list_screen.dart';
+import 'animal/scanner_screen.dart';
 import 'feeding/feeding_list_screen.dart';
 import 'health/health_list_screen.dart';
 import 'reminders/reminder_list_screen.dart';
@@ -43,6 +44,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            SlidePageRoute(page: const ScannerScreen()),
+          );
+        },
+        backgroundColor: AppTheme.primaryPurple,
+        elevation: 4,
+        child: const Icon(Icons.qr_code_scanner, color: Colors.white),
+      ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         switchInCurve: Curves.easeInOut,

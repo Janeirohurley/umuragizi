@@ -8,6 +8,9 @@ import '../../services/database_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
 import 'animal_form_screen.dart';
+import 'reproduction_form_screen.dart';
+import '../../providers/reproduction_provider.dart';
+import 'package:intl/intl.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final String animalId;
@@ -18,21 +21,7 @@ class AnimalDetailScreen extends StatefulWidget {
   State<AnimalDetailScreen> createState() => _AnimalDetailScreenState();
 }
 
-class _AnimalDetailScreenState extends State<AnimalDetailScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 5, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
 
   void _showQRCode(Animal animal) {
     showModalBottomSheet(
@@ -496,9 +485,11 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
       );
     }
 
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColorOf(context),
-      body: NestedScrollView(
+    return DefaultTabController(
+      length: animal.sexe == 'Femelle' ? 6 : 5,
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundColorOf(context),
+        body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           SliverAppBar(
             expandedHeight: 200,
@@ -635,22 +626,28 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
             pinned: true,
             delegate: _SliverTabBarDelegate(
               TabBar(
-                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
                 labelColor: AppTheme.primaryPurple,
                 unselectedLabelColor: AppTheme.textSecondaryOf(context),
                 indicatorColor: AppTheme.primaryPurple,
-                tabs: const [
-                  Tab(icon: Icon(Icons.info_outline, size: 20), text: 'Info'),
-                  Tab(icon: Icon(Icons.restaurant, size: 20), text: 'Alim.'),
-                  Tab(
+                tabs: [
+                  const Tab(icon: Icon(Icons.info_outline, size: 20), text: 'Info'),
+                  if (animal.sexe == 'Femelle')
+                    const Tab(
+                      icon: Icon(Icons.family_restroom, size: 20),
+                      text: 'Reprod.',
+                    ),
+                  const Tab(icon: Icon(Icons.restaurant, size: 20), text: 'Alim.'),
+                  const Tab(
                     icon: Icon(Icons.favorite_outline, size: 20),
                     text: 'Santé',
                   ),
-                  Tab(
+                  const Tab(
                     icon: Icon(Icons.attach_money, size: 20),
                     text: 'Finances',
                   ),
-                  Tab(
+                  const Tab(
                     icon: Icon(Icons.notifications_outlined, size: 20),
                     text: 'Rappels',
                   ),
@@ -660,9 +657,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
           ),
         ],
         body: TabBarView(
-          controller: _tabController,
           children: [
             _InfoTab(animal: animal),
+            if (animal.sexe == 'Femelle') _ReproductionTab(animal: animal),
             _AlimentationTab(animalId: animal.id),
             _SanteTab(animalId: animal.id),
             _FinancesTab(animal: animal),
@@ -670,6 +667,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen>
           ],
         ),
       ),
+    ),
     );
   }
 }
@@ -1411,6 +1409,115 @@ class _RappelsTab extends StatelessWidget {
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+}
+
+class _ReproductionTab extends StatelessWidget {
+  final Animal animal;
+
+  const _ReproductionTab({required this.animal});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: context.read<ReproductionProvider>().chargerReproductions(),
+      builder: (context, snapshot) {
+        return Consumer<ReproductionProvider>(
+          builder: (context, reproductionProvider, child) {
+            final reproductions = reproductionProvider.filtrerParAnimal(animal.id);
+
+            return Stack(
+              children: [
+                if (reproductions.isEmpty)
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.family_restroom,
+                          size: 64,
+                          color: AppTheme.textLightOf(context),
+                        ),
+                        SizedBox(height: AppTheme.spacingMedium),
+                        Text(
+                          'Aucun événement de reproduction',
+                          style: AppTheme.sectionSubtitle.copyWith(
+                            color: AppTheme.textSecondaryOf(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ListView.builder(
+                    padding: EdgeInsets.all(AppTheme.spacingXLarge),
+                    itemCount: reproductions.length,
+                    itemBuilder: (context, index) {
+                      final repro = reproductions[index];
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: AppTheme.spacingMedium),
+                        child: CustomCard(
+                          padding: EdgeInsets.all(AppTheme.spacingMedium),
+                          child: ListTile(
+                            leading: Container(
+                              padding: EdgeInsets.all(AppTheme.spacingSmall),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEC4899).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                              ),
+                              child: Icon(
+                                Icons.favorite,
+                                color: const Color(0xFFEC4899),
+                                size: AppTheme.iconSizeMedium,
+                              ),
+                            ),
+                            title: Text(repro.typeEvenement, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(DateFormat('dd MMMM yyyy').format(repro.dateEvenement), style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
+                                if (repro.datePrevueMiseBas != null)
+                                  Text(
+                                    'Vêlage prévu : ${DateFormat('dd/MM/yyyy').format(repro.datePrevueMiseBas!)}',
+                                    style: TextStyle(color: AppTheme.primaryPurple, fontWeight: FontWeight.bold),
+                                  ),
+                                if (repro.notes != null) Text(repro.notes!, style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context))),
+                              ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: AppTheme.errorRed),
+                              onPressed: () {
+                                context.read<ReproductionProvider>().supprimerReproduction(repro.id);
+                              },
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                Positioned(
+                  bottom: AppTheme.spacingXLarge,
+                  right: AppTheme.spacingXLarge,
+                  child: FloatingActionButton(
+                    heroTag: 'add_repro',
+                    backgroundColor: const Color(0xFFEC4899),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ReproductionFormScreen(animal: animal),
+                        ),
+                      );
+                    },
+                    child: const Icon(Icons.add, color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );

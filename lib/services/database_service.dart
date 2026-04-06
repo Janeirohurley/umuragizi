@@ -8,6 +8,7 @@ class DatabaseService {
   static const String santeBoxName = 'santes';
   static const String croissanceBoxName = 'croissances';
   static const String rappelBoxName = 'rappels';
+  static const String reproductionBoxName = 'reproductions';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -18,6 +19,7 @@ class DatabaseService {
     Hive.registerAdapter(SanteAdapter());
     Hive.registerAdapter(CroissanceAdapter());
     Hive.registerAdapter(RappelAdapter());
+    Hive.registerAdapter(ReproductionAdapter());
 
     // Ouvrir les boxes
     await Hive.openBox<Animal>(animalBoxName);
@@ -25,6 +27,7 @@ class DatabaseService {
     await Hive.openBox<Sante>(santeBoxName);
     await Hive.openBox<Croissance>(croissanceBoxName);
     await Hive.openBox<Rappel>(rappelBoxName);
+    await Hive.openBox<Reproduction>(reproductionBoxName);
   }
 
   // Box getters
@@ -33,6 +36,7 @@ class DatabaseService {
   static Box<Sante> get santeBox => Hive.box<Sante>(santeBoxName);
   static Box<Croissance> get croissanceBox => Hive.box<Croissance>(croissanceBoxName);
   static Box<Rappel> get rappelBox => Hive.box<Rappel>(rappelBoxName);
+  static Box<Reproduction> get reproductionBox => Hive.box<Reproduction>(reproductionBoxName);
 
   // CRUD Animaux
   static Future<void> ajouterAnimal(Animal animal) async {
@@ -62,6 +66,10 @@ class DatabaseService {
     }
     final rappels = rappelBox.values.where((r) => r.animalId == id).toList();
     for (var r in rappels) {
+      await r.delete();
+    }
+    final reproductions = reproductionBox.values.where((r) => r.animalId == id).toList();
+    for (var r in reproductions) {
       await r.delete();
     }
     GoogleDriveService.autoSync();
@@ -121,6 +129,27 @@ class DatabaseService {
   static Future<void> supprimerCroissance(String id) async {
     await croissanceBox.delete(id);
     GoogleDriveService.autoSync();
+  }
+
+  // CRUD Reproduction
+  static Future<void> ajouterReproduction(Reproduction reproduction) async {
+    await reproductionBox.put(reproduction.id, reproduction);
+    GoogleDriveService.autoSync();
+  }
+
+  static Future<void> updateReproduction(Reproduction reproduction) async {
+    await reproductionBox.put(reproduction.id, reproduction);
+    GoogleDriveService.autoSync();
+  }
+
+  static Future<void> deleteReproduction(String id) async {
+    await reproductionBox.delete(id);
+    GoogleDriveService.autoSync();
+  }
+
+  static Future<List<Reproduction>> getReproductions() async {
+    return reproductionBox.values.toList()
+      ..sort((a, b) => b.dateEvenement.compareTo(a.dateEvenement));
   }
 
   // CRUD Rappels

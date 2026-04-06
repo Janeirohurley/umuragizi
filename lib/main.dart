@@ -10,6 +10,7 @@ import 'services/google_drive_service.dart';
 import 'services/background_sync_service.dart';
 import 'providers/animal_provider.dart';
 import 'providers/rappel_provider.dart';
+import 'providers/reproduction_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/auth/pin_screen.dart';
 import 'utils/app_theme.dart';
@@ -112,6 +113,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AnimalProvider()),
         ChangeNotifierProvider(create: (_) => RappelProvider()),
+        ChangeNotifierProvider(create: (_) => ReproductionProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

@@ -251,6 +251,19 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
     );
   }
 
+  String _getExemplePourEspece(String espece) {
+    switch (espece.toLowerCase()) {
+      case 'bovin': return 'ex: Vache, Taureau, Veau';
+      case 'ovin': return 'ex: Mouton, Brebis, Bélier';
+      case 'caprin': return 'ex: Chèvre, Bouc, Chevreau';
+      case 'porcin': return 'ex: Porc, Truie, Porcelet';
+      case 'volaille': return 'ex: Poule, Coq, Dindon';
+      case 'équin': return 'ex: Cheval, Âne, Mule';
+      case 'lapin': return 'ex: Lapin, Lapine';
+      default: return '';
+    }
+  }
+
   void _showEspeceBottomSheet() {
     showModalBottomSheet(
       context: context,
@@ -306,6 +319,15 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                             )
                           : AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                     ),
+                    subtitle: _getExemplePourEspece(espece).isNotEmpty
+                        ? Text(
+                            _getExemplePourEspece(espece),
+                            style: AppTheme.listItemSubtitle.copyWith(
+                              color: AppTheme.textSecondaryOf(context),
+                              fontSize: 12,
+                            ),
+                          )
+                        : null,
                     trailing: isSelected
                         ? Icon(
                             Icons.check_circle,

@@ -4,29 +4,72 @@ import '../services/database_service.dart';
 
 class AnimalProvider extends ChangeNotifier {
   List<Animal> _animaux = [];
+  bool _isLoading = false;
+  String? _errorMessage;
 
   List<Animal> get animaux => _animaux;
-
   int get nombreAnimaux => _animaux.length;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   void chargerAnimaux() {
-    _animaux = DatabaseService.getTousLesAnimaux();
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
+
+    try {
+      _animaux = DatabaseService.getTousLesAnimaux();
+    } catch (e) {
+      _errorMessage = 'Erreur lors du chargement des animaux: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> ajouterAnimal(Animal animal) async {
-    await DatabaseService.ajouterAnimal(animal);
-    chargerAnimaux();
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await DatabaseService.ajouterAnimal(animal);
+      chargerAnimaux();
+    } catch (e) {
+      _errorMessage = 'Erreur lors de l\'ajout: $e';
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> modifierAnimal(Animal animal) async {
-    await DatabaseService.modifierAnimal(animal);
-    chargerAnimaux();
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await DatabaseService.modifierAnimal(animal);
+      chargerAnimaux();
+    } catch (e) {
+      _errorMessage = 'Erreur lors de la modification: $e';
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> supprimerAnimal(String id) async {
-    await DatabaseService.supprimerAnimal(id);
-    chargerAnimaux();
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await DatabaseService.supprimerAnimal(id);
+      chargerAnimaux();
+    } catch (e) {
+      _errorMessage = 'Erreur lors de la suppression: $e';
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Animal? getAnimal(String id) {
