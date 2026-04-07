@@ -9,6 +9,7 @@ class DatabaseService {
   static const String croissanceBoxName = 'croissances';
   static const String rappelBoxName = 'rappels';
   static const String reproductionBoxName = 'reproductions';
+  static const String transactionBoxName = 'transactions';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -20,6 +21,7 @@ class DatabaseService {
     Hive.registerAdapter(CroissanceAdapter());
     Hive.registerAdapter(RappelAdapter());
     Hive.registerAdapter(ReproductionAdapter());
+    Hive.registerAdapter(TransactionAdapter());
 
     // Ouvrir les boxes
     await Hive.openBox<Animal>(animalBoxName);
@@ -28,6 +30,7 @@ class DatabaseService {
     await Hive.openBox<Croissance>(croissanceBoxName);
     await Hive.openBox<Rappel>(rappelBoxName);
     await Hive.openBox<Reproduction>(reproductionBoxName);
+    await Hive.openBox<Transaction>(transactionBoxName);
   }
 
   // Box getters
@@ -37,6 +40,7 @@ class DatabaseService {
   static Box<Croissance> get croissanceBox => Hive.box<Croissance>(croissanceBoxName);
   static Box<Rappel> get rappelBox => Hive.box<Rappel>(rappelBoxName);
   static Box<Reproduction> get reproductionBox => Hive.box<Reproduction>(reproductionBoxName);
+  static Box<Transaction> get transactionBox => Hive.box<Transaction>(transactionBoxName);
 
   // CRUD Animaux
   static Future<void> ajouterAnimal(Animal animal) async {
@@ -71,6 +75,10 @@ class DatabaseService {
     final reproductions = reproductionBox.values.where((r) => r.animalId == id).toList();
     for (var r in reproductions) {
       await r.delete();
+    }
+    final transactions = transactionBox.values.where((t) => t.animalId == id).toList();
+    for (var t in transactions) {
+      await t.delete();
     }
     GoogleDriveService.autoSync();
   }
@@ -150,6 +158,27 @@ class DatabaseService {
   static Future<List<Reproduction>> getReproductions() async {
     return reproductionBox.values.toList()
       ..sort((a, b) => b.dateEvenement.compareTo(a.dateEvenement));
+  }
+
+  // CRUD Transactions
+  static Future<void> ajouterTransaction(Transaction transaction) async {
+    await transactionBox.put(transaction.id, transaction);
+    GoogleDriveService.autoSync();
+  }
+
+  static Future<void> modifierTransaction(Transaction transaction) async {
+    await transactionBox.put(transaction.id, transaction);
+    GoogleDriveService.autoSync();
+  }
+
+  static Future<void> supprimerTransaction(String id) async {
+    await transactionBox.delete(id);
+    GoogleDriveService.autoSync();
+  }
+
+  static Future<List<Transaction>> getTransactions() async {
+    return transactionBox.values.toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   // CRUD Rappels
@@ -252,6 +281,9 @@ class DatabaseService {
   static List<Alimentation> getAllAlimentations() => alimentationBox.values.toList();
   static List<Sante> getAllSantes() => santeBox.values.toList();
   static List<Croissance> getAllCroissances() => croissanceBox.values.toList();
+  static List<Reproduction> getAllReproductions() => reproductionBox.values.toList();
+  static List<Transaction> getAllTransactions() => transactionBox.values.toList();
+
   static List<Rappel> getRappelsActifs() {
     return rappelBox.values.where((r) => !r.estComplete).toList();
   }

@@ -9,11 +9,15 @@ import '../utils/page_transitions.dart';
 import '../widgets/widgets.dart';
 import 'animal/animal_list_screen.dart';
 import 'animal/scanner_screen.dart';
+import 'animal/birth_dashboard_screen.dart';
 import 'feeding/feeding_list_screen.dart';
 import 'health/health_list_screen.dart';
 import 'reminders/reminder_list_screen.dart';
 import 'statistics/statistics_screen.dart';
 import 'settings/settings_screen.dart';
+import 'finance/finance_dashboard_screen.dart';
+import '../providers/finance_provider.dart';
+import '../providers/reproduction_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String? initialFilter;
@@ -38,6 +42,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AnimalProvider>().chargerAnimaux();
       context.read<RappelProvider>().chargerRappels();
+      context.read<FinanceProvider>().chargerTransactions();
     });
   }
 
@@ -79,6 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             AnimalListScreen(initialFilter: _animalFilter),
             const ReminderListScreen(),
             const StatisticsScreen(),
+            const FinanceDashboardScreen(),
           ],
         ),
       ),
@@ -103,6 +109,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _buildNavItem(1, Icons.pets_outlined, Icons.pets, 'Animaux'),
                 _buildNavItem(2, Icons.notifications_outlined, Icons.notifications, 'Tâches'),
                 _buildNavItem(3, Icons.bar_chart_outlined, Icons.bar_chart_rounded, 'Stats'),
+                _buildNavItem(4, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, 'Finance'),
               ],
             ),
           ),
@@ -360,6 +367,23 @@ class _AccueilTabState extends State<_AccueilTab> {
                         label: 'Complétés',
                         value: '${rappelProvider.rappels.where((r) => r.estComplete).length}',
                         color: AppTheme.primaryPurple,
+                      ),
+                      Consumer<ReproductionProvider>(
+                        builder: (context, reproProvider, _) {
+                          final naissances = reproProvider.prochainesNaissances;
+                          return _ModernStatCard(
+                            icon: Icons.child_care_rounded,
+                            label: 'Naissances',
+                            value: '${naissances.length}',
+                            color: AppTheme.infoBlue,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                SlidePageRoute(page: const BirthDashboardScreen()),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ],
                   );
@@ -771,62 +795,67 @@ class _ModernStatCard extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
+  final VoidCallback? onTap;
 
   const _ModernStatCard({
     required this.icon,
     required this.label,
     required this.value,
     required this.color,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(AppTheme.spacingMedium),
-      decoration: BoxDecoration(
-        color: AppTheme.cardBackgroundOf(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.1),
-            blurRadius: AppTheme.spacingSmall,
-            offset: Offset(0, AppTheme.spacingXSmall),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(AppTheme.spacingSmall),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(AppTheme.spacingMedium),
+        decoration: BoxDecoration(
+          color: AppTheme.cardBackgroundOf(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.1),
+              blurRadius: AppTheme.spacingSmall,
+              offset: Offset(0, AppTheme.spacingXSmall),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(AppTheme.spacingSmall),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: AppTheme.iconSizeMedium,
+                  ),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: AppTheme.iconSizeMedium,
+                const Spacer(),
+                Text(
+                  value,
+                  style: AppTheme.sectionTitle.copyWith(color: color),
                 ),
-              ),
-              const Spacer(),
-              Text(
-                value,
-                style: AppTheme.sectionTitle.copyWith(color: color),
-              ),
-            ],
-          ),
-          SizedBox(height: AppTheme.spacingSmall),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
-          ),
-        ],
+              ],
+            ),
+            SizedBox(height: AppTheme.spacingSmall),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -265,6 +265,27 @@ class GoogleDriveService {
       'intervalleHeures': r.intervalleHeures,
       'dateFin': r.dateFin?.toIso8601String(),
     }).toList();
+
+    final reproductions = DatabaseService.getAllReproductions().map((r) => {
+      'id': r.id,
+      'animalId': r.animalId,
+      'dateEvenement': r.dateEvenement.toIso8601String(),
+      'typeEvenement': r.typeEvenement,
+      'notes': r.notes,
+      'datePrevueMiseBas': r.datePrevueMiseBas?.toIso8601String(),
+      'partenaireId': r.partenaireId,
+      'succes': r.succes,
+    }).toList();
+
+    final transactions = DatabaseService.getAllTransactions().map((t) => {
+      'id': t.id,
+      'animalId': t.animalId,
+      'date': t.date.toIso8601String(),
+      'type': t.type,
+      'categorie': t.categorie,
+      'montant': t.montant,
+      'description': t.description,
+    }).toList();
     
     return {
       'animals': animals,
@@ -272,6 +293,8 @@ class GoogleDriveService {
       'santes': santes,
       'croissances': croissances,
       'rappels': rappels,
+      'reproductions': reproductions,
+      'transactions': transactions,
       'export_date': DateTime.now().toIso8601String(),
     };
   }
@@ -349,6 +372,12 @@ class GoogleDriveService {
     await _mergeSantes(data['santes'] as List);
     await _mergeCroissances(data['croissances'] as List);
     await _mergeRappels(data['rappels'] as List);
+    if (data.containsKey('reproductions')) {
+      await _mergeReproductions(data['reproductions'] as List);
+    }
+    if (data.containsKey('transactions')) {
+      await _mergeTransactions(data['transactions'] as List);
+    }
   }
 
   static Future<void> _mergeAnimals(List animalsList) async {
@@ -458,6 +487,45 @@ class GoogleDriveService {
               : null,
         );
         await DatabaseService.ajouterRappel(rappel);
+      }
+    }
+  }
+
+  static Future<void> _mergeReproductions(List reprosList) async {
+    final existingIds = DatabaseService.getAllReproductions().map((r) => r.id).toSet();
+    for (final reproData in reprosList) {
+      if (!existingIds.contains(reproData['id'])) {
+        final repro = Reproduction(
+          id: reproData['id'],
+          animalId: reproData['animalId'],
+          dateEvenement: DateTime.parse(reproData['dateEvenement']),
+          typeEvenement: reproData['typeEvenement'],
+          notes: reproData['notes'],
+          datePrevueMiseBas: reproData['datePrevueMiseBas'] != null 
+              ? DateTime.parse(reproData['datePrevueMiseBas']) 
+              : null,
+          partenaireId: reproData['partenaireId'],
+          succes: reproData['succes'],
+        );
+        await DatabaseService.ajouterReproduction(repro);
+      }
+    }
+  }
+
+  static Future<void> _mergeTransactions(List transactionsList) async {
+    final existingIds = DatabaseService.getAllTransactions().map((t) => t.id).toSet();
+    for (final txData in transactionsList) {
+      if (!existingIds.contains(txData['id'])) {
+        final tx = Transaction(
+          id: txData['id'],
+          animalId: txData['animalId'],
+          date: DateTime.parse(txData['date']),
+          type: txData['type'],
+          categorie: txData['categorie'],
+          montant: txData['montant'].toDouble(),
+          description: txData['description'],
+        );
+        await DatabaseService.ajouterTransaction(tx);
       }
     }
   }

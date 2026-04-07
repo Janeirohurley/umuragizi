@@ -63,4 +63,12 @@ class ReproductionProvider with ChangeNotifier {
     return _reproductions.where((r) => r.animalId == animalId).toList()
       ..sort((a, b) => b.dateEvenement.compareTo(a.dateEvenement));
   }
+
+  List<Reproduction> get prochainesNaissances {
+    final now = DateTime.now();
+    return _reproductions
+        .where((r) => r.datePrevueMiseBas != null && r.datePrevueMiseBas!.isAfter(now))
+        .toList()
+      ..sort((a, b) => a.datePrevueMiseBas!.compareTo(b.datePrevueMiseBas!));
+  }
 }

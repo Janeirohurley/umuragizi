@@ -5,11 +5,14 @@ import 'dart:convert';
 import '../../models/models.dart';
 import '../../providers/animal_provider.dart';
 import '../../services/database_service.dart';
+import '../../services/pdf_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
 import 'animal_form_screen.dart';
 import 'reproduction_form_screen.dart';
+import '../finance/transaction_form_screen.dart';
 import '../../providers/reproduction_provider.dart';
+import '../../providers/finance_provider.dart';
 import 'package:intl/intl.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
@@ -534,6 +537,29 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
+                    Icons.picture_as_pdf,
+                    color: AppTheme.primaryPurple,
+                    size: 20,
+                  ),
+                ),
+                onPressed: () {
+                  final repros = context.read<ReproductionProvider>().filtrerParAnimal(animal.id);
+                  final transactions = context.read<FinanceProvider>().transactions.where((tx) => tx.animalId == animal.id).toList();
+                  PdfService.generateAnimalReport(
+                    animal: animal,
+                    repros: repros,
+                    transactions: transactions,
+                  );
+                },
+              ),
+              IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
                     Icons.edit,
                     color: AppTheme.textPrimary,
                     size: 20,
@@ -957,369 +983,135 @@ class _SanteTab extends StatelessWidget {
   }
 }
 
-class _FinancesTab extends StatefulWidget {
+class _FinancesTab extends StatelessWidget {
   final Animal animal;
 
   const _FinancesTab({required this.animal});
 
   @override
-  State<_FinancesTab> createState() => _FinancesTabState();
-}
-
-class _FinancesTabState extends State<_FinancesTab> {
-  String _filtrePeriode = 'Tout';
-
-  List<Alimentation> _filtrerAlimentations(List<Alimentation> alimentations) {
-    final now = DateTime.now();
-    switch (_filtrePeriode) {
-      case 'Mois':
-        return alimentations
-            .where(
-              (a) => a.date.isAfter(now.subtract(const Duration(days: 30))),
-            )
-            .toList();
-      case 'Semaine':
-        return alimentations
-            .where((a) => a.date.isAfter(now.subtract(const Duration(days: 7))))
-            .toList();
-      case 'Année':
-        return alimentations
-            .where(
-              (a) => a.date.isAfter(now.subtract(const Duration(days: 365))),
-            )
-            .toList();
-      default:
-        return alimentations;
-    }
-  }
-
-  List<Sante> _filtrerSantes(List<Sante> santes) {
-    final now = DateTime.now();
-    switch (_filtrePeriode) {
-      case 'Mois':
-        return santes
-            .where(
-              (s) => s.date.isAfter(now.subtract(const Duration(days: 30))),
-            )
-            .toList();
-      case 'Semaine':
-        return santes
-            .where((s) => s.date.isAfter(now.subtract(const Duration(days: 7))))
-            .toList();
-      case 'Année':
-        return santes
-            .where(
-              (s) => s.date.isAfter(now.subtract(const Duration(days: 365))),
-            )
-            .toList();
-      default:
-        return santes;
-    }
-  }
-
-  Widget _buildFiltreChip(String label) {
-    final isSelected = _filtrePeriode == label;
-    return GestureDetector(
-      onTap: () => setState(() => _filtrePeriode = label),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppTheme.spacingMedium,
-          vertical: AppTheme.spacingSmall - 2,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryPurple : AppTheme.surfaceColorOf(context),
-          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-        ),
-        child: Text(
-          label,
-          style: AppTheme.bodyText.copyWith(
-            fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final alimentations = _filtrerAlimentations(
-      DatabaseService.getAlimentationsParAnimal(widget.animal.id),
-    );
-    final santes = _filtrerSantes(
-      DatabaseService.getSantesParAnimal(widget.animal.id),
-    );
+    return Consumer<FinanceProvider>(
+      builder: (context, financeProvider, child) {
+        final transactions = financeProvider.filtrerParAnimal(animal.id);
 
-    final coutAlimentation = alimentations.fold<double>(
-      0,
-      (sum, a) => sum + a.coutTotal,
-    );
-    final coutSante = santes
-        .where((s) => s.estPaye)
-        .fold<double>(0, (sum, s) => sum + (s.cout ?? 0));
-    final coutTotal =
-        (_filtrePeriode == 'Tout' ? (widget.animal.prixAchat ?? 0) : 0) +
-        coutAlimentation +
-        coutSante;
+        double totalDepenses = 0;
+        double totalRevenus = 0;
+        for (var tx in transactions) {
+          if (tx.type == 'Dépense') totalDepenses += tx.montant;
+          else totalRevenus += tx.montant;
+        }
+        
+        final prixAchat = animal.prixAchat ?? 0;
+        final investissementTotal = prixAchat + totalDepenses - totalRevenus;
 
-    return ListView(
-      padding: EdgeInsets.all(AppTheme.spacingXLarge),
-      children: [
-        SizedBox(
-          height: 32,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _buildFiltreChip('Tout'),
-              SizedBox(width: AppTheme.spacingSmall),
-              _buildFiltreChip('Semaine'),
-              SizedBox(width: AppTheme.spacingSmall),
-              _buildFiltreChip('Mois'),
-              SizedBox(width: AppTheme.spacingSmall),
-              _buildFiltreChip('Année'),
-            ],
-          ),
-        ),
-        SizedBox(height: AppTheme.spacingLarge),
-        CustomCard(
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Coût total${_filtrePeriode != 'Tout' ? ' ($_filtrePeriode)' : ''}',
-                    style: AppTheme.sectionTitle.copyWith(
-                      color: AppTheme.textSecondaryOf(context),
-                    ),
-                  ),
-                  Text(
-                    '${coutTotal.toStringAsFixed(2)} €',
-                    style: AppTheme.pageTitle.copyWith(
-                      color: AppTheme.primaryPurple,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: AppTheme.spacingLarge),
-              if (_filtrePeriode == 'Tout')
-                _buildCoutRow(
-                  'Prix d\'achat',
-                  widget.animal.prixAchat ?? 0,
-                  AppTheme.infoBlue,
-                ),
-              if (_filtrePeriode == 'Tout')
-                SizedBox(height: AppTheme.spacingSmall),
-              _buildCoutRow(
-                'Alimentation',
-                coutAlimentation,
-                AppTheme.primaryGreen,
-              ),
-              SizedBox(height: AppTheme.spacingSmall),
-              _buildCoutRow('Santé', coutSante, AppTheme.errorRed),
-            ],
-          ),
-        ),
-        SizedBox(height: AppTheme.spacingLarge),
-        if (widget.animal.mereId != null) ...[
-          Text('Généalogie', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
-          SizedBox(height: AppTheme.spacingMedium),
-          _buildMereCard(widget.animal.mereId!),
-          SizedBox(height: AppTheme.spacingLarge),
-        ],
-        Text('Détails des coûts', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
-        SizedBox(height: AppTheme.spacingMedium),
-        if (alimentations.isEmpty && santes.isEmpty)
-          CustomCard(
-            padding: EdgeInsets.all(AppTheme.spacingXXLarge),
-            child: Center(
-              child: Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(AppTheme.spacingLarge),
-                    decoration: BoxDecoration(
-                      color: AppTheme.lightPurple,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.receipt_long,
-                      size: AppTheme.iconSizeXLarge,
-                      color: AppTheme.primaryPurple,
-                    ),
-                  ),
-                  SizedBox(height: AppTheme.spacingLarge),
-                  Text('Aucune dépense', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
-                ],
-              ),
-            ),
-          )
-        else ...[
-          ...alimentations
-              .where((a) => a.prixUnitaire != null)
-              .map(
-                (a) => Padding(
-                  padding: EdgeInsets.only(bottom: AppTheme.spacingSmall),
-                  child:
-                   CustomCard(
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(AppTheme.spacingSmall),
-                          decoration: BoxDecoration(
-                            color: AppTheme.lightGreen,
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.radiusSmall,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.restaurant,
-                            color: AppTheme.primaryGreen,
-                            size: AppTheme.iconSizeMedium,
-                          ),
-                        ),
-                        SizedBox(width: AppTheme.spacingMedium),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                a.typeAliment,
-                                style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                              ),
-                              Text(
-                                '${a.quantite} ${a.unite} × ${a.prixUnitaire}€',
-                                style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context)),
-                              ),
-                              Text(
-                                '${a.date.day}/${a.date.month}/${a.date.year}',
-                                style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '${a.coutTotal.toStringAsFixed(2)} €',
-                          style: AppTheme.listItemTitle.copyWith(
-                            color: AppTheme.primaryGreen,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          ...santes
-              .where((s) => s.cout != null && s.estPaye)
-              .map(
-                (s) => Padding(
-                  padding: EdgeInsets.only(bottom: AppTheme.spacingSmall),
-                  child: CustomCard(
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(AppTheme.spacingSmall),
-                          decoration: BoxDecoration(
-                            color: AppTheme.errorRed.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.radiusSmall,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.medical_services,
-                            color: AppTheme.errorRed,
-                            size: AppTheme.iconSizeMedium,
-                          ),
-                        ),
-                        SizedBox(width: AppTheme.spacingMedium),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                s.description,
-                                style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                              ),
-                              Text(s.type, style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
-                              Text(
-                                '${s.date.day}/${s.date.month}/${s.date.year}',
-                                style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '${s.cout!.toStringAsFixed(2)} €',
-                          style: AppTheme.listItemTitle.copyWith(
-                            color: AppTheme.errorRed,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildCoutRow(String label, double montant, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 40,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        SizedBox(width: AppTheme.spacingMedium),
-        Expanded(child: Text(label, style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)))),
-        Text(
-          '${montant.toStringAsFixed(2)} €',
-          style: AppTheme.listItemTitle.copyWith(color: color),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMereCard(String mereId) {
-    final mere = DatabaseService.getAnimal(mereId);
-    if (mere == null) {
-      return const SizedBox.shrink();
-    }
-
-    return CustomCard(
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(AppTheme.spacingMedium),
-            decoration: BoxDecoration(
-              color: AppTheme.lightPurple,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-            ),
-            child: Icon(
-              Icons.family_restroom,
-              color: AppTheme.primaryPurple,
-              size: AppTheme.iconSizeLarge,
-            ),
-          ),
-          SizedBox(width: AppTheme.spacingMedium),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        return Stack(
+          children: [
+            ListView(
+              padding: EdgeInsets.all(AppTheme.spacingXLarge),
               children: [
-                Text('Mère', style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
-                Text(mere.nom, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
-                Text(
-                  '${mere.espece} • ${mere.race}',
-                  style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context)),
+                // Résumé de l'investissement
+                CustomCard(
+                  padding: EdgeInsets.all(AppTheme.spacingLarge),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Investissement sur ${animal.nom}', 
+                        style: AppTheme.sectionSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
+                      const SizedBox(height: 12),
+                      _buildSummaryRow('Prix d\'achat', '${prixAchat.toStringAsFixed(2)} \$', AppTheme.textSecondaryOf(context)),
+                      _buildSummaryRow('Dépenses cumulées', '${totalDepenses.toStringAsFixed(2)} \$', AppTheme.errorRed),
+                      _buildSummaryRow('Revenus générés', '${totalRevenus.toStringAsFixed(2)} \$', AppTheme.successGreen),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Divider(),
+                      ),
+                      _buildSummaryRow(
+                        'Investissement NET', 
+                        '${investissementTotal.toStringAsFixed(2)} \$', 
+                        investissementTotal > 0 ? AppTheme.primaryPurple : AppTheme.successGreen,
+                        isBold: true
+                      ),
+                    ],
+                  ),
                 ),
+                SizedBox(height: AppTheme.spacingXLarge),
+
+                Text('Historique des transactions', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                const SizedBox(height: 12),
+
+                if (transactions.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Center(
+                      child: Text(
+                        'Aucune transaction enregistrée',
+                        style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
+                      ),
+                    ),
+                  )
+                else
+                  ...transactions.map((tx) {
+                    final isRevenu = tx.type == 'Revenu';
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: AppTheme.spacingMedium),
+                      child: CustomCard(
+                        padding: EdgeInsets.all(AppTheme.spacingSmall),
+                        child: ListTile(
+                          leading: Icon(
+                            isRevenu ? Icons.arrow_upward : Icons.arrow_downward,
+                            color: isRevenu ? AppTheme.successGreen : AppTheme.errorRed,
+                          ),
+                          title: Text(tx.categorie, style: AppTheme.listItemTitle),
+                          subtitle: Text(DateFormat('dd MMMM yyyy', 'fr_FR').format(tx.date)),
+                          trailing: Text(
+                            '${isRevenu ? '+' : '-'}${tx.montant.toStringAsFixed(0)} \$',
+                            style: TextStyle(
+                              color: isRevenu ? AppTheme.successGreen : AppTheme.errorRed,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                const SizedBox(height: 80), // Espace pour le FAB
               ],
             ),
-          ),
-          const Icon(Icons.chevron_right, color: AppTheme.textLight),
+            Positioned(
+              bottom: AppTheme.spacingXLarge,
+              right: AppTheme.spacingXLarge,
+              child: FloatingActionButton(
+                heroTag: 'add_finance_detail',
+                backgroundColor: AppTheme.primaryPurple,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TransactionFormScreen(animalLie: animal),
+                    ),
+                  );
+                },
+                child: const Icon(Icons.add, color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value, Color color, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 13)),
+          Text(value, style: TextStyle(
+            fontSize: 14, 
+            color: color, 
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal
+          )),
         ],
       ),
     );
