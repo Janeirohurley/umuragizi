@@ -97,12 +97,21 @@ class DatabaseService {
     GoogleDriveService.autoSync();
   }
 
+  static Future<void> modifierAlimentation(Alimentation alimentation) async {
+    await alimentationBox.put(alimentation.id, alimentation);
+    GoogleDriveService.autoSync();
+  }
+
   static List<Alimentation> getAlimentationsParAnimal(String animalId) {
     return alimentationBox.values.where((a) => a.animalId == animalId).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   static Future<void> supprimerAlimentation(String id) async {
+    final alim = alimentationBox.get(id);
+    if (alim?.transactionId != null) {
+      await transactionBox.delete(alim!.transactionId!);
+    }
     await alimentationBox.delete(id);
     GoogleDriveService.autoSync();
   }

@@ -28,6 +28,9 @@ class Alimentation extends HiveObject {
   @HiveField(7)
   double? prixUnitaire;
 
+  @HiveField(8)
+  String? transactionId;
+
   Alimentation({
     required this.id,
     required this.animalId,
@@ -37,6 +40,7 @@ class Alimentation extends HiveObject {
     required this.unite,
     this.notes,
     this.prixUnitaire,
+    this.transactionId,
   });
 
   double get coutTotal => (prixUnitaire ?? 0) * quantite;

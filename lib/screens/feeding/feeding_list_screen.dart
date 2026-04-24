@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/animal_provider.dart';
+import '../../providers/finance_provider.dart';
 import '../../services/database_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
@@ -116,7 +117,10 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
                 MaterialPageRoute(
                   builder: (context) => FeedingFormScreen(animalId: _selectedAnimalId!),
                 ),
-              ).then((_) => setState(() {})),
+              ).then((_) {
+                context.read<FinanceProvider>().chargerTransactions();
+                setState(() {});
+              }),
             ),
           SizedBox(width: AppTheme.spacingSmall),
         ],
@@ -214,7 +218,10 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => FeedingFormScreen(animalId: animalId)),
-              ).then((_) => setState(() {})),
+              ).then((_) {
+                context.read<FinanceProvider>().chargerTransactions();
+                setState(() {});
+              }),
             ),
           ],
         ),
@@ -225,124 +232,139 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
       children: alimentations.map((alim) => Padding(
         padding: EdgeInsets.only(bottom: AppTheme.spacingMedium),
         child: CustomCard(
-          child: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(AppTheme.spacingMedium),
-                decoration: BoxDecoration(
-                  color: AppTheme.lightGreen,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                ),
-                child: Icon(Icons.restaurant, color: AppTheme.primaryGreen, size: AppTheme.iconSizeLarge),
-              ),
-              SizedBox(width: AppTheme.spacingMedium),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      alim.typeAliment,
-                      style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                    ),
-                    SizedBox(height: AppTheme.spacingXSmall),
-                    Text(
-                      '${alim.quantite} ${alim.unite}',
-                      style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context)),
-                    ),
-                    Text(
-                      DateFormat('d MMMM yyyy à HH:mm', 'fr_FR').format(alim.date),
-                      style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
-                    ),
-                  ],
+          child: InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FeedingFormScreen(
+                  animalId: animalId,
+                  alimentation: alim,
                 ),
               ),
-              IconButton(
-                icon: Container(
-                  padding: EdgeInsets.all(AppTheme.spacingSmall),
+            ).then((_) {
+              context.read<FinanceProvider>().chargerTransactions();
+              setState(() {});
+            }),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(AppTheme.spacingMedium),
                   decoration: BoxDecoration(
-                    color: AppTheme.errorRed.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                    color: AppTheme.lightGreen,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   ),
-                  child: Icon(Icons.delete_outline, color: AppTheme.errorRed, size: AppTheme.iconSizeSmall),
+                  child: Icon(Icons.restaurant, color: AppTheme.primaryGreen, size: AppTheme.iconSizeLarge),
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => Dialog(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusXLarge)),
-                      child: Padding(
-                        padding: EdgeInsets.all(AppTheme.spacingXXLarge),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(AppTheme.spacingLarge),
-                              decoration: BoxDecoration(
-                                color: AppTheme.errorRed.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.delete_outline,
-                                size: AppTheme.iconSizeXLarge,
-                                color: AppTheme.errorRed,
-                              ),
-                            ),
-                            SizedBox(height: AppTheme.spacingXLarge),
-                            Text(
-                              'Supprimer l\'alimentation',
-                              style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                            ),
-                            SizedBox(height: AppTheme.spacingMedium),
-                            Text(
-                              'Voulez-vous vraiment supprimer cette entrée ?',
-                              textAlign: TextAlign.center,
-                              style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
-                            ),
-                            SizedBox(height: AppTheme.spacingXXLarge),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: SecondaryButton(
-                                    text: 'Annuler',
-                                    onPressed: () => Navigator.pop(context),
-                                  ),
+                SizedBox(width: AppTheme.spacingMedium),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        alim.typeAliment,
+                        style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+                      ),
+                      SizedBox(height: AppTheme.spacingXSmall),
+                      Text(
+                        '${alim.quantite} ${alim.unite}',
+                        style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context)),
+                      ),
+                      Text(
+                        DateFormat('d MMMM yyyy à HH:mm', 'fr_FR').format(alim.date),
+                        style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Container(
+                    padding: EdgeInsets.all(AppTheme.spacingSmall),
+                    decoration: BoxDecoration(
+                      color: AppTheme.errorRed.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                    ),
+                    child: Icon(Icons.delete_outline, color: AppTheme.errorRed, size: AppTheme.iconSizeSmall),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => Dialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusXLarge)),
+                        child: Padding(
+                          padding: EdgeInsets.all(AppTheme.spacingXXLarge),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(AppTheme.spacingLarge),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.errorRed.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
                                 ),
-                                SizedBox(width: AppTheme.spacingMedium),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      DatabaseService.supprimerAlimentation(alim.id);
-                                      Navigator.pop(context);
-                                      setState(() {});
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppTheme.errorRed,
-                                      foregroundColor: Colors.white,
-                                      elevation: 0,
-                                      padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium, vertical: AppTheme.spacingMedium),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                                child: Icon(
+                                  Icons.delete_outline,
+                                  size: AppTheme.iconSizeXLarge,
+                                  color: AppTheme.errorRed,
+                                ),
+                              ),
+                              SizedBox(height: AppTheme.spacingXLarge),
+                              Text(
+                                'Supprimer l\'alimentation',
+                                style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+                              ),
+                              SizedBox(height: AppTheme.spacingMedium),
+                              Text(
+                                'Voulez-vous vraiment supprimer cette entrée ?',
+                                textAlign: TextAlign.center,
+                                style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
+                              ),
+                              SizedBox(height: AppTheme.spacingXXLarge),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: SecondaryButton(
+                                      text: 'Annuler',
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                  ),
+                                  SizedBox(width: AppTheme.spacingMedium),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        await DatabaseService.supprimerAlimentation(alim.id);
+                                        context.read<FinanceProvider>().chargerTransactions();
+                                        Navigator.pop(context);
+                                        setState(() {});
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.errorRed,
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium, vertical: AppTheme.spacingMedium),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Supprimer',
+                                        style: AppTheme.bodyText.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
-                                    child: Text(
-                                      'Supprimer',
-                                      style: AppTheme.bodyText.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       )).toList(),

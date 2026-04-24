@@ -25,13 +25,14 @@ class AlimentationAdapter extends TypeAdapter<Alimentation> {
       unite: fields[5] as String,
       notes: fields[6] as String?,
       prixUnitaire: fields[7] as double?,
+      transactionId: fields[8] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Alimentation obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class AlimentationAdapter extends TypeAdapter<Alimentation> {
       ..writeByte(6)
       ..write(obj.notes)
       ..writeByte(7)
-      ..write(obj.prixUnitaire);
+      ..write(obj.prixUnitaire)
+      ..writeByte(8)
+      ..write(obj.transactionId);
   }
 
   @override

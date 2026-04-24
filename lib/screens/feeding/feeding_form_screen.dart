@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../models/models.dart';
+import '../../providers/finance_provider.dart';
 import '../../services/database_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
 
 class FeedingFormScreen extends StatefulWidget {
   final String animalId;
+  final Alimentation? alimentation;
 
-  const FeedingFormScreen({super.key, required this.animalId});
+  const FeedingFormScreen({super.key, required this.animalId, this.alimentation});
 
   @override
   State<FeedingFormScreen> createState() => _FeedingFormScreenState();
@@ -24,6 +27,24 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
   
   String _unite = 'kg';
   DateTime _date = DateTime.now();
+  String? _alimentationId;
+  String? _ancienneTransactionId;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.alimentation != null) {
+      final a = widget.alimentation!;
+      _alimentationId = a.id;
+      _typeController.text = a.typeAliment;
+      _quantiteController.text = a.quantite.toString();
+      _prixUnitaireController.text = a.prixUnitaire?.toString() ?? '';
+      _notesController.text = a.notes ?? '';
+      _unite = a.unite;
+      _date = a.date;
+      _ancienneTransactionId = a.transactionId;
+    }
+  }
 
   @override
   void dispose() {
@@ -80,18 +101,49 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
 
   void _save() {
     if (_formKey.currentState!.validate()) {
+      final prixUnitaire = _prixUnitaireController.text.isEmpty
+          ? null
+          : double.parse(_prixUnitaireController.text);
+      final quantite = double.parse(_quantiteController.text);
+
+      // Supprimer l'ancienne transaction liée si elle existe
+      if (_ancienneTransactionId != null) {
+        DatabaseService.supprimerTransaction(_ancienneTransactionId!);
+      }
+
+      String? nouvelleTransactionId;
+      if (prixUnitaire != null && prixUnitaire > 0) {
+        nouvelleTransactionId = const Uuid().v4();
+        final transaction = Transaction(
+          id: nouvelleTransactionId,
+          type: 'Dépense',
+          montant: prixUnitaire * quantite,
+          date: _date,
+          categorie: 'Alimentation',
+          animalId: widget.animalId,
+          description: _typeController.text,
+        );
+        DatabaseService.ajouterTransaction(transaction);
+        context.read<FinanceProvider>().chargerTransactions();
+      }
+
       final alimentation = Alimentation(
-        id: const Uuid().v4(),
+        id: _alimentationId ?? const Uuid().v4(),
         animalId: widget.animalId,
         date: _date,
         typeAliment: _typeController.text,
-        quantite: double.parse(_quantiteController.text),
+        quantite: quantite,
         unite: _unite,
         notes: _notesController.text.isEmpty ? null : _notesController.text,
-        prixUnitaire: _prixUnitaireController.text.isEmpty ? null : double.parse(_prixUnitaireController.text),
+        prixUnitaire: prixUnitaire,
+        transactionId: nouvelleTransactionId,
       );
 
-      DatabaseService.ajouterAlimentation(alimentation);
+      if (_alimentationId != null) {
+        DatabaseService.modifierAlimentation(alimentation);
+      } else {
+        DatabaseService.ajouterAlimentation(alimentation);
+      }
       Navigator.pop(context);
     }
   }
@@ -116,7 +168,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Ajouter alimentation',
+          widget.alimentation == null ? 'Ajouter alimentation' : 'Modifier alimentation',
           style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         centerTitle: true,

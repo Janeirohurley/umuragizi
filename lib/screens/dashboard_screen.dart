@@ -45,6 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context.read<AnimalProvider>().chargerAnimaux();
       context.read<RappelProvider>().chargerRappels();
       context.read<FinanceProvider>().chargerTransactions();
+      context.read<ReproductionProvider>().chargerReproductions();
     });
   }
 
@@ -53,17 +54,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            SlidePageRoute(page: const ScannerScreen()),
-          );
-        },
-        backgroundColor: AppTheme.primaryPurple,
-        elevation: 4,
-        child: const Icon(Icons.qr_code_scanner, color: Colors.white),
-      ),
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  SlidePageRoute(page: const ScannerScreen()),
+                );
+              },
+              backgroundColor: AppTheme.primaryPurple,
+              elevation: 4,
+              child: const Icon(Icons.qr_code_scanner, color: Colors.white),
+            )
+          : null,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         switchInCurve: Curves.easeInOut,
