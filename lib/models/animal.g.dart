@@ -30,6 +30,7 @@ class AnimalAdapter extends TypeAdapter<Animal> {
       notes: fields[9] as String?,
       mereId: fields[11] as String?,
       prixAchat: fields[12] as double?,
+      statut: fields[13] as String? ?? 'Actif',
     );
   }
 
@@ -61,8 +62,11 @@ class AnimalAdapter extends TypeAdapter<Animal> {
       ..write(obj.notes)
       ..writeByte(11)
       ..write(obj.mereId)
+      ..writeByte(14)
       ..writeByte(12)
-      ..write(obj.prixAchat);
+      ..write(obj.prixAchat)
+      ..writeByte(13)
+      ..write(obj.statut);
   }
 
   @override

@@ -43,6 +43,9 @@ class Animal extends HiveObject {
   @HiveField(12)
   double? prixAchat;
 
+  @HiveField(13)
+  String statut; // 'Actif', 'Vendu', 'Mort', 'Réformé'
+
   Animal({
     required this.id,
     required this.nom,
@@ -57,6 +60,7 @@ class Animal extends HiveObject {
     this.notes,
     this.mereId,
     this.prixAchat,
+    this.statut = 'Actif',
   });
 
   int get ageEnMois {

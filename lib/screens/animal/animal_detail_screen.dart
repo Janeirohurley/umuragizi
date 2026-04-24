@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'dart:convert';
 import '../../models/models.dart';
 import '../../providers/animal_provider.dart';
@@ -11,6 +12,7 @@ import '../../widgets/widgets.dart';
 import 'animal_form_screen.dart';
 import 'reproduction_form_screen.dart';
 import '../finance/transaction_form_screen.dart';
+import '../production/production_form_screen.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/reproduction_provider.dart';
@@ -493,7 +495,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
     }
 
     return DefaultTabController(
-      length: animal.sexe == 'Femelle' ? 6 : 5,
+      length: animal.sexe == 'Femelle' ? 7 : 6,
       child: Scaffold(
         backgroundColor: AppTheme.backgroundColorOf(context),
         body: NestedScrollView(
@@ -665,17 +667,12 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                 unselectedLabelColor: AppTheme.textSecondaryOf(context),
                 indicatorColor: AppTheme.primaryPurple,
                 tabs: [
-                  Tab(icon: const Icon(Icons.info_outline, size: 20), text: l10n.dashboard), // Info
+                  Tab(icon: const Icon(Icons.dashboard, size: 20), text: l10n.dashboard), // Info
                   if (animal.sexe == 'Femelle')
-                    Tab(
-                      icon: const Icon(Icons.family_restroom, size: 20),
-                      text: l10n.reproduction,
-                    ),
-                  const Tab(icon: Icon(Icons.restaurant, size: 20), text: 'Alim.'),
-                  const Tab(
-                    icon: Icon(Icons.favorite_outline, size: 20),
-                    text: 'Santé',
-                  ),
+                    Tab(icon: const Icon(Icons.family_restroom, size: 20), text: 'Reproduction.'),
+                  const Tab(icon: Icon(Icons.restaurant, size: 20), text: 'Alimentation.'),
+                  const Tab(icon: Icon(Icons.water_drop, size: 20), text: 'Production.'),
+                  const Tab(icon: Icon(Icons.favorite_outline, size: 20), text: 'Santé'),
                   Tab(
                     icon: const Icon(Icons.attach_money, size: 20),
                     text: l10n.finance,
@@ -694,6 +691,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
             _InfoTab(animal: animal),
             if (animal.sexe == 'Femelle') _ReproductionTab(animal: animal),
             _AlimentationTab(animalId: animal.id),
+            _ProductionTab(animal: animal),
             _SanteTab(animalId: animal.id),
             _FinancesTab(animal: animal),
             _RappelsTab(animalId: animal.id),
@@ -740,6 +738,9 @@ class _InfoTab extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.all(AppTheme.spacingXLarge),
       children: [
+        // Badge statut
+        _StatutBadge(statut: animal.statut),
+        SizedBox(height: AppTheme.spacingMedium),
         _InfoCard(
           icon: animal.sexe == 'Mâle' ? Icons.male : Icons.female,
           label: animal.sexe == 'Mâle' ? 'Male' : 'Female', // Note: Add more l10n later
@@ -798,7 +799,6 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.watch<SettingsProvider>();
     return CustomCard(
       child: Row(
         children: [
@@ -1050,6 +1050,49 @@ class _FinancesTab extends StatelessWidget {
                 Text('Historique des transactions', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                 const SizedBox(height: 12),
 
+                // Graphique évolution solde
+                if (transactions.length >= 2) ...[
+                  CustomCard(
+                    padding: EdgeInsets.all(AppTheme.spacingMedium),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Évolution du solde', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                        SizedBox(height: AppTheme.spacingMedium),
+                        SizedBox(
+                          height: 150,
+                          child: LineChart(
+                            LineChartData(
+                              gridData: const FlGridData(show: false),
+                              borderData: FlBorderData(show: false),
+                              titlesData: const FlTitlesData(
+                                leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              ),
+                              lineBarsData: [
+                                LineChartBarData(
+                                  spots: _buildFinanceSpots(transactions),
+                                  isCurved: true,
+                                  color: totalRevenus >= totalDepenses ? AppTheme.successGreen : AppTheme.errorRed,
+                                  barWidth: 3,
+                                  dotData: const FlDotData(show: false),
+                                  belowBarData: BarAreaData(
+                                    show: true,
+                                    color: (totalRevenus >= totalDepenses ? AppTheme.successGreen : AppTheme.errorRed).withValues(alpha: 0.1),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: AppTheme.spacingLarge),
+                ],
+
                 if (transactions.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 40),
@@ -1119,13 +1162,213 @@ class _FinancesTab extends StatelessWidget {
         children: [
           Text(label, style: const TextStyle(fontSize: 13)),
           Text(value, style: TextStyle(
-            fontSize: 14, 
-            color: color, 
+            fontSize: 14,
+            color: color,
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal
           )),
         ],
       ),
     );
+  }
+
+  List<FlSpot> _buildFinanceSpots(List<Transaction> transactions) {
+    if (transactions.isEmpty) return [];
+    final sorted = [...transactions]..sort((a, b) => a.date.compareTo(b.date));
+    double cumul = 0;
+    return sorted.asMap().entries.map((e) {
+      cumul += e.value.type == 'Revenu' ? e.value.montant : -e.value.montant;
+      return FlSpot(e.key.toDouble(), cumul);
+    }).toList();
+  }
+}
+
+class _StatutBadge extends StatelessWidget {
+  final String statut;
+  const _StatutBadge({required this.statut});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    IconData icon;
+    switch (statut) {
+      case 'Vendu': color = AppTheme.infoBlue; icon = Icons.sell; break;
+      case 'Mort': color = AppTheme.errorRed; icon = Icons.close; break;
+      case 'Réformé': color = AppTheme.warningOrange; icon = Icons.block; break;
+      default: color = AppTheme.successGreen; icon = Icons.check_circle;
+    }
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingSmall),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: AppTheme.iconSizeMedium),
+          SizedBox(width: AppTheme.spacingSmall),
+          Text(statut, style: AppTheme.bodyText.copyWith(color: color, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProductionTab extends StatefulWidget {
+  final Animal animal;
+  const _ProductionTab({required this.animal});
+
+  @override
+  State<_ProductionTab> createState() => _ProductionTabState();
+}
+
+class _ProductionTabState extends State<_ProductionTab> {
+  @override
+  Widget build(BuildContext context) {
+    final productions = DatabaseService.getProductionsParAnimal(widget.animal.id);
+
+    // Totaux par type
+    final Map<String, double> totaux = {};
+    for (final p in productions) {
+      totaux[p.type] = (totaux[p.type] ?? 0) + p.quantite;
+    }
+
+    return Stack(
+      children: [
+        productions.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(AppTheme.spacingXXLarge),
+                      decoration: BoxDecoration(color: AppTheme.lightPurple, shape: BoxShape.circle),
+                      child: Icon(Icons.water_drop, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
+                    ),
+                    SizedBox(height: AppTheme.spacingLarge),
+                    Text('Aucune production', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                    SizedBox(height: AppTheme.spacingSmall),
+                    Text('Enregistrez lait, œufs, laine...', style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context))),
+                  ],
+                ),
+              )
+            : ListView(
+                padding: EdgeInsets.fromLTRB(AppTheme.spacingXLarge, AppTheme.spacingXLarge, AppTheme.spacingXLarge, 100),
+                children: [
+                  // Cartes résumé par type
+                  if (totaux.isNotEmpty) ...[
+                    Row(
+                      children: totaux.entries.map((e) => Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(right: e.key != totaux.keys.last ? AppTheme.spacingSmall : 0),
+                          child: Container(
+                            padding: EdgeInsets.all(AppTheme.spacingMedium),
+                            decoration: BoxDecoration(
+                              color: AppTheme.lightPurple,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(_iconForType(e.key), color: AppTheme.primaryPurple, size: AppTheme.iconSizeLarge),
+                                SizedBox(height: AppTheme.spacingXSmall),
+                                Text(e.value.toStringAsFixed(1), style: AppTheme.sectionTitle.copyWith(color: AppTheme.primaryPurple)),
+                                Text(e.key, style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context))),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )).toList(),
+                    ),
+                    SizedBox(height: AppTheme.spacingXLarge),
+                  ],
+                  // Liste
+                  ...productions.map((p) => Padding(
+                    padding: EdgeInsets.only(bottom: AppTheme.spacingMedium),
+                    child: CustomCard(
+                      child: InkWell(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ProductionFormScreen(
+                            animalId: widget.animal.id,
+                            espece: widget.animal.espece,
+                            production: p,
+                          )),
+                        ).then((_) => setState(() {})),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(AppTheme.spacingMedium),
+                              decoration: BoxDecoration(
+                                color: AppTheme.lightPurple,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                              ),
+                              child: Icon(_iconForType(p.type), color: AppTheme.primaryPurple, size: AppTheme.iconSizeLarge),
+                            ),
+                            SizedBox(width: AppTheme.spacingMedium),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(p.type, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                                  Text('${p.quantite} ${p.unite}', style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
+                                  Text(DateFormat('d MMM yyyy', 'fr_FR').format(p.date), style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context))),
+                                ],
+                              ),
+                            ),
+                            if (p.prixUnitaire != null)
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingSmall, vertical: AppTheme.spacingXSmall),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.successGreen.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                                ),
+                                child: Text(
+                                  '+${p.valeurTotale.toStringAsFixed(0)}',
+                                  style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.successGreen, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            IconButton(
+                              icon: Icon(Icons.delete_outline, color: AppTheme.errorRed, size: AppTheme.iconSizeMedium),
+                              onPressed: () async {
+                                await DatabaseService.supprimerProduction(p.id);
+                                setState(() {});
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )),
+                ],
+              ),
+        Positioned(
+          bottom: AppTheme.spacingXLarge,
+          right: AppTheme.spacingXLarge,
+          child: FloatingActionButton(
+            heroTag: 'add_production',
+            backgroundColor: AppTheme.primaryPurple,
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProductionFormScreen(
+                animalId: widget.animal.id,
+                espece: widget.animal.espece,
+              )),
+            ).then((_) => setState(() {})),
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'Lait': return Icons.water_drop;
+      case 'Oeufs': return Icons.egg;
+      case 'Laine': return Icons.texture;
+      default: return Icons.inventory_2;
+    }
   }
 }
 

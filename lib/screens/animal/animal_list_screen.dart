@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import '../../l10n/app_localizations.dart';
 import '../../providers/animal_provider.dart';
-import '../../providers/settings_provider.dart';
 import '../../models/models.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
@@ -83,7 +82,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                 borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Text(
-                '${provider.nombreAnimaux} total',
+                '${provider.nombreAnimauxActifs} actifs / ${provider.nombreAnimaux}',
                 style: AppTheme.tagText,
               ),
             ),
@@ -293,7 +292,28 @@ class _ModernAnimalCard extends StatelessWidget {
                    Text(animal.nom, style: AppTheme.listItemTitle),
                    Text('${animal.espece} • ${animal.race}', style: AppTheme.listItemSubtitle),
                    SizedBox(height: 4),
-                   Text(animal.ageFormate, style: AppTheme.bodyTextSecondary),
+                   Row(
+                     children: [
+                       Text(animal.ageFormate, style: AppTheme.bodyTextSecondary),
+                       if (animal.statut != 'Actif') ...[
+                         SizedBox(width: AppTheme.spacingSmall),
+                         Container(
+                           padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingSmall, vertical: 2),
+                           decoration: BoxDecoration(
+                             color: _statutColor(animal.statut).withValues(alpha: 0.12),
+                             borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                           ),
+                           child: Text(
+                             animal.statut,
+                             style: AppTheme.bodyTextLight.copyWith(
+                               color: _statutColor(animal.statut),
+                               fontWeight: FontWeight.bold,
+                             ),
+                           ),
+                         ),
+                       ],
+                     ],
+                   ),
                 ],
               ),
             ),
@@ -302,5 +322,14 @@ class _ModernAnimalCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _statutColor(String statut) {
+    switch (statut) {
+      case 'Vendu': return AppTheme.infoBlue;
+      case 'Mort': return AppTheme.errorRed;
+      case 'Réformé': return AppTheme.warningOrange;
+      default: return AppTheme.successGreen;
+    }
   }
 }

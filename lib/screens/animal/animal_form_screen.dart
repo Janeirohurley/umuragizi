@@ -29,6 +29,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
 
   String _espece = 'Bovin';
   String _sexe = 'Mâle';
+  String _statut = 'Actif';
   DateTime _dateNaissance = DateTime.now();
   String? _photoPath;
   String? _photoBase64;
@@ -46,6 +47,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
       _prixAchatController.text = widget.animal!.prixAchat?.toString() ?? '';
       _sexe = widget.animal!.sexe;
       _dateNaissance = widget.animal!.dateNaissance;
+      _statut = widget.animal!.statut;
       _photoPath = widget.animal!.photoPath;
       _photoBase64 = widget.animal!.photoBase64;
       _mereId = widget.animal!.mereId;
@@ -370,6 +372,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
         prixAchat: _prixAchatController.text.isEmpty
             ? null
             : double.parse(_prixAchatController.text),
+        statut: _statut,
       );
 
       if (widget.animal == null) {
@@ -573,6 +576,12 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
             ),
             SizedBox(height: AppTheme.spacingXXLarge),
 
+            // Statut
+            const Text('Statut', style: AppTheme.sectionTitle),
+            SizedBox(height: AppTheme.spacingMedium),
+            _buildStatutSelector(),
+            SizedBox(height: AppTheme.spacingXXLarge),
+
             // Finances
             const Text('Finances (optionnel)', style: AppTheme.sectionTitle),
             SizedBox(height: AppTheme.spacingMedium),
@@ -651,6 +660,44 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
           vertical: AppTheme.spacingMedium - 2,
         ),
       ),
+    );
+  }
+
+  Widget _buildStatutSelector() {
+    const statuts = [
+      ('Actif', AppTheme.successGreen, Icons.check_circle),
+      ('Vendu', AppTheme.infoBlue, Icons.sell),
+      ('Mort', AppTheme.errorRed, Icons.close),
+      ('Réformé', AppTheme.warningOrange, Icons.block),
+    ];
+    return Wrap(
+      spacing: AppTheme.spacingSmall,
+      runSpacing: AppTheme.spacingSmall,
+      children: statuts.map((s) {
+        final isSelected = _statut == s.$1;
+        return GestureDetector(
+          onTap: () => setState(() => _statut = s.$1),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
+            decoration: BoxDecoration(
+              color: isSelected ? s.$2 : AppTheme.surfaceColorOf(context),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(s.$3, color: isSelected ? Colors.white : s.$2, size: AppTheme.iconSizeMedium),
+                SizedBox(width: AppTheme.spacingSmall),
+                Text(s.$1, style: AppTheme.bodyText.copyWith(
+                  color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
+                  fontWeight: FontWeight.w600,
+                )),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 

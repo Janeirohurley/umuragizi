@@ -9,6 +9,7 @@ class AnimalProvider extends ChangeNotifier {
 
   List<Animal> get animaux => _animaux;
   int get nombreAnimaux => _animaux.length;
+  int get nombreAnimauxActifs => _animaux.where((a) => a.statut == 'Actif').length;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -94,5 +95,10 @@ class AnimalProvider extends ChangeNotifier {
 
   List<String> get especes {
     return _animaux.map((a) => a.espece).toSet().toList();
+  }
+
+  List<Animal> filtrerParStatut(String statut) {
+    if (statut == 'Tous') return _animaux;
+    return _animaux.where((a) => a.statut == statut).toList();
   }
 }
