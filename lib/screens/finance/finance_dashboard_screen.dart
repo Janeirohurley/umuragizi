@@ -93,7 +93,7 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                       '${isPositif ? '+' : ''}${CurrencyHelper.format(solde, settings)}',
                       style: AppTheme.pageTitle.copyWith(
                         color: isPositif ? AppTheme.successGreen : AppTheme.errorRed,
-                        fontSize: settings.currency == 'BIF' ? 28 : 34,
+                        fontSize: settings.currency == 'BIF' ? 23 : 32,
                       ),
                     ),
                     SizedBox(height: AppTheme.spacingLarge),
@@ -216,7 +216,7 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, String value) {
+ Widget _buildFilterChip(String label, String value) {
     final isSelected = _periodeSelectionnee == value;
     return ChoiceChip(
       label: Text(label),
@@ -228,8 +228,20 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
           });
         }
       },
+      // --- AJOUT DE LA FORME ARRONDIE ---
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(
+            10), // Ajustez la valeur selon l'arrondi souhaité
+        side: const BorderSide(
+          color: AppTheme
+              .primaryPurple, // Optionnel : pour garder une bordure visible
+          width: 1,
+        ),
+      ),
+      // ----------------------------------
       selectedColor: AppTheme.primaryPurple,
-      labelStyle: TextStyle(color: isSelected ? Colors.white : AppTheme.primaryPurple),
+      labelStyle:
+          TextStyle(color: isSelected ? Colors.white : AppTheme.primaryPurple),
       backgroundColor: Colors.white,
     );
   }
