@@ -31,5 +31,9 @@
   "restoreData": "Restore data",
   "syncNow": "Sync now",
   "successSync": "Synchronization successful",
-  "successRestore": "Restoration successful"
+  "successRestore": "Restoration successful",
+  "statistics": "Statistics",
+  "global": "Global",
+  "byCategory": "By Category",
+  "byAnimal": "By Animal"
 }

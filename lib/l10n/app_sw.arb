@@ -31,5 +31,9 @@
   "restoreData": "Rejesha data",
   "syncNow": "Sawazisha sasa",
   "successSync": "Usawazishaji umefanikiwa",
-  "successRestore": "Urejeshaji umefanikiwa"
+  "successRestore": "Urejeshaji umefanikiwa",
+  "statistics": "Takwimu",
+  "global": "Kimataifa",
+  "byCategory": "Kwa Kategoria",
+  "byAnimal": "Kwa Mnyama"
 }

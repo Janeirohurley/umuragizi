@@ -89,11 +89,31 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
     }
   }
 
+  // Âge minimum en mois pour être mère selon l'espèce
+  static int _ageMinMere(String espece) {
+    switch (espece.toLowerCase()) {
+      case 'bovin': return 24;
+      case 'équin': return 36;
+      case 'caprin': return 12;
+      case 'ovin': return 12;
+      case 'porcin': return 8;
+      case 'volaille': return 6;
+      case 'lapin': return 6;
+      default: return 12;
+    }
+  }
+
   void _showMereBottomSheet() {
+    final espece = _espece;
+    final ageMin = _ageMinMere(espece);
     final animaux = context
         .read<AnimalProvider>()
         .animaux
-        .where((a) => a.sexe == 'Femelle' && a.id != widget.animal?.id)
+        .where((a) =>
+            a.sexe == 'Femelle' &&
+            a.id != widget.animal?.id &&
+            a.espece.toLowerCase() == espece.toLowerCase() &&
+            a.ageEnMois >= ageMin)
         .toList();
     showModalBottomSheet(
       context: context,
@@ -155,7 +175,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                     ),
                     SizedBox(height: AppTheme.spacingSmall),
                     const Text(
-                      'Ajoutez d\'abord une femelle pour pouvoir sélectionner une mère',
+                      'Aucune femelle de la même espèce avec l\'âge requis n\'est disponible.',
                       textAlign: TextAlign.center,
                       style: AppTheme.bodyTextLight,
                     ),

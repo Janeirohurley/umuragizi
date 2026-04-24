@@ -31,5 +31,9 @@
   "restoreData": "Garura amakuru",
   "syncNow": "Hura ubu",
   "successSync": "Guhuriza hamwe vyagenze neza",
-  "successRestore": "Kugarura amakuru vyagenze neza"
+  "successRestore": "Kugarura amakuru vyagenze neza",
+  "statistics": "Imibare",
+  "global": "Hose",
+  "byCategory": "Ukuriki",
+  "byAnimal": "Ubwoko bwitungwa"
 }

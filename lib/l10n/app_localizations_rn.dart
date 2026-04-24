@@ -106,4 +106,16 @@ class AppLocalizationsRn extends AppLocalizations {
 
   @override
   String get successRestore => 'Kugarura amakuru vyagenze neza';
+
+  @override
+  String get statistics => 'Imibare';
+
+  @override
+  String get global => 'Hose';
+
+  @override
+  String get byCategory => 'Ukuriki';
+
+  @override
+  String get byAnimal => 'Ubwoko bwitungwa';
 }

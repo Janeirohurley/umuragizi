@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../services/export_import_service.dart';
 import '../../services/google_drive_service.dart';
@@ -52,38 +51,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showLanguageDialog() {
     final settingsProvider = context.read<SettingsProvider>();
     final l10n = AppLocalizations.of(context)!;
-    
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLarge)),
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingXXLarge),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppTheme.spacingMedium),
-                decoration: const BoxDecoration(
-                  color: AppTheme.lightPurple,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.language_outlined, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
-              ),
-              const SizedBox(height: AppTheme.spacingLarge),
-              Text(
-                l10n.language,
-                style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-              ),
-              const SizedBox(height: AppTheme.spacingXXLarge),
-              _buildLanguageOption(context, settingsProvider, 'Français', const Locale('fr'), '🇫🇷'),
-              _buildLanguageOption(context, settingsProvider, 'English', const Locale('en'), '🇺🇸'),
-              _buildLanguageOption(context, settingsProvider, 'Kiswahili', const Locale('sw'), '🇹🇿'),
-              _buildLanguageOption(context, settingsProvider, 'IKirundi', const Locale('rn'), '🇧🇮'),
-            ],
-          ),
-        ),
-      ),
+    _showSelectionBottomSheet(
+      title: l10n.language,
+      icon: Icons.language_outlined,
+      children: [
+        _buildLanguageOption(context, settingsProvider, 'Français', const Locale('fr'), '🇫🇷'),
+        _buildLanguageOption(context, settingsProvider, 'English', const Locale('en'), '🇺🇸'),
+        _buildLanguageOption(context, settingsProvider, 'Kiswahili', const Locale('sw'), '🇹🇿'),
+        _buildLanguageOption(context, settingsProvider, 'IKirundi', const Locale('rn'), '🇧🇮'),
+      ],
     );
   }
 
@@ -108,38 +84,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showCurrencyDialog() {
     final settingsProvider = context.read<SettingsProvider>();
     final l10n = AppLocalizations.of(context)!;
-    
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLarge)),
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingXXLarge),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppTheme.spacingMedium),
-                decoration: const BoxDecoration(
-                  color: AppTheme.lightPurple,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.monetization_on_outlined, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
-              ),
-              const SizedBox(height: AppTheme.spacingLarge),
-              Text(
-                l10n.currency,
-                style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-              ),
-              const SizedBox(height: AppTheme.spacingXXLarge),
-              _buildCurrencyOption(context, settingsProvider, 'Franc Burundais', 'BIF'),
-              _buildCurrencyOption(context, settingsProvider, 'US Dollar', 'USD'),
-              _buildCurrencyOption(context, settingsProvider, 'Kenyan Shilling', 'KES'),
-              _buildCurrencyOption(context, settingsProvider, 'Euro', 'EUR'),
-            ],
-          ),
-        ),
-      ),
+    _showSelectionBottomSheet(
+      title: l10n.currency,
+      icon: Icons.monetization_on_outlined,
+      children: [
+        _buildCurrencyOption(context, settingsProvider, 'Franc Burundais', 'BIF'),
+        _buildCurrencyOption(context, settingsProvider, 'US Dollar', 'USD'),
+        _buildCurrencyOption(context, settingsProvider, 'Kenyan Shilling', 'KES'),
+        _buildCurrencyOption(context, settingsProvider, 'Euro', 'EUR'),
+      ],
     );
   }
 
@@ -167,44 +120,91 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showThemeDialog() {
     final themeProvider = context.read<ThemeProvider>();
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLarge)),
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingXXLarge),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppTheme.spacingMedium),
-                decoration: const BoxDecoration(
-                  color: AppTheme.lightPurple,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.palette_outlined, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
-              ),
-              const SizedBox(height: AppTheme.spacingLarge),
-              Text(
-                'Thème',
-                style: AppTheme.pageTitle.copyWith(
-                  color: AppTheme.textPrimaryOf(context),
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingXXLarge),
-              SwitchListTile(
-                title: const Text('Mode sombre', style: AppTheme.listItemTitle),
-                subtitle: const Text('Activer le thème sombre', style: AppTheme.listItemSubtitle),
-                value: themeProvider.isDarkMode,
-                onChanged: (value) {
-                  themeProvider.toggleTheme();
-                  Navigator.pop(context);
-                },
-                activeThumbColor: AppTheme.primaryPurple,
-              ),
-            ],
+    _showSelectionBottomSheet(
+      title: 'Thème',
+      icon: Icons.palette_outlined,
+      children: [
+        _buildThemeOption(context, themeProvider, 'Clair', Icons.light_mode_outlined, false),
+        _buildThemeOption(context, themeProvider, 'Sombre', Icons.dark_mode_outlined, true),
+      ],
+    );
+  }
+
+  Widget _buildThemeOption(BuildContext context, ThemeProvider provider,
+      String name, IconData icon, bool isDark) {
+    final isSelected = provider.isDarkMode == isDark;
+    return CustomCard(
+      onTap: () {
+        if (provider.isDarkMode != isDark) provider.toggleTheme();
+        Navigator.pop(context);
+      },
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(AppTheme.spacingSmall),
+          decoration: BoxDecoration(
+            color: (isDark ? AppTheme.darkPurple : AppTheme.lightPurple),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           ),
+          child: Icon(icon, color: AppTheme.primaryPurple, size: AppTheme.iconSizeLarge),
+        ),
+        const SizedBox(width: AppTheme.spacingMedium),
+        Expanded(child: Text(name, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)))),
+        if (isSelected) const Icon(Icons.check_circle, color: AppTheme.primaryPurple),
+      ]),
+    );
+  }
+
+  void _showSelectionBottomSheet({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: AppTheme.cardBackgroundOf(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(
+            AppTheme.spacingXLarge, 0,
+            AppTheme.spacingXLarge, AppTheme.spacingXXLarge),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: AppTheme.spacingMedium),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.textLightOf(context),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingLarge),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Container(
+                padding: const EdgeInsets.all(AppTheme.spacingSmall),
+                decoration: const BoxDecoration(
+                    color: AppTheme.lightPurple, shape: BoxShape.circle),
+                child: Icon(icon,
+                    color: AppTheme.primaryPurple,
+                    size: AppTheme.iconSizeLarge),
+              ),
+              const SizedBox(width: AppTheme.spacingMedium),
+              Text(title,
+                  style: AppTheme.bottomSheetTitle
+                      .copyWith(color: AppTheme.textPrimaryOf(context))),
+            ]),
+            const SizedBox(height: AppTheme.spacingXLarge),
+            ...children.map((child) => Padding(
+                  padding:
+                      const EdgeInsets.only(bottom: AppTheme.spacingSmall),
+                  child: child,
+                )),
+          ],
         ),
       ),
     );
@@ -471,7 +471,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<SettingsProvider>();
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(

@@ -106,4 +106,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get successRestore => 'Restauration réussie';
+
+  @override
+  String get statistics => 'Statistiques';
+
+  @override
+  String get global => 'Global';
+
+  @override
+  String get byCategory => 'Par catégorie';
+
+  @override
+  String get byAnimal => 'Par animal';
 }

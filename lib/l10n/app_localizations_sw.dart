@@ -106,4 +106,16 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get successRestore => 'Urejeshaji umefanikiwa';
+
+  @override
+  String get statistics => 'Takwimu';
+
+  @override
+  String get global => 'Kimataifa';
+
+  @override
+  String get byCategory => 'Kwa Kategoria';
+
+  @override
+  String get byAnimal => 'Kwa Mnyama';
 }

@@ -299,6 +299,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Restauration réussie'**
   String get successRestore;
+
+  /// No description provided for @statistics.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statistiques'**
+  String get statistics;
+
+  /// No description provided for @global.
+  ///
+  /// In fr, this message translates to:
+  /// **'Global'**
+  String get global;
+
+  /// No description provided for @byCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par catégorie'**
+  String get byCategory;
+
+  /// No description provided for @byAnimal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par animal'**
+  String get byAnimal;
 }
 
 class _AppLocalizationsDelegate

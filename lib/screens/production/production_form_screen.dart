@@ -43,6 +43,14 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
     'volaille': ['Oeufs', 'Autre'],
   };
 
+  // Âge minimum en mois pour chaque type de production par espèce
+  static const Map<String, Map<String, int>> _ageMinProduction = {
+    'bovin':    {'Lait': 24, 'Autre': 0},
+    'caprin':   {'Lait': 12, 'Autre': 0},
+    'ovin':     {'Lait': 12, 'Laine': 12, 'Autre': 0},
+    'volaille': {'Oeufs': 5, 'Autre': 0},
+  };
+
   static const Map<String, String> _uniteParType = {
     'Lait': 'L',
     'Oeufs': 'unités',
@@ -103,6 +111,29 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
+
+    // Vérifier l'âge minimum
+    final animal = DatabaseService.getAnimal(widget.animalId);
+    if (animal != null) {
+      final ageMin = _getAgeMinimum();
+      if (ageMin > 0 && animal.ageEnMois < ageMin) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Cet animal est trop jeune pour ce type de production.\n'
+              'Âge actuel : ${animal.ageFormate} — Minimum requis : '
+              '${ageMin < 12 ? '$ageMin mois' : '${ageMin ~/ 12} an${ageMin ~/ 12 > 1 ? 's' : ''}'}.',
+            ),
+            backgroundColor: AppTheme.errorRed,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+          ),
+        );
+        return;
+      }
+    }
     final quantite = double.parse(_quantiteController.text);
     final prix = _prixController.text.isEmpty ? null : double.parse(_prixController.text);
 
@@ -143,6 +174,16 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
       DatabaseService.ajouterProduction(production);
     }
     Navigator.pop(context);
+  }
+
+  int _getAgeMinimum() {
+    final espece = widget.espece.toLowerCase();
+    for (final key in _ageMinProduction.keys) {
+      if (espece.contains(key)) {
+        return _ageMinProduction[key]![_type] ?? 0;
+      }
+    }
+    return 0;
   }
 
   IconData _iconForType(String type) {
@@ -218,6 +259,40 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
               }).toList(),
             ),
             SizedBox(height: AppTheme.spacingXLarge),
+
+            // Avertissement âge
+            Builder(builder: (context) {
+              final animal = DatabaseService.getAnimal(widget.animalId);
+              final ageMin = _getAgeMinimum();
+              if (animal == null || ageMin == 0 || animal.ageEnMois >= ageMin) {
+                return const SizedBox.shrink();
+              }
+              final minLabel = ageMin < 12
+                  ? '$ageMin mois'
+                  : '${ageMin ~/ 12} an${ageMin ~/ 12 > 1 ? 's' : ''}';
+              return Container(
+                margin: const EdgeInsets.only(bottom: AppTheme.spacingLarge),
+                padding: const EdgeInsets.all(AppTheme.spacingMedium),
+                decoration: BoxDecoration(
+                  color: AppTheme.warningOrange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                  border: Border.all(
+                      color: AppTheme.warningOrange.withValues(alpha: 0.4)),
+                ),
+                child: Row(children: [
+                  const Icon(Icons.warning_amber_rounded,
+                      color: AppTheme.warningOrange, size: 20),
+                  const SizedBox(width: AppTheme.spacingSmall),
+                  Expanded(
+                    child: Text(
+                      '${animal.nom} a ${animal.ageFormate}. L\'âge minimum recommandé pour "$_type" est $minLabel.',
+                      style: AppTheme.bodyTextLight.copyWith(
+                          color: AppTheme.warningOrange),
+                    ),
+                  ),
+                ]),
+              );
+            }),
 
             Text('Quantité', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
