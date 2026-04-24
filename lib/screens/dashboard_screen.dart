@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/animal_provider.dart';
 import '../providers/rappel_provider.dart';
+import '../providers/settings_provider.dart';
 import '../models/models.dart';
 import '../utils/app_theme.dart';
 import '../utils/page_transitions.dart';
@@ -48,6 +50,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -105,11 +109,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, 'Accueil'),
-                _buildNavItem(1, Icons.pets_outlined, Icons.pets, 'Animaux'),
-                _buildNavItem(2, Icons.notifications_outlined, Icons.notifications, 'Tâches'),
+                _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, l10n.dashboard),
+                _buildNavItem(1, Icons.pets_outlined, Icons.pets, l10n.animals),
+                _buildNavItem(2, Icons.notifications_outlined, Icons.notifications, 'Tasks'), // Note: Add 'tasks' to l10n later if needed
                 _buildNavItem(3, Icons.bar_chart_outlined, Icons.bar_chart_rounded, 'Stats'),
-                _buildNavItem(4, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, 'Finance'),
+                _buildNavItem(4, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, l10n.finance),
               ],
             ),
           ),
@@ -214,7 +218,7 @@ class _AccueilTabState extends State<_AccueilTab> {
               ),
               SizedBox(height: AppTheme.spacingXSmall),
               Text(
-                'umuragizi',
+                'Umuragizi',
                 style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
               ),
             ],
@@ -258,6 +262,7 @@ class _AccueilTabState extends State<_AccueilTab> {
   }
 
   Widget _buildDateSelector() {
+    final settings = context.watch<SettingsProvider>();
     return Consumer<RappelProvider>(
       builder: (context, rappelProvider, child) {
         final datesWithTasks = rappelProvider.rappels
@@ -271,13 +276,14 @@ class _AccueilTabState extends State<_AccueilTab> {
             children: [
               MonthYearHeader(
                 date: _selectedDate,
+                locale: settings.locale.languageCode,
                 onTap: () async {
                   final date = await CustomDatePicker.show(
                     context,
                     initialDate: _selectedDate,
                     firstDate: DateTime(2020),
                     lastDate: DateTime.now().add(const Duration(days: 365)),
-                    title: 'Sélectionner une date',
+                    title: 'Date',
                   );
                   if (date != null) {
                     setState(() => _selectedDate = date);
@@ -303,6 +309,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                   key: ValueKey<String>('${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}'),
                   selectedDate: _selectedDate,
                   datesWithTasks: datesWithTasks,
+                  locale: settings.locale.languageCode,
                   onDateSelected: (date) {
                     setState(() => _selectedDate = date);
                   },
@@ -316,6 +323,7 @@ class _AccueilTabState extends State<_AccueilTab> {
   }
 
   Widget _buildStatistiquesRapides(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Consumer2<AnimalProvider, RappelProvider>(
       builder: (context, animalProvider, rappelProvider, child) {
         return Padding(
@@ -331,9 +339,7 @@ class _AccueilTabState extends State<_AccueilTab> {
               LayoutBuilder(
                 builder: (context, constraints) {
                   final screenWidth = constraints.maxWidth;
-                  // Petit écran: 2 colonnes, moyen/grand: 3 colonnes max
                   final crossAxisCount = screenWidth < 400 ? 2 : 3;
-                  // Ratio adapté selon le nombre de colonnes
                   final aspectRatio = crossAxisCount == 2 ? 1.4 : 1.2;
 
                   return GridView.count(
@@ -346,13 +352,13 @@ class _AccueilTabState extends State<_AccueilTab> {
                     children: [
                       _ModernStatCard(
                         icon: Icons.pets_rounded,
-                        label: 'Animaux',
+                        label: l10n.animals,
                         value: '${animalProvider.nombreAnimaux}',
                         color: AppTheme.primaryGreen,
                       ),
                       _ModernStatCard(
                         icon: Icons.warning_amber_rounded,
-                        label: 'En retard',
+                        label: 'Retard',
                         value: '${rappelProvider.nombreRappelsEnRetard}',
                         color: AppTheme.errorRed,
                       ),
@@ -364,7 +370,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                       ),
                       _ModernStatCard(
                         icon: Icons.check_circle_rounded,
-                        label: 'Complétés',
+                        label: 'Fait',
                         value: '${rappelProvider.rappels.where((r) => r.estComplete).length}',
                         color: AppTheme.primaryPurple,
                       ),
@@ -373,7 +379,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                           final naissances = reproProvider.prochainesNaissances;
                           return _ModernStatCard(
                             icon: Icons.child_care_rounded,
-                            label: 'Naissances',
+                            label: l10n.gestations,
                             value: '${naissances.length}',
                             color: AppTheme.infoBlue,
                             onTap: () {
@@ -397,12 +403,12 @@ class _AccueilTabState extends State<_AccueilTab> {
   }
 
   Widget _buildTachesEnCours(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
     return Consumer<RappelProvider>(
       builder: (context, rappelProvider, child) {
         final rappelsEnRetard = rappelProvider.rappelsEnRetard;
         final rappelsDuJour = rappelProvider.rappelsDuJour;
         
-        // Filtrer les rappels par date sélectionnée
         final rappelsFiltres = rappelProvider.rappels.where((r) {
           if (r.estComplete) return false;
           return r.dateRappel.year == _selectedDate.year &&
@@ -425,7 +431,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    isToday ? 'Tâches en cours' : 'Tâches du ${DateFormat('d MMM', 'fr_FR').format(_selectedDate)}',
+                    isToday ? 'Tâches' : 'Tâches - ${DateFormat('d MMM', settings.intlLocale).format(_selectedDate)}',
                     style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                   ),
                   if (tousLesRappels.isNotEmpty)
@@ -438,63 +444,27 @@ class _AccueilTabState extends State<_AccueilTab> {
                           ),
                         );
                       },
-                      child: const Text('Voir tout'),
+                      child: const Text('Voir'),
                     ),
                 ],
               ),
               SizedBox(height: AppTheme.spacingMedium),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 400),
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 0.1),
-                        end: Offset.zero,
-                      ).animate(CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOutCubic,
-                      )),
-                      child: child,
-                    ),
-                  );
-                },
                 child: tousLesRappels.isEmpty
                     ? CustomCard(
-                        key: const ValueKey('empty'),
                         padding: EdgeInsets.all(AppTheme.spacingXXLarge),
                         child: Center(
                           child: Column(
                             children: [
-                              Container(
-                                padding: EdgeInsets.all(AppTheme.spacingLarge),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.lightGreen,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.check_circle_outline,
-                                  size: AppTheme.iconSizeXLarge,
-                                  color: AppTheme.successGreen,
-                                ),
-                              ),
-                              SizedBox(height: AppTheme.spacingLarge),
-                              Text(
-                                isToday ? 'Tout est à jour !' : 'Aucune tâche',
-                                style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                              ),
-                              SizedBox(height: AppTheme.spacingXSmall),
-                              Text(
-                                isToday ? 'Aucune tâche urgente' : 'Aucune tâche pour cette date',
-                                style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
-                              ),
+                               Icon(Icons.check_circle_outline, size: 48, color: AppTheme.successGreen),
+                               SizedBox(height: 16),
+                               Text('Tout est fait !', style: AppTheme.sectionSubtitle),
                             ],
                           ),
                         ),
                       )
                     : Column(
-                        key: ValueKey('tasks-${tousLesRappels.length}'),
                         children: tousLesRappels.take(3).map((rappel) => _ModernRappelCard(rappel: rappel)).toList(),
                       ),
               ),
@@ -519,7 +489,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Groupes d\'animaux',
+                    'Especes',
                     style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                   ),
                   TextButton(
@@ -531,81 +501,38 @@ class _AccueilTabState extends State<_AccueilTab> {
                         ),
                       );
                     },
-                    child: Text('Voir tout', style: AppTheme.bodyText.copyWith(color: AppTheme.primaryPurple)),
+                    child: Text('Voir plus', style: AppTheme.bodyText.copyWith(color: AppTheme.primaryPurple)),
                   ),
                 ],
               ),
               SizedBox(height: AppTheme.spacingMedium),
               if (especes.isEmpty)
                 CustomCard(
-                  padding: EdgeInsets.all(AppTheme.spacingXXLarge),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(AppTheme.spacingLarge),
-                          decoration: BoxDecoration(
-                            color: AppTheme.lightPurple,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.pets_outlined,
-                            size: AppTheme.iconSizeXLarge,
-                            color: AppTheme.primaryPurple,
-                          ),
-                        ),
-                        SizedBox(height: AppTheme.spacingLarge),
-                        Text(
-                          'Aucun animal',
-                          style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                        ),
-                        SizedBox(height: AppTheme.spacingXSmall),
-                        Text(
-                          'Commencez par ajouter un animal',
-                          style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
-                        ),
-                        SizedBox(height: AppTheme.spacingLarge),
-                        PrimaryButton(
-                          text: 'Ajouter un animal',
-                          icon: Icons.add,
-                          width: 200,
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Aucun animal'))),
                 )
               else
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final screenWidth = constraints.maxWidth;
-                    // Petit écran: 2 colonnes, moyen/grand: 3 colonnes
-                    final crossAxisCount = screenWidth < 400 ? 2 : 3;
-
-                    return GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: AppTheme.spacingSmall,
-                        mainAxisSpacing: AppTheme.spacingSmall,
-                        childAspectRatio: 1.15,
-                      ),
-                      itemCount: especes.length > 6 ? 6 : especes.length,
-                      itemBuilder: (context, index) {
-                        final espece = especes[index];
-                        final count = animalProvider.filtrerParEspece(espece).length;
-                        return _GroupeCard(
-                          espece: espece,
-                          count: count,
-                          onTap: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DashboardScreen(initialFilter: espece),
-                              ),
-                            );
-                          },
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 1.1,
+                  ),
+                  itemCount: especes.length > 6 ? 6 : especes.length,
+                  itemBuilder: (context, index) {
+                    final espece = especes[index];
+                    final count = animalProvider.filtrerParEspece(espece).length;
+                    return _GroupeCard(
+                      espece: espece,
+                      count: count,
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DashboardScreen(initialFilter: espece),
+                          ),
                         );
                       },
                     );
@@ -627,61 +554,26 @@ class _ModernRappelCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isEnRetard = rappel.estEnRetard;
-    final tagColor = isEnRetard ? AppTheme.errorRed : AppTheme.warningOrange;
-
     return Padding(
       padding: EdgeInsets.only(bottom: AppTheme.spacingSmall),
       child: TaskCard(
         title: rappel.titre,
         subtitle: rappel.description,
-        tag: isEnRetard ? 'En retard' : "Aujourd'hui",
-        tagColor: tagColor,
+        tag: isEnRetard ? 'Retard' : "Aujourd'hui",
+        tagColor: isEnRetard ? AppTheme.errorRed : AppTheme.warningOrange,
         onComplete: () {
           context.read<RappelProvider>().marquerComplete(rappel.id);
         },
-        trailing: Container(
-          padding: EdgeInsets.all(AppTheme.spacingSmall),
-          decoration: BoxDecoration(
-            color: _getColorForType(rappel.type).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-          ),
-          child: Icon(
-            _getIconForType(rappel.type),
-            color: _getColorForType(rappel.type),
-            size: AppTheme.iconSizeMedium,
-          ),
-        ),
+        trailing: Icon(_getIconForType(rappel.type), color: AppTheme.primaryPurple),
       ),
     );
   }
 
   IconData _getIconForType(String type) {
     switch (type.toLowerCase()) {
-      case 'vaccination':
-        return Icons.vaccines;
-      case 'vermifuge':
-        return Icons.medication;
-      case 'visite vétérinaire':
-        return Icons.local_hospital;
-      case 'soin spécifique':
-        return Icons.healing;
-      default:
-        return Icons.notifications;
-    }
-  }
-
-  Color _getColorForType(String type) {
-    switch (type.toLowerCase()) {
-      case 'vaccination':
-        return AppTheme.primaryPurple;
-      case 'vermifuge':
-        return AppTheme.accentOrange;
-      case 'visite vétérinaire':
-        return AppTheme.infoBlue;
-      case 'soin spécifique':
-        return AppTheme.successGreen;
-      default:
-        return AppTheme.textSecondary;
+      case 'vaccination': return Icons.vaccines;
+      case 'vermifuge': return Icons.medication;
+      default: return Icons.notifications;
     }
   }
 }
@@ -708,39 +600,13 @@ class _GroupeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           boxShadow: AppTheme.softShadow,
         ),
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: EdgeInsets.all(AppTheme.spacingSmall),
-              decoration: BoxDecoration(
-                color: _getColorForEspece(espece).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-              ),
-              child: Icon(
-                _getIconForEspece(espece),
-                color: _getColorForEspece(espece),
-                size: AppTheme.iconSizeMedium,
-              ),
-            ),
-            SizedBox(width: AppTheme.spacingSmall),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    espece,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                  ),
-                  Text(
-                    '$count',
-                    style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
-                  ),
-                ],
-              ),
-            ),
+            Icon(_getIconForEspece(espece), color: AppTheme.primaryPurple),
+            SizedBox(height: 4),
+            Text(espece, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTheme.bodyText),
+            Text('$count', style: AppTheme.bodyTextSecondary),
           ],
         ),
       ),
@@ -749,43 +615,9 @@ class _GroupeCard extends StatelessWidget {
 
   IconData _getIconForEspece(String espece) {
     switch (espece.toLowerCase()) {
-      case 'bovin':
-        return Icons.pets;
-      case 'ovin':
-        return Icons.cloud;
-      case 'caprin':
-        return Icons.terrain;
-      case 'porcin':
-        return Icons.cruelty_free;
-      case 'volaille':
-        return Icons.flutter_dash;
-      case 'équin':
-        return Icons.sports_handball;
-      case 'lapin':
-        return Icons.cruelty_free;
-      default:
-        return Icons.pets;
-    }
-  }
-
-  Color _getColorForEspece(String espece) {
-    switch (espece.toLowerCase()) {
-      case 'bovin':
-        return AppTheme.primaryPurple;
-      case 'ovin':
-        return AppTheme.infoBlue;
-      case 'caprin':
-        return AppTheme.accentOrange;
-      case 'porcin':
-        return const Color(0xFFEC4899);
-      case 'volaille':
-        return AppTheme.warningOrange;
-      case 'équin':
-        return AppTheme.successGreen;
-      case 'lapin':
-        return const Color(0xFF8B5CF6);
-      default:
-        return AppTheme.textSecondary;
+      case 'bovin': return Icons.pets;
+      case 'volaille': return Icons.flutter_dash;
+      default: return Icons.pets;
     }
   }
 }
@@ -834,26 +666,14 @@ class _ModernStatCard extends StatelessWidget {
                     color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: AppTheme.iconSizeMedium,
-                  ),
+                  child: Icon(icon, color: color, size: AppTheme.iconSizeMedium),
                 ),
                 const Spacer(),
-                Text(
-                  value,
-                  style: AppTheme.sectionTitle.copyWith(color: color),
-                ),
+                Text(value, style: AppTheme.sectionTitle.copyWith(color: color)),
               ],
             ),
             SizedBox(height: AppTheme.spacingSmall),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
-            ),
+            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTheme.bodyTextSecondary),
           ],
         ),
       ),

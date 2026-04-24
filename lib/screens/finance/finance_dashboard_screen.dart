@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/finance_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/currency_helper.dart';
 import '../../widgets/widgets.dart';
 import 'transaction_form_screen.dart';
 import '../../models/models.dart';
@@ -16,7 +19,7 @@ class FinanceDashboardScreen extends StatefulWidget {
 }
 
 class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
-  String _periodeSelectionnee = 'Tous'; // 'Tous', 'Ce mois', 'Cette année'
+  String _periodeSelectionnee = 'Tous'; 
 
   List<Transaction> _filtrerTransactions(List<Transaction> transactions) {
     final now = DateTime.now();
@@ -30,11 +33,14 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(
         title: Text(
-          'Comptabilité',
+          l10n.finance,
           style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         backgroundColor: Colors.transparent,
@@ -66,11 +72,11 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildFilterChip('Tous'),
+                    _buildFilterChip(l10n.all, 'Tous'),
                     SizedBox(width: AppTheme.spacingSmall),
-                    _buildFilterChip('Ce mois'),
+                    _buildFilterChip(l10n.month, 'Ce mois'),
                     SizedBox(width: AppTheme.spacingSmall),
-                    _buildFilterChip('Cette année'),
+                    _buildFilterChip(l10n.year, 'Cette année'),
                   ],
                 ),
               ),
@@ -81,13 +87,13 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                 padding: EdgeInsets.all(AppTheme.spacingXLarge),
                 child: Column(
                   children: [
-                    Text('Balance Période', style: AppTheme.sectionSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
+                    Text(l10n.dashboard, style: AppTheme.sectionSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
                     SizedBox(height: AppTheme.spacingSmall),
                     Text(
-                      '${isPositif ? '+' : ''}${solde.toStringAsFixed(2)} \$',
+                      '${isPositif ? '+' : ''}${CurrencyHelper.format(solde, settings)}',
                       style: AppTheme.pageTitle.copyWith(
                         color: isPositif ? AppTheme.successGreen : AppTheme.errorRed,
-                        fontSize: 34,
+                        fontSize: settings.currency == 'BIF' ? 28 : 34,
                       ),
                     ),
                     SizedBox(height: AppTheme.spacingLarge),
@@ -96,20 +102,22 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                         Expanded(
                           child: _buildMetric(
                             context,
-                            'Revenus',
+                            l10n.revenues,
                             totalRevenus,
                             AppTheme.successGreen,
                             Icons.arrow_upward,
+                            settings,
                           ),
                         ),
                         Container(width: 1, height: 40, color: AppTheme.surfaceColorOf(context)),
                         Expanded(
                           child: _buildMetric(
                             context,
-                            'Dépenses',
+                            l10n.expenses,
                             totalDepenses,
                             AppTheme.errorRed,
                             Icons.arrow_downward,
+                            settings,
                           ),
                         ),
                       ],
@@ -122,7 +130,7 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
               
               // Graphique
               if (transactionsFiltrees.isNotEmpty) ...[
-                Text('Dépenses par Catégorie', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                Text(l10n.expenses, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                 SizedBox(height: AppTheme.spacingMedium),
                 CustomCard(
                   padding: EdgeInsets.all(AppTheme.spacingMedium),
@@ -132,7 +140,7 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                       PieChartData(
                         sectionsSpace: 0,
                         centerSpaceRadius: 40,
-                        sections: _generateChartData(transactionsFiltrees),
+                        sections: _generateChartData(transactionsFiltrees, settings),
                       ),
                     ),
                   ),
@@ -144,7 +152,7 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Transactions', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                  Text(l10n.finance, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                   IconButton(
                     icon: const Icon(Icons.add_circle, color: AppTheme.primaryPurple, size: 28),
                     onPressed: () {
@@ -162,7 +170,7 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                 Center(
                   child: Padding(
                     padding: EdgeInsets.all(AppTheme.spacingXXLarge),
-                    child: Text('Aucune transaction sur cette période.', 
+                    child: Text(l10n.noData, 
                       textAlign: TextAlign.center,
                       style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context))),
                   ),
@@ -184,11 +192,11 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                         title: Text(tx.categorie, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                         subtitle: Text(DateFormat('dd MMMM yyyy').format(tx.date)),
                         trailing: Text(
-                          '${isRevenu ? '+' : '-'}${tx.montant.toStringAsFixed(0)} \$',
+                          '${isRevenu ? '+' : '-'}${CurrencyHelper.format(tx.montant, settings)}',
                           style: TextStyle(
                             color: isRevenu ? AppTheme.successGreen : AppTheme.errorRed,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 14,
                           ),
                         ),
                         onTap: () {
@@ -208,15 +216,15 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = _periodeSelectionnee == label;
+  Widget _buildFilterChip(String label, String value) {
+    final isSelected = _periodeSelectionnee == value;
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
       onSelected: (bool selected) {
         if (selected) {
           setState(() {
-            _periodeSelectionnee = label;
+            _periodeSelectionnee = value;
           });
         }
       },
@@ -226,7 +234,7 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
     );
   }
 
-  Widget _buildMetric(BuildContext context, String label, double amount, Color color, IconData icon) {
+  Widget _buildMetric(BuildContext context, String label, double amount, Color color, IconData icon, SettingsProvider settings) {
     return Column(
       children: [
         Row(
@@ -239,14 +247,17 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          '${amount.toStringAsFixed(0)} \$',
-          style: AppTheme.sectionTitle.copyWith(color: color),
+          CurrencyHelper.format(amount, settings),
+          style: AppTheme.sectionTitle.copyWith(
+            color: color,
+            fontSize: settings.currency == 'BIF' ? 14 : 18,
+          ),
         ),
       ],
     );
   }
 
-  List<PieChartSectionData> _generateChartData(List<Transaction> transactions) {
+  List<PieChartSectionData> _generateChartData(List<Transaction> transactions, SettingsProvider settings) {
     final Map<String, double> categories = {};
     for (var tx in transactions) {
       if (tx.type == 'Dépense') {
@@ -262,12 +273,13 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
     return categories.entries.map((e) {
       final color = colors[colorIndex % colors.length];
       colorIndex++;
+      final converted = CurrencyHelper.convert(e.value, settings.currency);
       return PieChartSectionData(
         color: color,
         value: e.value,
-        title: '\$${e.value.toStringAsFixed(0)}',
+        title: '${converted.toStringAsFixed(0)}${settings.currencySymbol}',
         radius: 50,
-        titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+        titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
       );
     }).toList();
   }

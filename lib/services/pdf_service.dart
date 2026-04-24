@@ -1,20 +1,29 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
+import '../services/currency_service.dart';
 
 class PdfService {
   static Future<void> generateAnimalReport({
     required Animal animal,
     List<Reproduction> repros = const [],
     List<Transaction> transactions = const [],
+    String currency = 'USD',
+    String locale = 'fr',
   }) async {
     final pdf = pw.Document();
 
-    final dateFormat = DateFormat('dd/MM/yyyy');
+    final dateFormat = DateFormat('dd/MM/yyyy', locale);
+    final rate = CurrencyService.rates[currency] ?? 1.0;
+    final symbol = currency == 'BIF' ? 'FBU' : (currency == 'USD' ? '\$' : currency);
+
+    String formatVal(double val) {
+      final converted = val * rate;
+      return '${converted.toStringAsFixed(currency == 'BIF' ? 0 : 2)} $symbol';
+    }
     
     // Calcul financier
     double totalDepenses = 0;
@@ -55,7 +64,6 @@ class PdfService {
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                // Image (si dispo)
                 if (animal.photoBase64 != null)
                   pw.Container(
                     width: 120,
@@ -86,7 +94,6 @@ class PdfService {
                 
                 pw.SizedBox(width: 20),
 
-                // Infos Identité
                 pw.Expanded(
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -109,14 +116,14 @@ class PdfService {
             pw.SizedBox(height: 30),
 
             // Section Finance
-            pw.Text('Bilan Financier', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+            pw.Text('Bilan Financier (${currency})', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 10),
             pw.TableHelper.fromTextArray(
               headers: ['Désignation', 'Montant'],
               data: [
-                ['Total Dépenses', '${totalDepenses.toStringAsFixed(2)} \$'],
-                ['Total Revenus', '${totalRevenus.toStringAsFixed(2)} \$'],
-                ['Balance Net', '${(totalRevenus - totalDepenses).toStringAsFixed(2)} \$'],
+                ['Total Dépenses', formatVal(totalDepenses)],
+                ['Total Revenus', formatVal(totalRevenus)],
+                ['Balance Net', formatVal(totalRevenus - totalDepenses)],
               ],
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.purple),
@@ -125,7 +132,6 @@ class PdfService {
 
             pw.SizedBox(height: 30),
 
-            // Section Reproduction (si femelle)
             if (animal.sexe == 'Femelle' && repros.isNotEmpty) ...[
               pw.Text('Historique de Reproduction', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 10),
@@ -143,7 +149,6 @@ class PdfService {
 
             pw.SizedBox(height: 40),
             
-            // Footer
             pw.Center(
               child: pw.Text('Généré par Umuragizi - Votre partenaire d\'élevage intelligent',
                 style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey)),
@@ -153,7 +158,6 @@ class PdfService {
       ),
     );
 
-    // Lancer l'aperçu/impression
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
       name: 'Rapport_${animal.nom}.pdf',

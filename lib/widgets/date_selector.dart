@@ -7,6 +7,7 @@ class HorizontalDateSelector extends StatelessWidget {
   final Function(DateTime) onDateSelected;
   final int daysToShow;
   final List<DateTime>? datesWithTasks;
+  final String locale;
 
   const HorizontalDateSelector({
     super.key,
@@ -14,6 +15,7 @@ class HorizontalDateSelector extends StatelessWidget {
     required this.onDateSelected,
     this.daysToShow = 7,
     this.datesWithTasks,
+    this.locale = 'fr_FR',
   });
 
   @override
@@ -53,7 +55,7 @@ class HorizontalDateSelector extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    DateFormat('EEE', 'fr_FR').format(date).substring(0, 3),
+                    DateFormat('EEE', locale == 'rn' ? 'fr' : locale).format(date).substring(0, 3),
                     style: AppTheme.bodyTextLight.copyWith(
                       fontWeight: FontWeight.w500,
                       color: isSelected ? Colors.white70 : AppTheme.textLightOf(context),
@@ -110,6 +112,7 @@ class MonthYearHeader extends StatelessWidget {
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
   final VoidCallback? onTap;
+  final String locale;
 
   const MonthYearHeader({
     super.key,
@@ -117,6 +120,7 @@ class MonthYearHeader extends StatelessWidget {
     this.onPrevious,
     this.onNext,
     this.onTap,
+    this.locale = 'fr_FR',
   });
 
   @override
@@ -142,7 +146,7 @@ class MonthYearHeader extends StatelessWidget {
               ),
               const SizedBox(width: AppTheme.spacingSmall),
               Text(
-                DateFormat('d MMM, yyyy', 'fr_FR').format(date),
+                DateFormat('d MMM, yyyy', locale == 'rn' ? 'fr' : locale).format(date),
                 style: AppTheme.bodyText.copyWith(
                   color: AppTheme.textPrimaryOf(context),
                 ),

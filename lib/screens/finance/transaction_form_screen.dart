@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../providers/finance_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/currency_helper.dart';
+import '../../services/currency_service.dart';
 import '../../widgets/widgets.dart';
 
 class TransactionFormScreen extends StatefulWidget {
@@ -50,10 +54,15 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   @override
   void initState() {
     super.initState();
+    final settings = context.read<SettingsProvider>();
     if (widget.transaction != null) {
       _type = widget.transaction!.type;
       _categorie = widget.transaction!.categorie;
-      _montantController.text = widget.transaction!.montant.toString();
+      
+      // Convertir le montant de base (USD) vers la devise d'affichage pour l'édition
+      final displayAmount = CurrencyHelper.convert(widget.transaction!.montant, settings.currency);
+      _montantController.text = displayAmount.toStringAsFixed(settings.currency == 'BIF' ? 0 : 2);
+      
       _descriptionController.text = widget.transaction!.description ?? '';
       _date = widget.transaction!.date;
     } else {
@@ -85,20 +94,26 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   void _save() {
     if (_formKey.currentState!.validate()) {
+      final settings = context.read<SettingsProvider>();
       final montantStr = _montantController.text.replaceAll(',', '.');
-      final montant = double.tryParse(montantStr) ?? 0.0;
+      final inputAmount = double.tryParse(montantStr) ?? 0.0;
       
-      if (montant <= 0) {
+      if (inputAmount <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Veuillez entrer un montant valide')),
         );
         return;
       }
 
+      // Convertir le montant saisi vers la devise de base (USD) pour le stockage
+      // amount_base = amount_input / rate
+      final rate = CurrencyService.rates[settings.currency] ?? 1.0;
+      final amountInBase = inputAmount / rate;
+
       final transaction = Transaction(
         id: widget.transaction?.id ?? const Uuid().v4(),
         type: _type,
-        montant: montant,
+        montant: amountInBase,
         date: _date,
         categorie: _categorie,
         animalId: widget.animalLie?.id ?? widget.transaction?.animalId,
@@ -117,6 +132,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
+    
     List<String> categoriesPossibles = _type == 'Dépense' ? _categoriesDepense : _categoriesRevenu;
     if (!categoriesPossibles.contains(_categorie)) {
       _categorie = categoriesPossibles.first;
@@ -126,7 +144,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(
         title: Text(
-          widget.transaction == null ? 'Nouvelle Transaction' : 'Modifier',
+          widget.transaction == null ? 'Nouvelle Transaction' : l10n.finance,
           style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         backgroundColor: Colors.transparent,
@@ -153,7 +171,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         border: Border.all(color: _type == 'Revenu' ? AppTheme.successGreen : Colors.transparent, width: 2),
                       ),
                       alignment: Alignment.center,
-                      child: Text('Revenu', style: AppTheme.sectionTitle.copyWith(color: _type == 'Revenu' ? AppTheme.successGreen : AppTheme.textSecondaryOf(context))),
+                      child: Text(l10n.revenues, style: AppTheme.sectionTitle.copyWith(color: _type == 'Revenu' ? AppTheme.successGreen : AppTheme.textSecondaryOf(context))),
                     ),
                   ),
                 ),
@@ -171,7 +189,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         border: Border.all(color: _type == 'Dépense' ? AppTheme.errorRed : Colors.transparent, width: 2),
                       ),
                       alignment: Alignment.center,
-                      child: Text('Dépense', style: AppTheme.sectionTitle.copyWith(color: _type == 'Dépense' ? AppTheme.errorRed : AppTheme.textSecondaryOf(context))),
+                      child: Text(l10n.expenses, style: AppTheme.sectionTitle.copyWith(color: _type == 'Dépense' ? AppTheme.errorRed : AppTheme.textSecondaryOf(context))),
                     ),
                   ),
                 ),
@@ -179,14 +197,14 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             ),
             
             SizedBox(height: AppTheme.spacingLarge),
-            const Text('Montant', style: AppTheme.sectionTitle),
+            Text(l10n.currency, style: AppTheme.sectionTitle),
             SizedBox(height: AppTheme.spacingSmall),
             TextFormField(
               controller: _montantController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context), fontSize: 24, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
-                prefixText: '\$ ',
+                prefixText: '${settings.currencySymbol} ',
                 filled: true,
                 fillColor: AppTheme.surfaceColorOf(context),
                 border: OutlineInputBorder(
@@ -195,13 +213,13 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 ),
               ),
               validator: (val) {
-                if (val == null || val.isEmpty) return 'Requis';
+                if (val == null || val.isEmpty) return l10n.noData;
                 return null;
               },
             ),
 
             SizedBox(height: AppTheme.spacingLarge),
-            const Text('Catégorie', style: AppTheme.sectionTitle),
+            Text(l10n.dashboard, style: AppTheme.sectionTitle),
             SizedBox(height: AppTheme.spacingSmall),
             Container(
               padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
@@ -241,7 +259,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     SizedBox(width: AppTheme.spacingMedium),
                     Expanded(
                       child: Text(
-                        DateFormat('d MMMM yyyy', 'fr_FR').format(_date),
+                        DateFormat('d MMMM yyyy', settings.intlLocale).format(_date),
                         style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
                       ),
                     ),
@@ -258,7 +276,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               maxLines: 2,
               style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
               decoration: InputDecoration(
-                hintText: 'Achat de 5 sacs de maïs',
+                hintText: '...',
                 hintStyle: AppTheme.formHint,
                 filled: true,
                 fillColor: AppTheme.surfaceColorOf(context),
@@ -271,7 +289,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
             SizedBox(height: AppTheme.spacingXXLarge),
             PrimaryButton(
-              text: widget.transaction == null ? 'Ajouter' : 'Enregistrer',
+              text: widget.transaction == null ? l10n.finance : l10n.save,
               icon: Icons.check,
               onPressed: _save,
             ),

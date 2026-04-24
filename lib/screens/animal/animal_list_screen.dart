@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
+import '../../l10n/app_localizations.dart';
 import '../../providers/animal_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../models/models.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
@@ -36,19 +38,21 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
+            _buildHeader(l10n),
             SizedBox(height: AppTheme.spacingLarge),
-            _buildSearchBar(),
+            _buildSearchBar(l10n),
             SizedBox(height: AppTheme.spacingLarge),
-            _buildFilters(),
+            _buildFilters(l10n),
             SizedBox(height: AppTheme.spacingLarge),
-            Expanded(child: _buildAnimalList()),
+            Expanded(child: _buildAnimalList(l10n)),
           ],
         ),
       ),
@@ -61,14 +65,14 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Padding(
       padding: EdgeInsets.fromLTRB(AppTheme.spacingXLarge, AppTheme.spacingLarge, AppTheme.spacingXLarge, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Mes Animaux',
+          Text(
+            l10n.animals,
             style: AppTheme.pageTitle,
           ),
           Consumer<AnimalProvider>(
@@ -89,7 +93,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(AppLocalizations l10n) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingXLarge),
       child: Container(
@@ -105,7 +109,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
           },
           style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textPrimaryOf(context)),
           decoration: InputDecoration(
-            hintText: 'Rechercher un animal...',
+            hintText: '...',
             hintStyle: AppTheme.bodyTextLight.copyWith(fontWeight: FontWeight.w900, color: AppTheme.textLightOf(context)),
             prefixIcon: Icon(Icons.search, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeMedium),
             suffixIcon: _searchQuery.isNotEmpty
@@ -136,10 +140,10 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(AppLocalizations l10n) {
     return Consumer<AnimalProvider>(
       builder: (context, provider, _) {
-        final especes = ['Tous', ...provider.especes];
+        final especes = [l10n.all, ...provider.especes];
 
         return SizedBox(
           height: 35,
@@ -149,12 +153,12 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
             itemCount: especes.length,
             itemBuilder: (context, index) {
               final espece = especes[index];
-              final isSelected = _selectedFilter == espece;
+              final isSelected = _selectedFilter == espece || (_selectedFilter == 'Tous' && espece == l10n.all);
 
               return Padding(
                 padding: EdgeInsets.only(right: index < especes.length - 1 ? AppTheme.spacingSmall : 0),
                 child: GestureDetector(
-                  onTap: () => setState(() => _selectedFilter = espece),
+                  onTap: () => setState(() => _selectedFilter = espece == l10n.all ? 'Tous' : espece),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
@@ -183,7 +187,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
     );
   }
 
-  Widget _buildAnimalList() {
+  Widget _buildAnimalList(AppLocalizations l10n) {
     return Consumer<AnimalProvider>(
       builder: (context, animalProvider, child) {
         List<Animal> animaux = _selectedFilter == 'Tous'
@@ -207,42 +211,9 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: EdgeInsets.all(AppTheme.spacingLarge),
-                    decoration: BoxDecoration(
-                      color: AppTheme.lightPurple,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.pets_outlined,
-                      size: AppTheme.iconSizeXLarge,
-                      color: AppTheme.primaryPurple,
-                    ),
-                  ),
-                  SizedBox(height: AppTheme.spacingXLarge),
-                  Text(
-                    _searchQuery.isNotEmpty
-                        ? 'Aucun résultat'
-                        : 'Aucun animal enregistré',
-                    style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                  ),
-                  SizedBox(height: AppTheme.spacingSmall),
-                  Text(
-                    _searchQuery.isNotEmpty
-                        ? 'Essayez une autre recherche'
-                        : 'Commencez par ajouter votre premier animal',
-                    style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
-                    textAlign: TextAlign.center,
-                  ),
-                  if (_searchQuery.isEmpty) ...[
-                    SizedBox(height: AppTheme.spacingXXLarge),
-                    PrimaryButton(
-                      text: 'Ajouter un animal',
-                      icon: Icons.add,
-                      width: 200,
-                      onPressed: () => _navigateToAddAnimal(context),
-                    ),
-                  ],
+                   Icon(Icons.pets_outlined, size: 64, color: AppTheme.primaryPurple),
+                   SizedBox(height: 16),
+                   Text(l10n.noData, style: AppTheme.sectionTitle),
                 ],
               ),
             ),
@@ -301,7 +272,7 @@ class _ModernAnimalCard extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: _getColorForEspece(animal.espece).withValues(alpha: 0.1),
+                color: AppTheme.primaryPurple.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
               ),
               child: animal.photoBase64 != null
@@ -310,120 +281,26 @@ class _ModernAnimalCard extends StatelessWidget {
                       child: Image.memory(
                         base64Decode(animal.photoBase64!),
                         fit: BoxFit.cover,
-                        width: 60,
-                        height: 60,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.pets,
-                            size: AppTheme.iconSizeLarge,
-                            color: _getColorForEspece(animal.espece),
-                          );
-                        },
                       ),
                     )
-                  : Icon(
-                      Icons.pets,
-                      size: AppTheme.iconSizeLarge,
-                      color: _getColorForEspece(animal.espece),
-                    ),
+                  : Icon(Icons.pets, color: AppTheme.primaryPurple),
             ),
-            SizedBox(width: AppTheme.spacingLarge),
+            SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(animal.nom, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingSmall, vertical: AppTheme.spacingXSmall),
-                        decoration: BoxDecoration(
-                          color: animal.sexe == 'Mâle'
-                              ? AppTheme.infoBlue.withValues(alpha: 0.1)
-                              : const Color(0xFFEC4899).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              animal.sexe == 'Mâle' ? Icons.male : Icons.female,
-                              size: AppTheme.iconSizeSmall,
-                              color: animal.sexe == 'Mâle'
-                                  ? AppTheme.infoBlue
-                                  : const Color(0xFFEC4899),
-                            ),
-                            SizedBox(width: AppTheme.spacingXSmall),
-                            Text(
-                              animal.sexe,
-                              style: AppTheme.bodyText.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: animal.sexe == 'Mâle'
-                                    ? AppTheme.infoBlue
-                                    : const Color(0xFFEC4899),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: AppTheme.spacingXSmall),
-                  Text('${animal.espece} • ${animal.race}', style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
-                  SizedBox(height: AppTheme.spacingSmall),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.cake_outlined,
-                        size: AppTheme.iconSizeSmall,
-                        color: AppTheme.textLightOf(context),
-                      ),
-                      SizedBox(width: AppTheme.spacingXSmall),
-                      Text(animal.ageFormate, style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context))),
-                    ],
-                  ),
+                   Text(animal.nom, style: AppTheme.listItemTitle),
+                   Text('${animal.espece} • ${animal.race}', style: AppTheme.listItemSubtitle),
+                   SizedBox(height: 4),
+                   Text(animal.ageFormate, style: AppTheme.bodyTextSecondary),
                 ],
               ),
             ),
-            SizedBox(width: AppTheme.spacingSmall),
-            Container(
-              padding: EdgeInsets.all(AppTheme.spacingSmall),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceColorOf(context),
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-              ),
-              child: Icon(
-                Icons.chevron_right,
-                color: AppTheme.textSecondaryOf(context),
-                size: AppTheme.iconSizeMedium,
-              ),
-            ),
+             Icon(Icons.chevron_right, color: AppTheme.textSecondaryOf(context)),
           ],
         ),
       ),
     );
-  }
-
-  Color _getColorForEspece(String espece) {
-    switch (espece.toLowerCase()) {
-      case 'bovin':
-        return AppTheme.primaryPurple;
-      case 'ovin':
-        return AppTheme.infoBlue;
-      case 'caprin':
-        return AppTheme.accentOrange;
-      case 'porcin':
-        return const Color(0xFFEC4899);
-      case 'volaille':
-        return AppTheme.warningOrange;
-      case 'équin':
-        return AppTheme.successGreen;
-      case 'lapin':
-        return const Color(0xFF8B5CF6);
-      default:
-        return AppTheme.textSecondary;
-    }
   }
 }

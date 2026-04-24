@@ -1,27 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
+
 import 'services/database_service.dart';
 import 'services/background_task_service.dart';
 import 'services/google_drive_service.dart';
 import 'services/background_sync_service.dart';
+import 'services/currency_service.dart';
 import 'providers/animal_provider.dart';
 import 'providers/rappel_provider.dart';
 import 'providers/reproduction_provider.dart';
 import 'providers/finance_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/settings_provider.dart';
 import 'screens/auth/pin_screen.dart';
 import 'utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('fr_FR', null);
+  await initializeDateFormatting('fr', null);
+  await initializeDateFormatting('en', null);
+  await initializeDateFormatting('sw', null);
   await DatabaseService.init();
   await GoogleDriveService.initialize();
   await BackgroundSyncService.initialize();
+  await CurrencyService.init();
   
   // Programmer la synchronisation périodique
   if (await GoogleDriveService.isSyncEnabled) {
@@ -112,17 +121,34 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => AnimalProvider()),
         ChangeNotifierProvider(create: (_) => RappelProvider()),
         ChangeNotifierProvider(create: (_) => ReproductionProvider()),
         ChangeNotifierProvider(create: (_) => FinanceProvider()..chargerTransactions()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
+      child: Consumer2<ThemeProvider, SettingsProvider>(
+        builder: (context, themeProvider, settingsProvider, child) {
           return MaterialApp(
             title: 'umuragizi',
             debugShowCheckedModeBanner: false,
             theme: themeProvider.themeData,
+            locale: settingsProvider.locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              _KirundiMaterialLocalizationsDelegate(),
+              _KirundiWidgetsLocalizationsDelegate(),
+              _KirundiCupertinoLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('fr'),
+              Locale('en'),
+              Locale('sw'),
+              Locale('rn'),
+            ],
             home: FutureBuilder<bool>(
               future: _hasPinConfigured(),
               builder: (context, snapshot) {
@@ -138,6 +164,48 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
       ),
     );
   }
+}
+
+class _KirundiMaterialLocalizationsDelegate extends LocalizationsDelegate<MaterialLocalizations> {
+  const _KirundiMaterialLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) => locale.languageCode == 'rn';
+
+  @override
+  Future<MaterialLocalizations> load(Locale locale) =>
+      GlobalMaterialLocalizations.delegate.load(const Locale('fr'));
+
+  @override
+  bool shouldReload(_KirundiMaterialLocalizationsDelegate old) => false;
+}
+
+class _KirundiWidgetsLocalizationsDelegate extends LocalizationsDelegate<WidgetsLocalizations> {
+  const _KirundiWidgetsLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) => locale.languageCode == 'rn';
+
+  @override
+  Future<WidgetsLocalizations> load(Locale locale) =>
+      GlobalWidgetsLocalizations.delegate.load(const Locale('fr'));
+
+  @override
+  bool shouldReload(_KirundiWidgetsLocalizationsDelegate old) => false;
+}
+
+class _KirundiCupertinoLocalizationsDelegate extends LocalizationsDelegate<CupertinoLocalizations> {
+  const _KirundiCupertinoLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) => locale.languageCode == 'rn';
+
+  @override
+  Future<CupertinoLocalizations> load(Locale locale) =>
+      GlobalCupertinoLocalizations.delegate.load(const Locale('fr'));
+
+  @override
+  bool shouldReload(_KirundiCupertinoLocalizationsDelegate old) => false;
 }
 
 class _SplashScreen extends StatelessWidget {

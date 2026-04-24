@@ -7,9 +7,11 @@ import 'dart:io';
 import '../../services/export_import_service.dart';
 import '../../services/google_drive_service.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
 import '../../widgets/google_drive_setting_card.dart';
+import '../../l10n/app_localizations.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -47,8 +49,125 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  void _showLanguageDialog() {
+    final settingsProvider = context.read<SettingsProvider>();
+    final l10n = AppLocalizations.of(context)!;
+    
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLarge)),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spacingXXLarge),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppTheme.spacingMedium),
+                decoration: const BoxDecoration(
+                  color: AppTheme.lightPurple,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.language_outlined, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
+              ),
+              const SizedBox(height: AppTheme.spacingLarge),
+              Text(
+                l10n.language,
+                style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+              ),
+              const SizedBox(height: AppTheme.spacingXXLarge),
+              _buildLanguageOption(context, settingsProvider, 'Français', const Locale('fr'), '🇫🇷'),
+              _buildLanguageOption(context, settingsProvider, 'English', const Locale('en'), '🇺🇸'),
+              _buildLanguageOption(context, settingsProvider, 'Kiswahili', const Locale('sw'), '🇹🇿'),
+              _buildLanguageOption(context, settingsProvider, 'IKirundi', const Locale('rn'), '🇧🇮'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption(BuildContext context, SettingsProvider provider, String name, Locale locale, String flag) {
+    final isSelected = provider.locale.languageCode == locale.languageCode;
+    return CustomCard(
+      onTap: () {
+        provider.setLocale(locale);
+        Navigator.pop(context);
+      },
+      child: Row(
+        children: [
+          Text(flag, style: const TextStyle(fontSize: 24)),
+          const SizedBox(width: AppTheme.spacingMedium),
+          Expanded(child: Text(name, style: AppTheme.listItemTitle)),
+          if (isSelected) const Icon(Icons.check_circle, color: AppTheme.primaryPurple),
+        ],
+      ),
+    );
+  }
+
+  void _showCurrencyDialog() {
+    final settingsProvider = context.read<SettingsProvider>();
+    final l10n = AppLocalizations.of(context)!;
+    
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLarge)),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spacingXXLarge),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppTheme.spacingMedium),
+                decoration: const BoxDecoration(
+                  color: AppTheme.lightPurple,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.monetization_on_outlined, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
+              ),
+              const SizedBox(height: AppTheme.spacingLarge),
+              Text(
+                l10n.currency,
+                style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+              ),
+              const SizedBox(height: AppTheme.spacingXXLarge),
+              _buildCurrencyOption(context, settingsProvider, 'Franc Burundais', 'BIF'),
+              _buildCurrencyOption(context, settingsProvider, 'US Dollar', 'USD'),
+              _buildCurrencyOption(context, settingsProvider, 'Kenyan Shilling', 'KES'),
+              _buildCurrencyOption(context, settingsProvider, 'Euro', 'EUR'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrencyOption(BuildContext context, SettingsProvider provider, String name, String code) {
+    final isSelected = provider.currency == code;
+    return CustomCard(
+      onTap: () {
+        provider.setCurrency(code);
+        Navigator.pop(context);
+      },
+      child: Row(
+        children: [
+          Container(
+             width: 48,
+             alignment: Alignment.center,
+             child: Text(code, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryPurple)),
+          ),
+          const SizedBox(width: AppTheme.spacingMedium),
+          Expanded(child: Text(name, style: AppTheme.listItemTitle)),
+          if (isSelected) const Icon(Icons.check_circle, color: AppTheme.primaryPurple),
+        ],
+      ),
+    );
+  }
+
   void _showThemeDialog() {
     final themeProvider = context.read<ThemeProvider>();
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -350,6 +469,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final settingsProvider = context.watch<SettingsProvider>();
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(
@@ -368,7 +490,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Paramètres',
+          l10n.settings,
           style: AppTheme.pageTitle.copyWith(
             color: AppTheme.textPrimaryOf(context),
           ),
@@ -379,7 +501,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.all(AppTheme.spacingXLarge),
         children: [
           Text(
-            'Données',
+            l10n.dataManagement,
             style: AppTheme.sectionTitle.copyWith(
               color: AppTheme.textPrimaryOf(context),
             ),
@@ -416,7 +538,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppTheme.spacingXXLarge),
           Text(
-            'Google Drive',
+            l10n.synchronization,
             style: AppTheme.sectionTitle.copyWith(
               color: AppTheme.textPrimaryOf(context),
             ),
@@ -445,22 +567,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   : Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
             ),
             const SizedBox(height: AppTheme.spacingMedium),
-            _buildSettingCard(
-              icon: Icons.cloud_download,
-              iconColor: AppTheme.infoBlue,
-              title: 'Restaurer depuis Drive',
-              subtitle: 'Récupérer vos données sauvegardées',
-              onTap: _isRestoring ? null : _restoreFromGoogleDrive,
-              trailing: _isRestoring
-                  ? const SizedBox(
-                      width: AppTheme.iconSizeMedium,
-                      height: AppTheme.iconSizeMedium,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
-            ),
-          ],
-          const SizedBox(height: AppTheme.spacingXXLarge),
+          _buildSettingCard(
+            icon: Icons.cloud_download,
+            iconColor: AppTheme.infoBlue,
+            title: 'Restaurer depuis Drive',
+            subtitle: 'Récupérer vos données sauvegardées',
+            onTap: _isRestoring ? null : _restoreFromGoogleDrive,
+            trailing: _isRestoring
+                ? const SizedBox(
+                    width: AppTheme.iconSizeMedium,
+                    height: AppTheme.iconSizeMedium,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
+          ),
+        ],
+        const SizedBox(height: AppTheme.spacingXXLarge),
+        Text(
+          'Préférences',
+          style: AppTheme.sectionTitle.copyWith(
+            color: AppTheme.textPrimaryOf(context),
+          ),
+        ),
+        const SizedBox(height: AppTheme.spacingMedium),
+        _buildSettingCard(
+          icon: Icons.language_outlined,
+          iconColor: AppTheme.primaryPurple,
+          title: l10n.language,
+          subtitle: settingsProvider.locale.languageCode.toUpperCase(),
+          onTap: _showLanguageDialog,
+          trailing: Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
+        ),
+        const SizedBox(height: AppTheme.spacingMedium),
+        _buildSettingCard(
+          icon: Icons.monetization_on_outlined,
+          iconColor: AppTheme.infoBlue,
+          title: l10n.currency,
+          subtitle: '${settingsProvider.currency} (${settingsProvider.currencySymbol})',
+          onTap: _showCurrencyDialog,
+          trailing: Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
+        ),
+        const SizedBox(height: AppTheme.spacingXXLarge),
           Text(
             'Apparence',
             style: AppTheme.sectionTitle.copyWith(

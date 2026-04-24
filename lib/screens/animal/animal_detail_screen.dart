@@ -11,9 +11,12 @@ import '../../widgets/widgets.dart';
 import 'animal_form_screen.dart';
 import 'reproduction_form_screen.dart';
 import '../finance/transaction_form_screen.dart';
+import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/finance_provider.dart';
-import 'package:intl/intl.dart';
+import '../../providers/settings_provider.dart';
+import '../../utils/currency_helper.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final String animalId;
@@ -474,6 +477,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final animal = context.watch<AnimalProvider>().getAnimal(widget.animalId);
 
     if (animal == null) {
@@ -482,9 +486,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: Text('Animal introuvable', style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+          title: Text(l10n.noData, style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
         ),
-        body: Center(child: Text('Cet animal n\'existe plus', style: AppTheme.bodyText.copyWith(color: AppTheme.textPrimaryOf(context)))),
+        body: Center(child: Text(l10n.noData, style: AppTheme.bodyText.copyWith(color: AppTheme.textPrimaryOf(context)))),
       );
     }
 
@@ -545,10 +549,13 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                 onPressed: () {
                   final repros = context.read<ReproductionProvider>().filtrerParAnimal(animal.id);
                   final transactions = context.read<FinanceProvider>().transactions.where((tx) => tx.animalId == animal.id).toList();
+                  final settings = context.read<SettingsProvider>();
                   PdfService.generateAnimalReport(
                     animal: animal,
                     repros: repros,
                     transactions: transactions,
+                    currency: settings.currency,
+                    locale: settings.intlLocale,
                   );
                 },
               ),
@@ -658,20 +665,20 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                 unselectedLabelColor: AppTheme.textSecondaryOf(context),
                 indicatorColor: AppTheme.primaryPurple,
                 tabs: [
-                  const Tab(icon: Icon(Icons.info_outline, size: 20), text: 'Info'),
+                  Tab(icon: const Icon(Icons.info_outline, size: 20), text: l10n.dashboard), // Info
                   if (animal.sexe == 'Femelle')
-                    const Tab(
-                      icon: Icon(Icons.family_restroom, size: 20),
-                      text: 'Reprod.',
+                    Tab(
+                      icon: const Icon(Icons.family_restroom, size: 20),
+                      text: l10n.reproduction,
                     ),
                   const Tab(icon: Icon(Icons.restaurant, size: 20), text: 'Alim.'),
                   const Tab(
                     icon: Icon(Icons.favorite_outline, size: 20),
                     text: 'Santé',
                   ),
-                  const Tab(
-                    icon: Icon(Icons.attach_money, size: 20),
-                    text: 'Finances',
+                  Tab(
+                    icon: const Icon(Icons.attach_money, size: 20),
+                    text: l10n.finance,
                   ),
                   const Tab(
                     icon: Icon(Icons.notifications_outlined, size: 20),
@@ -694,8 +701,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         ),
       ),
     ),
-    );
-  }
+  );
+}
 }
 
 class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
@@ -729,12 +736,13 @@ class _InfoTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
     return ListView(
       padding: EdgeInsets.all(AppTheme.spacingXLarge),
       children: [
         _InfoCard(
           icon: animal.sexe == 'Mâle' ? Icons.male : Icons.female,
-          label: "Sexe",
+          label: animal.sexe == 'Mâle' ? 'Male' : 'Female', // Note: Add more l10n later
           value: animal.sexe,
           colorIcon: animal.sexe == 'Mâle'
               ? AppTheme.infoBlue
@@ -744,9 +752,9 @@ class _InfoTab extends StatelessWidget {
         SizedBox(height: AppTheme.spacingMedium),
         _InfoCard(
           icon: Icons.calendar_today_outlined,
-          label: 'Date de naissance',
+          label: 'Date',
           value:
-              '${animal.dateNaissance.day}/${animal.dateNaissance.month}/${animal.dateNaissance.year}',
+              DateFormat('dd/MM/yyyy', settings.intlLocale).format(animal.dateNaissance),
         ),
         SizedBox(height: AppTheme.spacingMedium),
         _InfoCard(
@@ -790,6 +798,7 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
     return CustomCard(
       child: Row(
         children: [
@@ -992,15 +1001,17 @@ class _FinancesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<FinanceProvider>(
       builder: (context, financeProvider, child) {
-        final transactions = financeProvider.filtrerParAnimal(animal.id);
-
+        final transactions = financeProvider.transactions.where((tx) => tx.animalId == animal.id).toList();
+        final settings = context.watch<SettingsProvider>();
+        final l10n = AppLocalizations.of(context)!;
+        
         double totalDepenses = 0;
         double totalRevenus = 0;
         for (var tx in transactions) {
           if (tx.type == 'Dépense') totalDepenses += tx.montant;
           else totalRevenus += tx.montant;
         }
-        
+
         final prixAchat = animal.prixAchat ?? 0;
         final investissementTotal = prixAchat + totalDepenses - totalRevenus;
 
@@ -1015,19 +1026,19 @@ class _FinancesTab extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Investissement sur ${animal.nom}', 
+                      Text('${l10n.netInvestment} sur ${animal.nom}', 
                         style: AppTheme.sectionSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
                       const SizedBox(height: 12),
-                      _buildSummaryRow('Prix d\'achat', '${prixAchat.toStringAsFixed(2)} \$', AppTheme.textSecondaryOf(context)),
-                      _buildSummaryRow('Dépenses cumulées', '${totalDepenses.toStringAsFixed(2)} \$', AppTheme.errorRed),
-                      _buildSummaryRow('Revenus générés', '${totalRevenus.toStringAsFixed(2)} \$', AppTheme.successGreen),
+                      _buildSummaryRow(l10n.currency, CurrencyHelper.format(prixAchat, settings), AppTheme.textSecondaryOf(context)),
+                      _buildSummaryRow(l10n.expenses, CurrencyHelper.format(totalDepenses, settings), AppTheme.errorRed),
+                      _buildSummaryRow(l10n.revenues, CurrencyHelper.format(totalRevenus, settings), AppTheme.successGreen),
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 8),
                         child: Divider(),
                       ),
                       _buildSummaryRow(
-                        'Investissement NET', 
-                        '${investissementTotal.toStringAsFixed(2)} \$', 
+                        l10n.netInvestment, 
+                        CurrencyHelper.format(investissementTotal, settings), 
                         investissementTotal > 0 ? AppTheme.primaryPurple : AppTheme.successGreen,
                         isBold: true
                       ),
@@ -1062,9 +1073,9 @@ class _FinancesTab extends StatelessWidget {
                             color: isRevenu ? AppTheme.successGreen : AppTheme.errorRed,
                           ),
                           title: Text(tx.categorie, style: AppTheme.listItemTitle),
-                          subtitle: Text(DateFormat('dd MMMM yyyy', 'fr_FR').format(tx.date)),
+                          subtitle: Text(DateFormat('dd MMMM yyyy', settings.intlLocale).format(tx.date)),
                           trailing: Text(
-                            '${isRevenu ? '+' : '-'}${tx.montant.toStringAsFixed(0)} \$',
+                            '${isRevenu ? '+' : '-'}${CurrencyHelper.format(tx.montant, settings)}',
                             style: TextStyle(
                               color: isRevenu ? AppTheme.successGreen : AppTheme.errorRed,
                               fontWeight: FontWeight.bold,
