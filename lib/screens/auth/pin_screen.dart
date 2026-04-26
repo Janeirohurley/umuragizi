@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:umuragizi/l10n/app_localizations.dart';
 import '../../utils/app_theme.dart';
 import '../dashboard_screen.dart';
 
@@ -81,6 +82,7 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
   }
 
   Future<void> _validatePin() async {
+    final l10n = AppLocalizations.of(context)!;
     if (widget.isSetup) {
       if (!_isConfirming) {
         setState(() {
@@ -98,7 +100,7 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
             );
           }
         } else {
-          _showError('Les codes PIN ne correspondent pas');
+          _showError(l10n.pinMismatchError);
           setState(() {
             _enteredPin = '';
             _confirmPin = '';
@@ -116,7 +118,7 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
           );
         }
       } else {
-        _showError('Code PIN incorrect');
+        _showError(l10n.pinError);
         setState(() {
           _enteredPin = '';
         });
@@ -163,6 +165,7 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
   }
 
   Widget _buildHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Container(
@@ -175,11 +178,11 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
               BoxShadow(
                 color: AppTheme.primaryPurple.withValues(alpha: 0.3),
                 blurRadius: AppTheme.spacingLarge,
-                offset: const Offset(0, AppTheme.spacingMedium),
+                offset: const Offset(0, 8),
               ),
             ],
           ),
-          child: Icon(
+          child: const Icon(
             Icons.lock_outline_rounded,
             color: Colors.white,
             size: AppTheme.iconSizeMedium,
@@ -188,8 +191,8 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
         const SizedBox(height: AppTheme.spacingXLarge),
         Text(
           widget.isSetup
-              ? (_isConfirming ? 'Confirmez votre PIN' : 'Créez votre PIN')
-              : 'Entrez votre PIN',
+              ? (_isConfirming ? l10n.pinConfirm : l10n.pinTitle)
+              : l10n.enterPin,
           style: AppTheme.cardTitle.copyWith(
             color: AppTheme.textPrimaryOf(context),
           ),
@@ -197,10 +200,8 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
         const SizedBox(height: AppTheme.spacingSmall),
         Text(
           widget.isSetup
-              ? (_isConfirming
-                  ? 'Entrez à nouveau votre code PIN'
-                  : 'Choisissez un code PIN à 6 chiffres')
-              : 'Entrez votre code PIN pour accéder à l\'application',
+              ? (_isConfirming ? l10n.pinConfirmSubtitle : l10n.pinSubtitle)
+              : l10n.enterPinSubtitle,
           textAlign: TextAlign.center,
           style: AppTheme.bodyTextSecondary.copyWith(
             color: AppTheme.textSecondaryOf(context),
@@ -259,7 +260,7 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline,
             color: AppTheme.errorRed,
             size: AppTheme.iconSizeSmall,
@@ -307,7 +308,7 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            SizedBox(width: AppTheme.iconSizeXLarge, height: AppTheme.iconSizeXLarge),
+            const SizedBox(width: AppTheme.iconSizeXLarge, height: AppTheme.iconSizeXLarge),
             _buildKeypadButton('0'),
             _buildDeleteButton(),
           ],
@@ -371,6 +372,7 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
   }
 
   Widget _buildSkipButton() {
+    final l10n = AppLocalizations.of(context)!;
     return TextButton(
       onPressed: () {
         Navigator.pushReplacement(
@@ -379,7 +381,7 @@ class _PinScreenState extends State<PinScreen> with SingleTickerProviderStateMix
         );
       },
       child: Text(
-        'Passer pour l\'instant',
+        l10n.skip,
         style: AppTheme.buttonTextSecondary.copyWith(
           color: AppTheme.textSecondaryOf(context),
         ),

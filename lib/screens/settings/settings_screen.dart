@@ -55,10 +55,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: l10n.language,
       icon: Icons.language_outlined,
       children: [
-        _buildLanguageOption(context, settingsProvider, 'Français', const Locale('fr'), '🇫🇷'),
-        _buildLanguageOption(context, settingsProvider, 'English', const Locale('en'), '🇺🇸'),
-        _buildLanguageOption(context, settingsProvider, 'Kiswahili', const Locale('sw'), '🇹🇿'),
-        _buildLanguageOption(context, settingsProvider, 'IKirundi', const Locale('rn'), '🇧🇮'),
+        _buildLanguageOption(context, settingsProvider, l10n.languagern, const Locale('rn'), '🇧🇮'),
+        _buildLanguageOption(context, settingsProvider, l10n.languagefr, const Locale('fr'), '🇫🇷'),
+        _buildLanguageOption(context, settingsProvider, l10n.languageen, const Locale('en'), '🇺🇸'),
+        _buildLanguageOption(context, settingsProvider, l10n.languagesw, const Locale('sw'), '🇹🇿'),
       ],
     );
   }
@@ -88,10 +88,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: l10n.currency,
       icon: Icons.monetization_on_outlined,
       children: [
-        _buildCurrencyOption(context, settingsProvider, 'Franc Burundais', 'BIF'),
-        _buildCurrencyOption(context, settingsProvider, 'US Dollar', 'USD'),
-        _buildCurrencyOption(context, settingsProvider, 'Kenyan Shilling', 'KES'),
-        _buildCurrencyOption(context, settingsProvider, 'Euro', 'EUR'),
+        _buildCurrencyOption(
+            context, settingsProvider, l10n.currencybif, 'BIF'),
+        _buildCurrencyOption(
+            context, settingsProvider, l10n.currencyusd, 'USD'),
+        _buildCurrencyOption(
+            context, settingsProvider, l10n.currencykes, 'KES'),
+        _buildCurrencyOption(
+            context, settingsProvider, l10n.currencyeur, 'EUR'),
       ],
     );
   }
@@ -120,12 +124,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showThemeDialog() {
     final themeProvider = context.read<ThemeProvider>();
+    final l10n = AppLocalizations.of(context)!;
     _showSelectionBottomSheet(
-      title: 'Thème',
+      title: l10n.theme,
       icon: Icons.palette_outlined,
       children: [
-        _buildThemeOption(context, themeProvider, 'Clair', Icons.light_mode_outlined, false),
-        _buildThemeOption(context, themeProvider, 'Sombre', Icons.dark_mode_outlined, true),
+        _buildThemeOption(context, themeProvider, l10n.themeLight, Icons.light_mode_outlined, false),
+        _buildThemeOption(context, themeProvider, l10n.themeDark, Icons.dark_mode_outlined, true),
       ],
     );
   }
@@ -212,13 +217,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _exportData() async {
     setState(() => _isExporting = true);
+    final l10n = AppLocalizations.of(context)!;
     try {
       final file = await ExportImportService.saveExportToFile();
       await Share.shareXFiles([XFile(file.path)], text: 'Export umuragizi');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Données exportées avec succès'),
+            content: Text(l10n.exportSuccess),
             backgroundColor: AppTheme.successGreen,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -229,7 +235,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de l\'export: $e'),
+            content: Text('${l10n.exportError}: $e'),
             backgroundColor: AppTheme.errorRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -249,13 +255,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (result != null && result.files.single.path != null) {
       setState(() => _isImporting = true);
+      final l10n = AppLocalizations.of(context)!;
       try {
         final file = File(result.files.single.path!);
         await ExportImportService.importFromFile(file);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Données importées avec succès'),
+              content: Text(l10n.importSuccess),
               backgroundColor: AppTheme.successGreen,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -266,7 +273,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Erreur lors de l\'import: $e'),
+              content: Text('${l10n.importError}: $e'),
               backgroundColor: AppTheme.errorRed,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -288,13 +295,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _disconnectGoogleDrive() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       await GoogleDriveService.disconnect();
       await _checkGoogleDriveConnection();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Déconnecté de Google Drive'),
+            content: Text(l10n.driveDisconnected),
             backgroundColor: AppTheme.infoBlue,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -305,7 +313,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur de déconnexion: $e'),
+            content: Text('${l10n.driveDisconnected}: $e'),
             backgroundColor: AppTheme.errorRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -316,6 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _connectGoogleDrive() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final success = await GoogleDriveService.authenticate();
       if (success) {
@@ -324,7 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Connecté à Google Drive'),
+              content: Text(l10n.driveConnected),
               backgroundColor: AppTheme.successGreen,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -338,7 +347,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur de connexion: $e'),
+            content: Text('${l10n.driveConnected}: $e'),
             backgroundColor: AppTheme.errorRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -350,21 +359,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _backupToGoogleDrive() async {
     setState(() => _isBackingUp = true);
+    final l10n = AppLocalizations.of(context)!;
     try {
-      // Vérifier d'abord la connexion
       final isConnected = await GoogleDriveService.isSyncEnabled;
       if (!isConnected) {
         throw Exception('Google Drive non connecté');
       }
-      
       final success = await GoogleDriveService.syncData();
       if (success) {
-        await _checkGoogleDriveConnection(); // Mettre à jour la date de sync
+        await _checkGoogleDriveConnection();
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(success ? 'Sauvegarde Google Drive réussie' : 'Erreur de sauvegarde'),
+            content: Text(success ? l10n.driveBackupSuccess : l10n.driveBackupError),
             backgroundColor: success ? AppTheme.successGreen : AppTheme.errorRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -372,11 +380,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     } catch (e) {
-      print('Erreur backup: $e'); // Debug
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur de sauvegarde: $e'),
+            content: Text('${l10n.driveBackupError}: $e'),
             backgroundColor: AppTheme.errorRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -390,12 +397,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _restoreFromGoogleDrive() async {
     setState(() => _isRestoring = true);
+    final l10n = AppLocalizations.of(context)!;
     try {
       final success = await GoogleDriveService.restoreData();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(success ? 'Restauration Google Drive réussie' : 'Aucune sauvegarde trouvée'),
+            content: Text(success ? l10n.driveRestoreSuccess : l10n.driveNoBackup),
             backgroundColor: success ? AppTheme.successGreen : AppTheme.warningOrange,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -406,7 +414,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur de restauration: $e'),
+            content: Text('${l10n.driveRestoreSuccess}: $e'),
             backgroundColor: AppTheme.errorRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -419,6 +427,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showAboutDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -450,14 +459,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: AppTheme.bodyTextSecondary,
               ),
               const SizedBox(height: AppTheme.spacingMedium),
-              const Text(
-                'Application de gestion d\'élevage',
+              Text(
+                l10n.appDescription,
                 textAlign: TextAlign.center,
                 style: AppTheme.bodyTextSecondary,
               ),
               const SizedBox(height: AppTheme.spacingXXLarge),
               PrimaryButton(
-                text: 'Fermer',
+                text: l10n.close,
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -509,8 +518,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSettingCard(
             icon: Icons.upload_file,
             iconColor: AppTheme.primaryPurple,
-            title: 'Exporter les données',
-            subtitle: 'Sauvegarder toutes vos données',
+            title: l10n.exportData,
+            subtitle: l10n.exportDataSubtitle,
             onTap: _isExporting ? null : _exportData,
             trailing: _isExporting
                 ? const SizedBox(
@@ -524,8 +533,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSettingCard(
             icon: Icons.download,
             iconColor: AppTheme.infoBlue,
-            title: 'Importer les données',
-            subtitle: 'Restaurer depuis un fichier',
+            title: l10n.importData,
+            subtitle: l10n.importDataSubtitle,
             onTap: _isImporting ? null : _importData,
             trailing: _isImporting
                 ? const SizedBox(
@@ -554,8 +563,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingCard(
               icon: Icons.cloud_upload,
               iconColor: AppTheme.primaryPurple,
-              title: 'Sauvegarder sur Drive',
-              subtitle: 'Synchroniser vos données',
+              title: l10n.backupDrive,
+              subtitle: l10n.backupDriveSubtitle,
               onTap: (_isBackingUp || _isSyncInProgress) ? null : _backupToGoogleDrive,
               trailing: (_isBackingUp || _isSyncInProgress)
                   ? const SizedBox(
@@ -566,49 +575,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   : Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
             ),
             const SizedBox(height: AppTheme.spacingMedium),
-          _buildSettingCard(
-            icon: Icons.cloud_download,
-            iconColor: AppTheme.infoBlue,
-            title: 'Restaurer depuis Drive',
-            subtitle: 'Récupérer vos données sauvegardées',
-            onTap: _isRestoring ? null : _restoreFromGoogleDrive,
-            trailing: _isRestoring
-                ? const SizedBox(
-                    width: AppTheme.iconSizeMedium,
-                    height: AppTheme.iconSizeMedium,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
-          ),
-        ],
-        const SizedBox(height: AppTheme.spacingXXLarge),
-        Text(
-          'Préférences',
-          style: AppTheme.sectionTitle.copyWith(
-            color: AppTheme.textPrimaryOf(context),
-          ),
-        ),
-        const SizedBox(height: AppTheme.spacingMedium),
-        _buildSettingCard(
-          icon: Icons.language_outlined,
-          iconColor: AppTheme.primaryPurple,
-          title: l10n.language,
-          subtitle: settingsProvider.locale.languageCode.toUpperCase(),
-          onTap: _showLanguageDialog,
-          trailing: Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
-        ),
-        const SizedBox(height: AppTheme.spacingMedium),
-        _buildSettingCard(
-          icon: Icons.monetization_on_outlined,
-          iconColor: AppTheme.infoBlue,
-          title: l10n.currency,
-          subtitle: '${settingsProvider.currency} (${settingsProvider.currencySymbol})',
-          onTap: _showCurrencyDialog,
-          trailing: Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
-        ),
-        const SizedBox(height: AppTheme.spacingXXLarge),
+            _buildSettingCard(
+              icon: Icons.cloud_download,
+              iconColor: AppTheme.infoBlue,
+              title: l10n.restoreDrive,
+              subtitle: l10n.restoreDriveSubtitle,
+              onTap: _isRestoring ? null : _restoreFromGoogleDrive,
+              trailing: _isRestoring
+                  ? const SizedBox(
+                      width: AppTheme.iconSizeMedium,
+                      height: AppTheme.iconSizeMedium,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
+            ),
+          ],
+          const SizedBox(height: AppTheme.spacingXXLarge),
           Text(
-            'Apparence',
+            l10n.preferences,
+            style: AppTheme.sectionTitle.copyWith(
+              color: AppTheme.textPrimaryOf(context),
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingMedium),
+          _buildSettingCard(
+            icon: Icons.language_outlined,
+            iconColor: AppTheme.primaryPurple,
+            title: l10n.language,
+            subtitle: settingsProvider.locale.languageCode.toUpperCase(),
+            onTap: _showLanguageDialog,
+            trailing: Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
+          ),
+          const SizedBox(height: AppTheme.spacingMedium),
+          _buildSettingCard(
+            icon: Icons.monetization_on_outlined,
+            iconColor: AppTheme.infoBlue,
+            title: l10n.currency,
+            subtitle: '${settingsProvider.currency} (${settingsProvider.currencySymbol})',
+            onTap: _showCurrencyDialog,
+            trailing: Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
+          ),
+          const SizedBox(height: AppTheme.spacingXXLarge),
+          Text(
+            l10n.appearance,
             style: AppTheme.sectionTitle.copyWith(
               color: AppTheme.textPrimaryOf(context),
             ),
@@ -617,14 +626,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSettingCard(
             icon: Icons.palette_outlined,
             iconColor: AppTheme.accentOrange,
-            title: 'Thème',
-            subtitle: 'Clair ou sombre',
+            title: l10n.theme,
+            subtitle: l10n.themeSubtitle,
             onTap: _showThemeDialog,
             trailing: Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
           ),
           const SizedBox(height: AppTheme.spacingXXLarge),
           Text(
-            'Application',
+            l10n.application,
             style: AppTheme.sectionTitle.copyWith(
               color: AppTheme.textPrimaryOf(context),
             ),
@@ -633,8 +642,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSettingCard(
             icon: Icons.info_outline,
             iconColor: AppTheme.primaryGreen,
-            title: 'À propos',
-            subtitle: 'Version et informations',
+            title: l10n.about,
+            subtitle: l10n.aboutSubtitle,
             onTap: _showAboutDialog,
             trailing: Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
           ),
@@ -660,7 +669,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.all(AppTheme.spacingMedium),
               decoration: BoxDecoration(
                 color: iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Icon(icon, color: iconColor, size: AppTheme.iconSizeLarge),
             ),

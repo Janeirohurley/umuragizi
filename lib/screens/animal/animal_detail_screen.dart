@@ -16,6 +16,7 @@ import '../production/production_form_screen.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/reproduction_provider.dart';
+import '../../utils/age_helper.dart';
 import '../../providers/finance_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../utils/currency_helper.dart';
@@ -226,7 +227,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                         SizedBox(width: AppTheme.spacingMedium),
                         Expanded(
                           child: Text(
-                            'Scannez ce code pour identifier rapidement cet animal',
+                            AppLocalizations.of(context)!.qrScanHint,
                             style: AppTheme.bodyTextSecondary.copyWith(
                               fontSize: 13,
                               color: AppTheme.textSecondaryOf(context),
@@ -297,7 +298,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                   ),
                   SizedBox(height: AppTheme.spacingXLarge),
                   Text(
-                    'Supprimer ${animal.nom} ?',
+                    '${AppLocalizations.of(context)!.deleteAnimal} ${animal.nom} ?',
                     style: AppTheme.sectionTitle.copyWith(
                       fontSize: 20,
                       color: AppTheme.textPrimaryOf(context),
@@ -386,7 +387,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                         SizedBox(width: AppTheme.spacingMedium),
                         Expanded(
                           child: Text(
-                            'Cette action est irréversible. Toutes les données associées seront supprimées.',
+                            AppLocalizations.of(context)!.irreversibleAction,
                             style: AppTheme.bodyTextSecondary.copyWith(
                               fontSize: 13,
                               color: AppTheme.textSecondaryOf(context),
@@ -418,7 +419,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                             ),
                           ),
                           child: Text(
-                            'Annuler',
+                            AppLocalizations.of(context)!.cancel,
                             style: AppTheme.cardTitle.copyWith(
                               color: AppTheme.textPrimaryOf(context),
                             ),
@@ -457,7 +458,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                               ),
                               SizedBox(width: AppTheme.spacingSmall),
                               Text(
-                                'Supprimer',
+                                AppLocalizations.of(context)!.deleteConfirm,
                                 style: AppTheme.cardTitle.copyWith(
                                   color: Colors.white,
                                 ),
@@ -663,24 +664,20 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
               TabBar(
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,
+                labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                unselectedLabelStyle: const TextStyle(fontSize: 11),
                 labelColor: AppTheme.primaryPurple,
                 unselectedLabelColor: AppTheme.textSecondaryOf(context),
                 indicatorColor: AppTheme.primaryPurple,
                 tabs: [
-                  Tab(icon: const Icon(Icons.dashboard, size: 20), text: l10n.dashboard), // Info
+                  Tab(icon: const Icon(Icons.dashboard, size: 16), text: l10n.dashboard),
                   if (animal.sexe == 'Femelle')
-                    Tab(icon: const Icon(Icons.family_restroom, size: 20), text: 'Reproduction.'),
-                  const Tab(icon: Icon(Icons.restaurant, size: 20), text: 'Alimentation.'),
-                  const Tab(icon: Icon(Icons.water_drop, size: 20), text: 'Production.'),
-                  const Tab(icon: Icon(Icons.favorite_outline, size: 20), text: 'Santé'),
-                  Tab(
-                    icon: const Icon(Icons.attach_money, size: 20),
-                    text: l10n.finance,
-                  ),
-                  const Tab(
-                    icon: Icon(Icons.notifications_outlined, size: 20),
-                    text: 'Rappels',
-                  ),
+                    Tab(icon: const Icon(Icons.family_restroom, size: 16), text: l10n.reproduction),
+                  Tab(icon: const Icon(Icons.restaurant, size: 16), text: l10n.alimentation),
+                  Tab(icon: const Icon(Icons.water_drop, size: 16), text: l10n.production),
+                  Tab(icon: const Icon(Icons.favorite_outline, size: 16), text: l10n.sante),
+                  Tab(icon: const Icon(Icons.attach_money, size: 16), text: l10n.finance),
+                  Tab(icon: const Icon(Icons.notifications_outlined, size: 16), text: l10n.reminders),
                 ],
               ),
             ),
@@ -735,6 +732,7 @@ class _InfoTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
+    final l10n = AppLocalizations.of(context)!;
     return ListView(
       padding: EdgeInsets.all(AppTheme.spacingXLarge),
       children: [
@@ -743,7 +741,7 @@ class _InfoTab extends StatelessWidget {
         SizedBox(height: AppTheme.spacingMedium),
         _InfoCard(
           icon: animal.sexe == 'Mâle' ? Icons.male : Icons.female,
-          label: animal.sexe == 'Mâle' ? 'Male' : 'Female', // Note: Add more l10n later
+          label: animal.sexe == 'Mâle' ? l10n.male : l10n.female,
           value: animal.sexe,
           colorIcon: animal.sexe == 'Mâle'
               ? AppTheme.infoBlue
@@ -753,27 +751,27 @@ class _InfoTab extends StatelessWidget {
         SizedBox(height: AppTheme.spacingMedium),
         _InfoCard(
           icon: Icons.calendar_today_outlined,
-          label: 'Date',
+          label: l10n.date,
           value:
               DateFormat('dd/MM/yyyy', settings.intlLocale).format(animal.dateNaissance),
         ),
         SizedBox(height: AppTheme.spacingMedium),
         _InfoCard(
           icon: Icons.cake_outlined,
-          label: 'Âge',
-          value: animal.ageFormate,
+          label: l10n.age,
+          value: formatAge(animal.ageEnMois, l10n),
         ),
         SizedBox(height: AppTheme.spacingMedium),
         _InfoCard(
           icon: Icons.fingerprint,
-          label: "Identifiant",
+          label: l10n.identifier,
           value: animal.identifiant,
         ),
         if (animal.notes != null) ...[
           SizedBox(height: AppTheme.spacingMedium),
           _InfoCard(
             icon: Icons.edit_note_outlined,
-            label: "Notes",
+            label: l10n.notes,
             value: animal.notes!,
           ),
         ],
@@ -853,10 +851,10 @@ class _AlimentationTab extends StatelessWidget {
               ),
             ),
             SizedBox(height: AppTheme.spacingLarge),
-            Text('Aucune alimentation', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+            Text(AppLocalizations.of(context)!.noFeeding, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingSmall),
             Text(
-              'Aucune alimentation enregistrée',
+              AppLocalizations.of(context)!.noFeedingRecorded,
               style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
             ),
           ],
@@ -912,9 +910,9 @@ class _SanteTab extends StatelessWidget {
               ),
             ),
             SizedBox(height: AppTheme.spacingLarge),
-            Text('Aucune donnée', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+            Text(AppLocalizations.of(context)!.noData, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingSmall),
-            Text('Aucune donnée de santé', style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context))),
+            Text(AppLocalizations.of(context)!.noHealthData, style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context))),
           ],
         ),
       );
@@ -924,7 +922,7 @@ class _SanteTab extends StatelessWidget {
       padding: EdgeInsets.all(AppTheme.spacingXLarge),
       children: [
         if (croissances.isNotEmpty) ...[
-          Text('Croissance', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+          Text(AppLocalizations.of(context)!.growth, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
           SizedBox(height: AppTheme.spacingMedium),
           ...croissances.map(
             (c) => Padding(
@@ -942,7 +940,7 @@ class _SanteTab extends StatelessWidget {
           SizedBox(height: AppTheme.spacingLarge),
         ],
         if (santes.isNotEmpty) ...[
-          Text('Santé', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+          Text(AppLocalizations.of(context)!.sante, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
           SizedBox(height: AppTheme.spacingMedium),
           ...santes.map(
             (s) => Padding(
@@ -1047,7 +1045,7 @@ class _FinancesTab extends StatelessWidget {
                 ),
                 SizedBox(height: AppTheme.spacingXLarge),
 
-                Text('Historique des transactions', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                Text(l10n.transactionHistory, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                 const SizedBox(height: 12),
 
                 // Graphique évolution solde
@@ -1057,7 +1055,7 @@ class _FinancesTab extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Évolution du solde', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                        Text(l10n.balanceEvolution, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                         SizedBox(height: AppTheme.spacingMedium),
                         SizedBox(
                           height: 150,
@@ -1098,7 +1096,7 @@ class _FinancesTab extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Center(
                       child: Text(
-                        'Aucune transaction enregistrée',
+                        l10n.noTransaction,
                         style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
                       ),
                     ),
@@ -1247,9 +1245,9 @@ class _ProductionTabState extends State<_ProductionTab> {
                       child: Icon(Icons.water_drop, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
                     ),
                     SizedBox(height: AppTheme.spacingLarge),
-                    Text('Aucune production', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                    Text(AppLocalizations.of(context)!.noProduction, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                     SizedBox(height: AppTheme.spacingSmall),
-                    Text('Enregistrez lait, œufs, laine...', style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context))),
+                    Text(AppLocalizations.of(context)!.productionHint, style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context))),
                   ],
                 ),
               )
@@ -1399,9 +1397,9 @@ class _RappelsTab extends StatelessWidget {
               ),
             ),
             SizedBox(height: AppTheme.spacingLarge),
-            Text('Aucun rappel', style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+            Text(AppLocalizations.of(context)!.noReminder, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingSmall),
-            Text('Aucun rappel programmé', style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context))),
+            Text(AppLocalizations.of(context)!.noReminderScheduled, style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context))),
           ],
         ),
       );
@@ -1489,7 +1487,7 @@ class _ReproductionTab extends StatelessWidget {
                         ),
                         SizedBox(height: AppTheme.spacingMedium),
                         Text(
-                          'Aucun événement de reproduction',
+                          AppLocalizations.of(context)!.noReproEvent,
                           style: AppTheme.sectionSubtitle.copyWith(
                             color: AppTheme.textSecondaryOf(context),
                           ),
@@ -1527,7 +1525,7 @@ class _ReproductionTab extends StatelessWidget {
                                 Text(DateFormat('dd MMMM yyyy').format(repro.dateEvenement), style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
                                 if (repro.datePrevueMiseBas != null)
                                   Text(
-                                    'Vêlage prévu : ${DateFormat('dd/MM/yyyy').format(repro.datePrevueMiseBas!)}',
+                                    '${AppLocalizations.of(context)!.calvingPlanned} : ${DateFormat('dd/MM/yyyy').format(repro.datePrevueMiseBas!)}',
                                     style: TextStyle(color: AppTheme.primaryPurple, fontWeight: FontWeight.bold),
                                   ),
                                 if (repro.notes != null) Text(repro.notes!, style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context))),

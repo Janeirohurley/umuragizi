@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
 import '../../models/models.dart';
 import '../../services/database_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/settings_provider.dart';
+import 'package:provider/provider.dart';
 
 class GrowthFormScreen extends StatefulWidget {
   final String animalId;
@@ -57,7 +59,18 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
     }
   }
 
+  String _etatLabel(String? etat, AppLocalizations l10n) {
+    switch (etat) {
+      case 'excellent': return l10n.stateExcellent;
+      case 'bon': return l10n.stateGood;
+      case 'moyen': return l10n.stateMedium;
+      case 'faible': return l10n.stateWeak;
+      default: return l10n.physicalState;
+    }
+  }
+
   void _showEtatBottomSheet() {
+    final l10n = AppLocalizations.of(context)!;
     final etats = ['excellent', 'bon', 'moyen', 'faible'];
     showModalBottomSheet(
       context: context,
@@ -81,7 +94,7 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
             ),
             SizedBox(height: AppTheme.spacingMedium),
             Text(
-              'État physique',
+              l10n.physicalState,
               style: AppTheme.bottomSheetTitle.copyWith(
                 color: AppTheme.textPrimaryOf(context),
               ),
@@ -93,7 +106,7 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
                 color: _etatPhysique == etat ? AppTheme.primaryPurple : AppTheme.textSecondaryOf(context),
               ),
               title: Text(
-                etat[0].toUpperCase() + etat.substring(1),
+                _etatLabel(etat, l10n),
                 style: TextStyle(
                   fontWeight: _etatPhysique == etat ? FontWeight.w600 : FontWeight.normal,
                   color: _etatPhysique == etat ? AppTheme.primaryPurple : AppTheme.textPrimaryOf(context),
@@ -133,6 +146,8 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(
@@ -151,7 +166,7 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Ajouter mesure',
+          l10n.addMeasure,
           style: AppTheme.pageTitle.copyWith(
             color: AppTheme.textPrimaryOf(context),
           ),
@@ -166,7 +181,7 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
             TextFormField(
               controller: _poidsController,
               decoration: InputDecoration(
-                hintText: 'Poids (kg)',
+                hintText: l10n.weight,
                 hintStyle: AppTheme.formHint,
                 prefixIcon: Icon(Icons.monitor_weight, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                 border: OutlineInputBorder(
@@ -179,13 +194,13 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
               ),
               style: AppTheme.formInput,
               keyboardType: TextInputType.number,
-              validator: (v) => v?.isEmpty ?? true ? 'Le poids est requis' : null,
+              validator: (v) => v?.isEmpty ?? true ? l10n.weightRequired : null,
             ),
             SizedBox(height: AppTheme.spacingMedium),
             TextFormField(
               controller: _tailleController,
               decoration: InputDecoration(
-                hintText: 'Taille (cm) - optionnel',
+                hintText: l10n.height,
                 hintStyle: AppTheme.formHint,
                 prefixIcon: Icon(Icons.height, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                 border: OutlineInputBorder(
@@ -214,7 +229,7 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
                     SizedBox(width: AppTheme.spacingMedium),
                     Expanded(
                       child: Text(
-                        _etatPhysique != null ? _etatPhysique![0].toUpperCase() + _etatPhysique!.substring(1) : 'État physique',
+                        _etatPhysique != null ? _etatLabel(_etatPhysique, l10n) : l10n.physicalState,
                         style: AppTheme.formInput,
                       ),
                     ),
@@ -241,11 +256,11 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Date',
+                            l10n.date,
                             style: AppTheme.formLabel,
                           ),
                           Text(
-                            DateFormat('d MMMM yyyy', 'fr_FR').format(_date),
+                            '${_date.day.toString().padLeft(2,'0')} ${settings.monthName(_date.month)} ${_date.year}',
                             style: AppTheme.formInput.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
@@ -262,7 +277,7 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
             TextFormField(
               controller: _notesController,
               decoration: InputDecoration(
-                hintText: 'Notes (optionnel)',
+                hintText: l10n.notesOptional,
                 hintStyle: AppTheme.formHint,
                 prefixIcon: Padding(
                   padding: EdgeInsets.only(bottom: AppTheme.spacingXXLarge),
@@ -281,7 +296,7 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
             ),
             SizedBox(height: AppTheme.spacingXXLarge),
             PrimaryButton(
-              text: 'Enregistrer',
+              text: l10n.save,
               icon: Icons.check,
               onPressed: _save,
             ),

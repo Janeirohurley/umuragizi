@@ -7,7 +7,9 @@ import '../../providers/animal_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/database_service.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/age_helper.dart';
 import '../../widgets/widgets.dart';
+import '../animal/animal_list_screen.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -128,19 +130,19 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       padding: const EdgeInsets.all(AppTheme.spacingXLarge),
       children: [
         // ── Troupeau ──
-        _SectionHeader(title: 'Troupeau', icon: Icons.pets),
+        _SectionHeader(title: l10n.herd, icon: Icons.pets),
         const SizedBox(height: AppTheme.spacingSmall),
         Row(children: [
           Expanded(
               child: _StatTile(
-                  label: 'Total',
+                  label: l10n.total,
                   value: '${animaux.length}',
                   icon: Icons.inventory_2_outlined,
                   color: AppTheme.primaryPurple)),
           const SizedBox(width: AppTheme.spacingSmall),
           Expanded(
               child: _StatTile(
-                  label: 'Actifs',
+                  label: l10n.active,
                   value: '${actifs.length}',
                   icon: Icons.check_circle_outline,
                   color: AppTheme.successGreen)),
@@ -149,15 +151,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         Row(children: [
           Expanded(
               child: _StatTile(
-                  label: 'Espèces',
+                  label: l10n.species,
                   value: '$especes',
                   icon: Icons.category_outlined,
                   color: AppTheme.infoBlue)),
           const SizedBox(width: AppTheme.spacingSmall),
           Expanded(
               child: _StatTile(
-                  label: 'Âge moyen',
-                  value: _formatMois(ageMoyenMois.round()),
+                  label: l10n.avgAge,
+                  value: formatAge(ageMoyenMois.round(), l10n),
                   icon: Icons.cake_outlined,
                   color: AppTheme.accentOrange)),
         ]),
@@ -170,10 +172,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Répartition sexes',
+                  Text(l10n.sexRatio,
                       style: AppTheme.cardTitle
                           .copyWith(color: AppTheme.textPrimaryOf(context))),
-                  Text('$males M • $femelles F',
+                  Text('$males ${l10n.male[0]} • $femelles ${l10n.female[0]}',
                       style: AppTheme.bodyTextLight.copyWith(
                           color: AppTheme.textSecondaryOf(context))),
                 ],
@@ -209,7 +211,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     decoration: const BoxDecoration(
                         color: AppTheme.infoBlue, shape: BoxShape.circle)),
                 const SizedBox(width: 4),
-                Text('Mâles ($males)',
+                Text('${l10n.males} ($males)',
                     style: AppTheme.bodyTextLight
                         .copyWith(color: AppTheme.textSecondaryOf(context))),
                 const SizedBox(width: AppTheme.spacingMedium),
@@ -219,7 +221,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     decoration: const BoxDecoration(
                         color: AppTheme.accentOrange, shape: BoxShape.circle)),
                 const SizedBox(width: 4),
-                Text('Femelles ($femelles)',
+                Text('${l10n.females} ($femelles)',
                     style: AppTheme.bodyTextLight
                         .copyWith(color: AppTheme.textSecondaryOf(context))),
               ]),
@@ -229,16 +231,16 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
         const SizedBox(height: AppTheme.spacingLarge),
         // ── Finance ──
-        _SectionHeader(title: 'Finances', icon: Icons.account_balance_wallet_outlined),
+        _SectionHeader(title: l10n.finance, icon: Icons.account_balance_wallet_outlined),
         const SizedBox(height: AppTheme.spacingSmall),
         CustomCard(
           child: Column(children: [
-            _FinanceRow(label: 'Revenus', amount: revenus, color: AppTheme.successGreen),
+            _FinanceRow(label: l10n.revenues, amount: revenus, color: AppTheme.successGreen),
             const Divider(height: AppTheme.spacingLarge),
-            _FinanceRow(label: 'Dépenses', amount: depenses, color: AppTheme.errorRed),
+            _FinanceRow(label: l10n.expenses, amount: depenses, color: AppTheme.errorRed),
             const Divider(height: AppTheme.spacingLarge),
             _FinanceRow(
-              label: 'Solde',
+              label: l10n.balance,
               amount: revenus - depenses,
               color: (revenus - depenses) >= 0 ? AppTheme.successGreen : AppTheme.errorRed,
               bold: true,
@@ -248,52 +250,46 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
         const SizedBox(height: AppTheme.spacingLarge),
         // ── Santé ──
-        _SectionHeader(title: 'Santé', icon: Icons.favorite_outline),
+        _SectionHeader(title: l10n.healthCare, icon: Icons.favorite_outline),
         const SizedBox(height: AppTheme.spacingSmall),
         Row(children: [
           Expanded(
               child: _StatTile(
-                  label: 'Total soins',
+                  label: l10n.totalCare,
                   value: '${santes.length}',
                   icon: Icons.medical_services_outlined,
                   color: AppTheme.errorRed)),
           const SizedBox(width: AppTheme.spacingSmall),
           Expanded(
               child: _StatTile(
-                  label: 'Ce mois',
+                  label: l10n.thisMonth,
                   value: '$santesCeMois',
                   icon: Icons.calendar_today_outlined,
                   color: AppTheme.warningOrange)),
         ]),
         if (santes.isNotEmpty) ...[
           const SizedBox(height: AppTheme.spacingSmall),
-          _buildSanteTypesCard(santes),
+          _buildSanteTypesCard(santes, l10n),
         ],
-
-        // ── Production ──
         if (productions.isNotEmpty) ...[
           const SizedBox(height: AppTheme.spacingLarge),
-          _SectionHeader(title: 'Production', icon: Icons.factory_outlined),
+          _SectionHeader(title: l10n.production, icon: Icons.factory_outlined),
           const SizedBox(height: AppTheme.spacingSmall),
-          _buildProductionCard(productions),
+          _buildProductionCard(productions, l10n),
         ],
-
-        // ── Croissance ──
         if (croissances.isNotEmpty) ...[
           const SizedBox(height: AppTheme.spacingLarge),
-          _SectionHeader(title: 'Croissance', icon: Icons.trending_up),
+          _SectionHeader(title: l10n.growth, icon: Icons.trending_up),
           const SizedBox(height: AppTheme.spacingSmall),
-          _buildCroissanceGlobaleCard(croissances),
+          _buildCroissanceGlobaleCard(croissances, l10n),
         ],
-
-        // ── Répartition espèces ──
         const SizedBox(height: AppTheme.spacingLarge),
-        _SectionHeader(title: 'Répartition par espèce', icon: Icons.pie_chart_outline),
+        _SectionHeader(title: l10n.bySpecies, icon: Icons.pie_chart_outline),
         const SizedBox(height: AppTheme.spacingSmall),
         CustomCard(
           child: SizedBox(
             height: 220,
-            child: _buildPieChart(animaux),
+            child: _buildPieChart(animaux, l10n),
           ),
         ),
         const SizedBox(height: AppTheme.spacingXXLarge),
@@ -301,18 +297,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  Widget _buildSanteTypesCard(List<Sante> santes) {
+  Widget _buildSanteTypesCard(List<Sante> santes, AppLocalizations l10n) {
     final byType = <String, int>{};
-    for (final s in santes) {
-      byType[s.type] = (byType[s.type] ?? 0) + 1;
-    }
+    for (final s in santes) { byType[s.type] = (byType[s.type] ?? 0) + 1; }
     return CustomCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Par type de soin',
-              style: AppTheme.cardTitle
-                  .copyWith(color: AppTheme.textPrimaryOf(context))),
+          Text(l10n.careByType, style: AppTheme.cardTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
           const SizedBox(height: AppTheme.spacingMedium),
           ...byType.entries.map((e) => Padding(
                 padding: const EdgeInsets.only(bottom: AppTheme.spacingSmall),
@@ -344,24 +336,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  Widget _buildProductionCard(List<Production> productions) {
+  Widget _buildProductionCard(List<Production> productions, AppLocalizations l10n) {
     final byType = <String, double>{};
-    for (final p in productions) {
-      byType[p.type] = (byType[p.type] ?? 0) + p.quantite;
-    }
-    final colors = [
-      AppTheme.primaryPurple,
-      AppTheme.infoBlue,
-      AppTheme.successGreen,
-      AppTheme.accentOrange,
-    ];
+    for (final p in productions) { byType[p.type] = (byType[p.type] ?? 0) + p.quantite; }
+    final colors = [AppTheme.primaryPurple, AppTheme.infoBlue, AppTheme.successGreen, AppTheme.accentOrange];
     return CustomCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Totaux par type',
-              style: AppTheme.cardTitle
-                  .copyWith(color: AppTheme.textPrimaryOf(context))),
+          Text(l10n.productionTotals, style: AppTheme.cardTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
           const SizedBox(height: AppTheme.spacingMedium),
           ...byType.entries.toList().asMap().entries.map((entry) {
             final i = entry.key;
@@ -395,31 +378,21 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  Widget _buildCroissanceGlobaleCard(List<Croissance> croissances) {
+  Widget _buildCroissanceGlobaleCard(List<Croissance> croissances, AppLocalizations l10n) {
     if (croissances.isEmpty) return const SizedBox.shrink();
     final poids = croissances.map((c) => c.poids).toList();
     final poidsMax = poids.reduce((a, b) => a > b ? a : b);
     final poidsMoyen = poids.reduce((a, b) => a + b) / poids.length;
     return CustomCard(
       child: Row(children: [
-        Expanded(
-            child: _StatTile(
-                label: 'Poids max',
-                value: '${poidsMax.toStringAsFixed(1)} kg',
-                icon: Icons.arrow_upward,
-                color: AppTheme.successGreen)),
+        Expanded(child: _StatTile(label: l10n.weightMax, value: '${poidsMax.toStringAsFixed(1)} kg', icon: Icons.arrow_upward, color: AppTheme.successGreen)),
         const SizedBox(width: AppTheme.spacingSmall),
-        Expanded(
-            child: _StatTile(
-                label: 'Poids moyen',
-                value: '${poidsMoyen.toStringAsFixed(1)} kg',
-                icon: Icons.straighten,
-                color: AppTheme.infoBlue)),
+        Expanded(child: _StatTile(label: l10n.weightAvg, value: '${poidsMoyen.toStringAsFixed(1)} kg', icon: Icons.straighten, color: AppTheme.infoBlue)),
       ]),
     );
   }
 
-  Widget _buildPieChart(List<Animal> animaux) {
+  Widget _buildPieChart(List<Animal> animaux, AppLocalizations l10n) {
     final counts = <String, int>{};
     for (final a in animaux) {
       counts[a.espece] = (counts[a.espece] ?? 0) + 1;
@@ -477,7 +450,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      '${e.value.key} (${e.value.value})',
+                      '${especeLabel(e.value.key, l10n)} (${e.value.value})',
                       style: AppTheme.bodyTextLight.copyWith(
                           color: AppTheme.textPrimaryOf(context),
                           fontSize: 11),
@@ -548,7 +521,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(espece,
+                    Text(especeLabel(espece, l10n),
                         style: AppTheme.sectionTitle.copyWith(
                             color: AppTheme.textPrimaryOf(context))),
                     Container(
@@ -559,7 +532,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         borderRadius:
                             BorderRadius.circular(AppTheme.radiusMedium),
                       ),
-                      child: Text('$actifs actifs / ${animals.length}',
+                      child: Text('$actifs ${l10n.active} / ${animals.length}',
                           style: AppTheme.bodyTextLight.copyWith(
                               color: AppTheme.primaryPurple,
                               fontWeight: FontWeight.w600)),
@@ -572,13 +545,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 Row(children: [
                   Icon(Icons.male, size: 16, color: AppTheme.infoBlue),
                   const SizedBox(width: 4),
-                  Text('$males mâles',
+                  Text('$males ${l10n.males.toLowerCase()}',
                       style: AppTheme.bodyTextLight.copyWith(
                           color: AppTheme.textSecondaryOf(context))),
                   const SizedBox(width: AppTheme.spacingMedium),
                   Icon(Icons.female, size: 16, color: AppTheme.accentOrange),
                   const SizedBox(width: 4),
-                  Text('$femelles femelles',
+                  Text('$femelles ${l10n.females.toLowerCase()}',
                       style: AppTheme.bodyTextLight.copyWith(
                           color: AppTheme.textSecondaryOf(context))),
                 ]),
@@ -589,8 +562,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     Icon(Icons.monitor_weight_outlined,
                         size: 16, color: AppTheme.successGreen),
                     const SizedBox(width: 4),
-                    Text(
-                        'Poids moyen : ${poidsMoyen.toStringAsFixed(1)} kg',
+                    Text('${l10n.weightAvg} : ${poidsMoyen.toStringAsFixed(1)} kg',
                         style: AppTheme.bodyTextLight.copyWith(
                             color: AppTheme.textSecondaryOf(context))),
                   ]),
@@ -602,7 +574,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     Icon(Icons.medical_services_outlined,
                         size: 16, color: AppTheme.errorRed),
                     const SizedBox(width: 4),
-                    Text('${santesEspece.length} soins enregistrés',
+                    Text('${santesEspece.length} ${l10n.totalCare.toLowerCase()}',
                         style: AppTheme.bodyTextLight.copyWith(
                             color: AppTheme.textSecondaryOf(context))),
                   ]),
@@ -610,7 +582,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
                 if (prodEspece.isNotEmpty) ...[
                   const Divider(height: AppTheme.spacingLarge),
-                  Text('Production',
+                  Text(l10n.production,
                       style: AppTheme.bodyTextLight.copyWith(
                           color: AppTheme.textSecondaryOf(context),
                           fontWeight: FontWeight.w600)),
@@ -632,36 +604,20 @@ class _StatisticsScreenState extends State<StatisticsScreen>
 
                 if (revenus > 0 || depenses > 0) ...[
                   const Divider(height: AppTheme.spacingLarge),
-                  Text('Finances',
+                  Text(l10n.finance,
                       style: AppTheme.bodyTextLight.copyWith(
                           color: AppTheme.textSecondaryOf(context),
                           fontWeight: FontWeight.w600)),
                   const SizedBox(height: AppTheme.spacingSmall),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Revenus',
-                          style: AppTheme.bodyTextLight.copyWith(
-                              color: AppTheme.textPrimaryOf(context))),
-                      Text('+${revenus.toStringAsFixed(0)}',
-                          style: AppTheme.bodyTextLight.copyWith(
-                              color: AppTheme.successGreen,
-                              fontWeight: FontWeight.w600)),
-                    ],
-                  ),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Text(l10n.revenues, style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textPrimaryOf(context))),
+                    Text('+${revenus.toStringAsFixed(0)}', style: AppTheme.bodyTextLight.copyWith(color: AppTheme.successGreen, fontWeight: FontWeight.w600)),
+                  ]),
                   const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Dépenses',
-                          style: AppTheme.bodyTextLight.copyWith(
-                              color: AppTheme.textPrimaryOf(context))),
-                      Text('-${depenses.toStringAsFixed(0)}',
-                          style: AppTheme.bodyTextLight.copyWith(
-                              color: AppTheme.errorRed,
-                              fontWeight: FontWeight.w600)),
-                    ],
-                  ),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Text(l10n.expenses, style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textPrimaryOf(context))),
+                    Text('-${depenses.toStringAsFixed(0)}', style: AppTheme.bodyTextLight.copyWith(color: AppTheme.errorRed, fontWeight: FontWeight.w600)),
+                  ]),
                 ],
               ],
             ),
@@ -722,7 +678,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       ),
                       if (selected != null)
                         Text(
-                          '${selected.espece} • ${selected.ageFormate}',
+                          '${especeLabel(selected.espece, l10n)} • ${formatAge(selected.ageEnMois, l10n)}',
                           style: AppTheme.bodyTextLight.copyWith(
                               color: AppTheme.textSecondaryOf(context)),
                         ),
@@ -737,7 +693,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         ),
         if (selected != null)
           Expanded(
-            child: _buildAnimalDetail(selected),
+            child: _buildAnimalDetail(selected, l10n),
           ),
       ],
     );
@@ -792,7 +748,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                 fontWeight: _selectedAnimalId == a.id
                                     ? FontWeight.w600
                                     : FontWeight.normal)),
-                        subtitle: Text('${a.espece} • ${a.ageFormate}',
+                        subtitle: Text('${especeLabel(a.espece, l10n)} • ${formatAge(a.ageEnMois, l10n)}',
                             style: AppTheme.bodyTextLight.copyWith(
                                 color:
                                     AppTheme.textSecondaryOf(context))),
@@ -813,7 +769,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  Widget _buildAnimalDetail(Animal animal) {
+  Widget _buildAnimalDetail(Animal animal, AppLocalizations l10n) {
     final croissances = DatabaseService.getCroissancesParAnimal(animal.id);
     final alimentations =
         DatabaseService.getAlimentationsParAnimal(animal.id);
@@ -837,37 +793,15 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       children: [
         // Infos de base
         Row(children: [
-          Expanded(
-              child: _StatTile(
-                  label: 'Âge',
-                  value: animal.ageFormate,
-                  icon: Icons.cake_outlined,
-                  color: AppTheme.primaryPurple)),
+          Expanded(child: _StatTile(label: l10n.age, value: formatAge(animal.ageEnMois, l10n), icon: Icons.cake_outlined, color: AppTheme.primaryPurple)),
           const SizedBox(width: AppTheme.spacingSmall),
-          Expanded(
-              child: _StatTile(
-                  label: 'Statut',
-                  value: animal.statut,
-                  icon: Icons.info_outline,
-                  color: animal.statut == 'Actif'
-                      ? AppTheme.successGreen
-                      : AppTheme.warningOrange)),
+          Expanded(child: _StatTile(label: l10n.status, value: statutLabel(animal.statut, l10n), icon: Icons.info_outline, color: animal.statut == 'Actif' ? AppTheme.successGreen : AppTheme.warningOrange)),
         ]),
         const SizedBox(height: AppTheme.spacingSmall),
         Row(children: [
-          Expanded(
-              child: _StatTile(
-                  label: 'Soins',
-                  value: '${santes.length}',
-                  icon: Icons.medical_services_outlined,
-                  color: AppTheme.errorRed)),
+          Expanded(child: _StatTile(label: l10n.sante, value: '${santes.length}', icon: Icons.medical_services_outlined, color: AppTheme.errorRed)),
           const SizedBox(width: AppTheme.spacingSmall),
-          Expanded(
-              child: _StatTile(
-                  label: 'Alimentations',
-                  value: '${alimentations.length}',
-                  icon: Icons.restaurant_outlined,
-                  color: AppTheme.accentOrange)),
+          Expanded(child: _StatTile(label: l10n.feedings, value: '${alimentations.length}', icon: Icons.restaurant_outlined, color: AppTheme.accentOrange)),
         ]),
 
         // Finance animal
@@ -875,14 +809,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           const SizedBox(height: AppTheme.spacingMedium),
           CustomCard(
             child: Column(children: [
-              _FinanceRow(
-                  label: 'Revenus', amount: revenus, color: AppTheme.successGreen),
+              _FinanceRow(label: l10n.revenues, amount: revenus, color: AppTheme.successGreen),
               const Divider(height: AppTheme.spacingMedium),
-              _FinanceRow(
-                  label: 'Dépenses', amount: depenses, color: AppTheme.errorRed),
+              _FinanceRow(label: l10n.expenses, amount: depenses, color: AppTheme.errorRed),
               const Divider(height: AppTheme.spacingMedium),
-              _FinanceRow(
-                label: 'Solde',
+              _FinanceRow(label: l10n.balance,
                 amount: revenus - depenses,
                 color: (revenus - depenses) >= 0
                     ? AppTheme.successGreen
@@ -900,7 +831,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Évolution du poids',
+                Text(l10n.weightEvolution,
                     style: AppTheme.cardTitle.copyWith(
                         color: AppTheme.textPrimaryOf(context))),
                 const SizedBox(height: AppTheme.spacingMedium),
@@ -964,9 +895,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Production',
-                    style: AppTheme.cardTitle.copyWith(
-                        color: AppTheme.textPrimaryOf(context))),
+                Text(l10n.production,
+                    style: AppTheme.cardTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                 const SizedBox(height: AppTheme.spacingMedium),
                 ..._groupProductionByType(productions).entries.map((e) =>
                     Padding(
@@ -1006,12 +936,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return map;
   }
 
-  String _formatMois(int mois) {
-    if (mois < 12) return '$mois mois';
-    final ans = mois ~/ 12;
-    final m = mois % 12;
-    return m == 0 ? '$ans an${ans > 1 ? 's' : ''}' : '$ans a ${m}m';
-  }
 }
 
 // ─── Widgets locaux ──────────────────────────────────────────────────────────

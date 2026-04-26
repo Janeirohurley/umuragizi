@@ -2,12 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import '../../l10n/app_localizations.dart';
+import '../../utils/age_helper.dart';
 import '../../providers/animal_provider.dart';
 import '../../models/models.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
 import 'animal_form_screen.dart';
 import 'animal_detail_screen.dart';
+
+String especeLabel(String espece, AppLocalizations l10n) {
+  switch (espece.toLowerCase()) {
+    case 'bovin': return l10n.especeBovinLabel;
+    case 'ovin': return l10n.especeOvinLabel;
+    case 'caprin': return l10n.especeCaprinLabel;
+    case 'porcin': return l10n.especePorcinLabel;
+    case 'volaille': return l10n.especeVolailleLabel;
+    case 'équin': return l10n.especeEquinLabel;
+    case 'lapin': return l10n.especeLapinLabel;
+    case 'autre': return l10n.typeOther;
+    default: return espece;
+  }
+}
+
+String statutLabel(String statut, AppLocalizations l10n) {
+  switch (statut) {
+    case 'Actif': return l10n.statutActif;
+    case 'Vendu': return l10n.statutVendu;
+    case 'Mort': return l10n.statutMort;
+    case 'Réformé': return l10n.statutReforme;
+    default: return statut;
+  }
+}
 
 class AnimalListScreen extends StatefulWidget {
   final String? initialFilter;
@@ -38,7 +63,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       body: SafeArea(
@@ -70,10 +95,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            l10n.animals,
-            style: AppTheme.pageTitle,
-          ),
+          Text(l10n.animals, style: AppTheme.pageTitle),
           Consumer<AnimalProvider>(
             builder: (context, provider, _) => Container(
               padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium, vertical: AppTheme.spacingSmall),
@@ -82,7 +104,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                 borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Text(
-                '${provider.nombreAnimauxActifs} actifs / ${provider.nombreAnimaux}',
+                '${provider.nombreAnimauxActifs} ${l10n.statutActif} / ${provider.nombreAnimaux}',
                 style: AppTheme.tagText,
               ),
             ),
@@ -103,13 +125,11 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
         ),
         child: TextField(
           controller: _searchController,
-          onChanged: (value) {
-            setState(() => _searchQuery = value);
-          },
+          onChanged: (value) => setState(() => _searchQuery = value),
           style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textPrimaryOf(context)),
           decoration: InputDecoration(
-            hintText: '...',
-            hintStyle: AppTheme.bodyTextLight.copyWith(fontWeight: FontWeight.w900, color: AppTheme.textLightOf(context)),
+            hintText: l10n.search,
+            hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
             prefixIcon: Icon(Icons.search, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeMedium),
             suffixIcon: _searchQuery.isNotEmpty
                 ? IconButton(
@@ -121,16 +141,10 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
                   )
                 : null,
             border: InputBorder.none,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-              borderSide: BorderSide.none,
-            ),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium), borderSide: BorderSide.none),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-              borderSide: const BorderSide(
-                color: AppTheme.primaryPurple,
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: AppTheme.primaryPurple, width: 1),
             ),
             contentPadding: EdgeInsets.symmetric(horizontal: AppTheme.spacingXLarge, vertical: AppTheme.spacingMedium),
           ),
@@ -142,7 +156,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
   Widget _buildFilters(AppLocalizations l10n) {
     return Consumer<AnimalProvider>(
       builder: (context, provider, _) {
-        final especes = [l10n.all, ...provider.especes];
+        final especes = ['Tous', ...provider.especes];
 
         return SizedBox(
           height: 35,
@@ -152,25 +166,24 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
             itemCount: especes.length,
             itemBuilder: (context, index) {
               final espece = especes[index];
-              final isSelected = _selectedFilter == espece || (_selectedFilter == 'Tous' && espece == l10n.all);
+              final label = espece == 'Tous' ? l10n.all : especeLabel(espece, l10n);
+              final isSelected = _selectedFilter == espece;
 
               return Padding(
                 padding: EdgeInsets.only(right: index < especes.length - 1 ? AppTheme.spacingSmall : 0),
                 child: GestureDetector(
-                  onTap: () => setState(() => _selectedFilter = espece == l10n.all ? 'Tous' : espece),
+                  onTap: () => setState(() => _selectedFilter = espece),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
                     decoration: BoxDecoration(
                       color: isSelected ? AppTheme.primaryPurple : AppTheme.cardBackgroundOf(context),
                       borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                      border: Border.all(
-                        color: isSelected ? AppTheme.primaryPurple : AppTheme.surfaceColorOf(context),
-                      ),
+                      border: Border.all(color: isSelected ? AppTheme.primaryPurple : AppTheme.surfaceColorOf(context)),
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      espece,
+                      label,
                       style: AppTheme.bodyTextLight.copyWith(
                         color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
                         fontWeight: FontWeight.w600,
@@ -210,9 +223,9 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                   Icon(Icons.pets_outlined, size: 64, color: AppTheme.primaryPurple),
-                   SizedBox(height: 16),
-                   Text(l10n.noData, style: AppTheme.sectionTitle),
+                  Icon(Icons.pets_outlined, size: 64, color: AppTheme.primaryPurple),
+                  SizedBox(height: 16),
+                  Text(l10n.noData, style: AppTheme.sectionTitle),
                 ],
               ),
             ),
@@ -221,16 +234,11 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
 
         return RefreshIndicator(
           color: AppTheme.primaryPurple,
-          onRefresh: () async {
-            animalProvider.chargerAnimaux();
-          },
+          onRefresh: () async => animalProvider.chargerAnimaux(),
           child: ListView.builder(
             padding: EdgeInsets.fromLTRB(AppTheme.spacingXLarge, 0, AppTheme.spacingXLarge, 100),
             itemCount: animaux.length,
-            itemBuilder: (context, index) {
-              final animal = animaux[index];
-              return _ModernAnimalCard(animal: animal);
-            },
+            itemBuilder: (context, index) => _ModernAnimalCard(animal: animaux[index]),
           ),
         );
       },
@@ -238,12 +246,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
   }
 
   void _navigateToAddAnimal(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const AnimalFormScreen(),
-      ),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const AnimalFormScreen()));
   }
 }
 
@@ -254,17 +257,11 @@ class _ModernAnimalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.only(bottom: AppTheme.spacingMedium),
       child: CustomCard(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AnimalDetailScreen(animalId: animal.id),
-            ),
-          );
-        },
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => AnimalDetailScreen(animalId: animal.id))),
         child: Row(
           children: [
             Container(
@@ -277,10 +274,7 @@ class _ModernAnimalCard extends StatelessWidget {
               child: animal.photoBase64 != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                      child: Image.memory(
-                        base64Decode(animal.photoBase64!),
-                        fit: BoxFit.cover,
-                      ),
+                      child: Image.memory(base64Decode(animal.photoBase64!), fit: BoxFit.cover),
                     )
                   : Icon(Icons.pets, color: AppTheme.primaryPurple),
             ),
@@ -289,35 +283,38 @@ class _ModernAnimalCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Text(animal.nom, style: AppTheme.listItemTitle),
-                   Text('${animal.espece} • ${animal.race}', style: AppTheme.listItemSubtitle),
-                   SizedBox(height: 4),
-                   Row(
-                     children: [
-                       Text(animal.ageFormate, style: AppTheme.bodyTextSecondary),
-                       if (animal.statut != 'Actif') ...[
-                         SizedBox(width: AppTheme.spacingSmall),
-                         Container(
-                           padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingSmall, vertical: 2),
-                           decoration: BoxDecoration(
-                             color: _statutColor(animal.statut).withValues(alpha: 0.12),
-                             borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                           ),
-                           child: Text(
-                             animal.statut,
-                             style: AppTheme.bodyTextLight.copyWith(
-                               color: _statutColor(animal.statut),
-                               fontWeight: FontWeight.bold,
-                             ),
-                           ),
-                         ),
-                       ],
-                     ],
-                   ),
+                  Text(animal.nom, style: AppTheme.listItemTitle),
+                  Text(
+                    '${especeLabel(animal.espece, l10n)} • ${animal.race}',
+                    style: AppTheme.listItemSubtitle,
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(formatAge(animal.ageEnMois, l10n), style: AppTheme.bodyTextSecondary),
+                      if (animal.statut != 'Actif') ...[
+                        SizedBox(width: AppTheme.spacingSmall),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingSmall, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _statutColor(animal.statut).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                          ),
+                          child: Text(
+                            statutLabel(animal.statut, l10n),
+                            style: AppTheme.bodyTextLight.copyWith(
+                              color: _statutColor(animal.statut),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
               ),
             ),
-             Icon(Icons.chevron_right, color: AppTheme.textSecondaryOf(context)),
+            Icon(Icons.chevron_right, color: AppTheme.textSecondaryOf(context)),
           ],
         ),
       ),

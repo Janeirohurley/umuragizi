@@ -22,6 +22,43 @@ class SettingsProvider with ChangeNotifier {
     return code;
   }
 
+  /// Noms de mois traduits (index 0 = janvier)
+  List<String> get monthNames {
+    switch (_locale.languageCode) {
+      case 'en':
+        return ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+      case 'sw':
+        return ['Januari','Februari','Machi','Aprili','Mei','Juni',
+                'Julai','Agosti','Septemba','Oktoba','Novemba','Desemba'];
+      case 'rn':
+        return ['Nzero','Ruhuhuma','Ntwarante','Ndamukiza','Rusama','Ruheshi',
+                'Mukakaro','Myandagaro','Nyakanga','Gitugutu','Munyonyo','Kigarama'];
+      default: // fr
+        return ['Janvier','Février','Mars','Avril','Mai','Juin',
+                'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    }
+  }
+
+  String monthName(int month) => monthNames[month - 1];
+
+  /// Jours abrégés (Lundi=0 ... Dimanche=6)
+  List<String> get weekdaysShort {
+    switch (_locale.languageCode) {
+      case 'en':
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      case 'sw':
+        return ['Jum', 'Jum', 'Jum', 'Alh', 'Iju', 'Jum', 'Jum'];
+      case 'rn':
+        return ['Kuwamb', 'Kuwakabiri', 'Kuwagata', 'Kuwaka', 'Kuwagata', 'Kuwagatand', 'Kuwamu'];
+      default: // fr
+        return ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    }
+  }
+
+  /// weekday: 1=Lundi ... 7=Dimanche (comme DateTime.weekday)
+  String weekdayShort(int weekday) => weekdaysShort[weekday - 1];
+
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final localeCode = prefs.getString(keyLocale) ?? 'fr';

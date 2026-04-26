@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import '../../providers/animal_provider.dart';
 import '../../utils/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'animal_detail_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
@@ -18,7 +19,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     facing: CameraFacing.back,
     torchEnabled: false,
   );
-  
+
   bool _isProcessing = false;
 
   @override
@@ -29,24 +30,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   void _onDetect(BarcodeCapture capture) {
     if (_isProcessing) return;
-    
+
     final List<Barcode> barcodes = capture.barcodes;
     if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
-      final code = barcodes.first.rawValue!;
-      _processScannedCode(code);
+      _processScannedCode(barcodes.first.rawValue!);
     }
   }
 
   void _processScannedCode(String scannedCode) {
     setState(() => _isProcessing = true);
-    
+
+    final l10n = AppLocalizations.of(context)!;
     final animalProvider = context.read<AnimalProvider>();
-    final animaux = animalProvider.animaux;
-    
+
     try {
-      final foundAnimal = animaux.firstWhere((a) => a.identifiant == scannedCode);
-      
-      // Animal trouvé ! On arrête le scan et on va à l'écran de détail
+      final foundAnimal = animalProvider.animaux.firstWhere((a) => a.identifiant == scannedCode);
       _controller.stop();
       Navigator.pushReplacement(
         context,
@@ -55,29 +53,26 @@ class _ScannerScreenState extends State<ScannerScreen> {
         ),
       );
     } catch (e) {
-      // Non trouvé
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Aucun animal trouvé avec l'identifiant: $scannedCode", style: const TextStyle(color: Colors.white)),
+          content: Text('${l10n.animalNotFound}: $scannedCode', style: const TextStyle(color: Colors.white)),
           backgroundColor: AppTheme.errorRed,
         ),
       );
-      
-      // Permettre de scanner à nouveau après un délai
+
       Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          setState(() => _isProcessing = false);
-        }
+        if (mounted) setState(() => _isProcessing = false);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Scanner le QR Code', style: TextStyle(color: Colors.white)),
+        title: Text(l10n.scanQrCode, style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -87,7 +82,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
             controller: _controller,
             onDetect: _onDetect,
           ),
-          // Interface de visée visuelle
           Center(
             child: Container(
               width: 250,
@@ -96,19 +90,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 border: Border.all(color: AppTheme.primaryPurple, width: 3),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: _isProcessing 
+              child: _isProcessing
                   ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryPurple))
                   : null,
             ),
           ),
-          const Positioned(
+          Positioned(
             bottom: 40,
             left: 0,
             right: 0,
             child: Center(
               child: Text(
-                'Pointez vers le QR Code ou Tagger',
-                style: TextStyle(
+                l10n.scanHint,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

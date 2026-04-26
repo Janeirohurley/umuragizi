@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../providers/animal_provider.dart';
 import '../../providers/finance_provider.dart';
 import '../../services/database_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/settings_provider.dart';
 import 'feeding_form_screen.dart';
 
 class FeedingListScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
   String? _selectedAnimalId;
 
   void _showAnimalBottomSheet() {
+    final l10n = AppLocalizations.of(context)!;
     final animaux = context.read<AnimalProvider>().animaux;
     showModalBottomSheet(
       context: context,
@@ -42,7 +44,7 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
             ),
             SizedBox(height: AppTheme.spacingLarge),
             Text(
-              'Sélectionner un animal',
+              l10n.selectAnimal,
               style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
             ),
             SizedBox(height: AppTheme.spacingLarge),
@@ -74,6 +76,8 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
     final animaux = context.watch<AnimalProvider>().animaux;
     final selectedAnimal = _selectedAnimalId != null && animaux.any((a) => a.id == _selectedAnimalId)
         ? animaux.firstWhere((a) => a.id == _selectedAnimalId)
@@ -97,7 +101,7 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Suivi Alimentaire',
+          l10n.feedingTracking,
           style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         centerTitle: true,
@@ -140,12 +144,12 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
                   ),
                   SizedBox(height: AppTheme.spacingLarge),
                   Text(
-                    'Aucun animal',
+                    l10n.noAnimal,
                     style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                   ),
                   SizedBox(height: AppTheme.spacingSmall),
                   Text(
-                    'Ajoutez un animal pour commencer',
+                    l10n.addAnimalToStart,
                     style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
                   ),
                 ],
@@ -168,7 +172,7 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
                         SizedBox(width: AppTheme.spacingMedium),
                         Expanded(
                           child: Text(
-                            _selectedAnimalId == null ? 'Sélectionner un animal' : (selectedAnimal?.nom ?? 'Sélectionner un animal'),
+                            _selectedAnimalId == null ? l10n.selectAnimal : (selectedAnimal?.nom ?? l10n.selectAnimal),
                             style: _selectedAnimalId == null ? AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)) : AppTheme.bodyText.copyWith(color: AppTheme.textPrimaryOf(context)),
                           ),
                         ),
@@ -185,6 +189,8 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
   }
 
   Widget _buildAlimentationList(String animalId) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
     final alimentations = DatabaseService.getAlimentationsParAnimal(animalId);
 
     if (alimentations.isEmpty) {
@@ -202,17 +208,17 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
             ),
             SizedBox(height: AppTheme.spacingLarge),
             Text(
-              'Aucune alimentation',
+              l10n.noFeeding,
               style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
             ),
             SizedBox(height: AppTheme.spacingSmall),
             Text(
-              'Aucune alimentation enregistrée',
+              l10n.noFeedingRecorded,
               style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
             ),
             SizedBox(height: AppTheme.spacingXXLarge),
             PrimaryButton(
-              text: 'Ajouter',
+              text: l10n.add,
               icon: Icons.add,
               width: 200,
               onPressed: () => Navigator.push(
@@ -270,7 +276,7 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
                         style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context)),
                       ),
                       Text(
-                        DateFormat('d MMMM yyyy à HH:mm', 'fr_FR').format(alim.date),
+                        '${alim.date.day.toString().padLeft(2,'0')} ${settings.monthName(alim.date.month)} ${alim.date.year}',
                         style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
                       ),
                     ],
@@ -309,12 +315,12 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
                               ),
                               SizedBox(height: AppTheme.spacingXLarge),
                               Text(
-                                'Supprimer l\'alimentation',
+                                l10n.deleteFeeding,
                                 style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                               ),
                               SizedBox(height: AppTheme.spacingMedium),
                               Text(
-                                'Voulez-vous vraiment supprimer cette entrée ?',
+                                l10n.deleteEntryConfirm,
                                 textAlign: TextAlign.center,
                                 style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
                               ),
@@ -323,7 +329,7 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
                                 children: [
                                   Expanded(
                                     child: SecondaryButton(
-                                      text: 'Annuler',
+                                      text: l10n.cancel,
                                       onPressed: () => Navigator.pop(context),
                                     ),
                                   ),
@@ -346,7 +352,7 @@ class _FeedingListScreenState extends State<FeedingListScreen> {
                                         ),
                                       ),
                                       child: Text(
-                                        'Supprimer',
+                                        l10n.deleteConfirm,
                                         style: AppTheme.bodyText.copyWith(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w600,

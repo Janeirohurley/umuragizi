@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../providers/finance_provider.dart';
@@ -10,6 +9,23 @@ import '../../utils/app_theme.dart';
 import '../../utils/currency_helper.dart';
 import '../../services/currency_service.dart';
 import '../../widgets/widgets.dart';
+
+String categorieLabel(String dbValue, AppLocalizations l10n) {
+  switch (dbValue) {
+    case 'Alimentation': return l10n.catFood;
+    case 'Frais Vétérinaires': return l10n.catVet;
+    case 'Matériel': return l10n.catEquipment;
+    case 'Achat animal': return l10n.catAnimalBuy;
+    case 'Soin et Cosmétique': return l10n.catCare;
+    case 'Autre Dépense': return l10n.catOtherExpense;
+    case 'Vente animal': return l10n.catAnimalSale;
+    case 'Lait': return l10n.catMilk;
+    case 'Viande': return l10n.catMeat;
+    case 'Subvention': return l10n.catSubsidy;
+    case 'Autre Revenu': return l10n.catOtherRevenue;
+    default: return dbValue;
+  }
+}
 
 class TransactionFormScreen extends StatefulWidget {
   final Transaction? transaction;
@@ -34,22 +50,16 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   String _categorie = 'Alimentation';
   late DateTime _date;
 
-  final List<String> _categoriesDepense = [
-    'Alimentation',
-    'Frais Vétérinaires',
-    'Matériel',
-    'Achat animal',
-    'Soin et Cosmétique',
-    'Autre Dépense'
+  final List<String> _categoriesDepenseDb = [
+    'Alimentation', 'Frais Vétérinaires', 'Matériel',
+    'Achat animal', 'Soin et Cosmétique', 'Autre Dépense',
+  ];
+  final List<String> _categoriesRevenuDb = [
+    'Vente animal', 'Lait', 'Viande', 'Subvention', 'Autre Revenu',
   ];
 
-  final List<String> _categoriesRevenu = [
-    'Vente animal',
-    'Lait',
-    'Viande',
-    'Subvention',
-    'Autre Revenu'
-  ];
+  String _categorieLabel(String dbValue, AppLocalizations l10n) =>
+      categorieLabel(dbValue, l10n);
 
   @override
   void initState() {
@@ -85,7 +95,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       initialDate: _date,
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      title: 'Date de la transaction',
+      title: AppLocalizations.of(context)!.date,
     );
     if (date != null) {
       setState(() => _date = date);
@@ -100,7 +110,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       
       if (inputAmount <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Veuillez entrer un montant valide')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.invalidAmount)),
         );
         return;
       }
@@ -134,17 +144,17 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final settings = context.watch<SettingsProvider>();
-    
-    List<String> categoriesPossibles = _type == 'Dépense' ? _categoriesDepense : _categoriesRevenu;
-    if (!categoriesPossibles.contains(_categorie)) {
-      _categorie = categoriesPossibles.first;
+
+    List<String> categoriesDb = _type == 'Dépense' ? _categoriesDepenseDb : _categoriesRevenuDb;
+    if (!categoriesDb.contains(_categorie)) {
+      _categorie = categoriesDb.first;
     }
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(
         title: Text(
-          widget.transaction == null ? 'Nouvelle Transaction' : l10n.finance,
+          widget.transaction == null ? l10n.newTransaction : l10n.editTransaction,
           style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         backgroundColor: Colors.transparent,
@@ -219,7 +229,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             ),
 
             SizedBox(height: AppTheme.spacingLarge),
-            Text(l10n.dashboard, style: AppTheme.sectionTitle),
+            Text(l10n.category, style: AppTheme.sectionTitle),
             SizedBox(height: AppTheme.spacingSmall),
             Container(
               padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
@@ -231,10 +241,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 child: DropdownButton<String>(
                   value: _categorie,
                   isExpanded: true,
-                  items: categoriesPossibles.map((cat) {
+                  items: categoriesDb.map((cat) {
                     return DropdownMenuItem(
                       value: cat,
-                      child: Text(cat, style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context))),
+                      child: Text(_categorieLabel(cat, l10n), style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context))),
                     );
                   }).toList(),
                   onChanged: (val) => setState(() => _categorie = val!),
@@ -243,7 +253,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             ),
             
             SizedBox(height: AppTheme.spacingLarge),
-            const Text('Date', style: AppTheme.sectionTitle),
+            Text(l10n.date, style: AppTheme.sectionTitle),
             SizedBox(height: AppTheme.spacingSmall),
             GestureDetector(
               onTap: _selectDate,
@@ -259,7 +269,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     SizedBox(width: AppTheme.spacingMedium),
                     Expanded(
                       child: Text(
-                        DateFormat('d MMMM yyyy', settings.intlLocale).format(_date),
+                        '${_date.day.toString().padLeft(2, '0')} ${settings.monthName(_date.month)} ${_date.year}',
                         style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
                       ),
                     ),
@@ -269,7 +279,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             ),
 
             SizedBox(height: AppTheme.spacingLarge),
-            const Text('Description (Optionnel)', style: AppTheme.sectionTitle),
+            Text(l10n.notesOptional, style: AppTheme.sectionTitle),
             SizedBox(height: AppTheme.spacingSmall),
             TextFormField(
               controller: _descriptionController,
@@ -289,7 +299,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
             SizedBox(height: AppTheme.spacingXXLarge),
             PrimaryButton(
-              text: widget.transaction == null ? l10n.finance : l10n.save,
+              text: widget.transaction == null ? l10n.add : l10n.save,
               icon: Icons.check,
               onPressed: _save,
             ),

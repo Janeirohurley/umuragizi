@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
 import '../../models/models.dart';
 import '../../services/database_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/settings_provider.dart';
+import 'package:provider/provider.dart';
 
 class HealthFormScreen extends StatefulWidget {
   final String animalId;
@@ -62,7 +64,18 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
     }
   }
 
+  String _typeLabel(String type, AppLocalizations l10n) {
+    switch (type) {
+      case 'vaccination': return l10n.typeVaccination;
+      case 'traitement': return l10n.typeTraitement;
+      case 'maladie': return l10n.typeMaladie;
+      case 'visite': return l10n.typeVisite;
+      default: return type;
+    }
+  }
+
   void _showTypeBottomSheet() {
+    final l10n = AppLocalizations.of(context)!;
     final types = ['vaccination', 'traitement', 'maladie', 'visite'];
     showModalBottomSheet(
       context: context,
@@ -86,7 +99,7 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
             ),
             SizedBox(height: AppTheme.spacingLarge),
             Text(
-              'Type de soin',
+              l10n.careType,
               style: AppTheme.pageTitle.copyWith(
                 color: AppTheme.textPrimaryOf(context),
               ),
@@ -98,7 +111,7 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
                 color: _type == type ? AppTheme.primaryPurple : AppTheme.textSecondaryOf(context),
               ),
               title: Text(
-                type[0].toUpperCase() + type.substring(1),
+                _typeLabel(type, l10n),
                 style: _type == type
                     ? AppTheme.listItemTitle.copyWith(color: AppTheme.primaryPurple)
                     : AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
@@ -140,6 +153,8 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(
@@ -158,7 +173,7 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Ajouter santé',
+          l10n.addHealth,
           style: AppTheme.pageTitle.copyWith(
             color: AppTheme.textPrimaryOf(context),
           ),
@@ -184,7 +199,7 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
                     const SizedBox(width: AppTheme.spacingMedium),
                     Expanded(
                       child: Text(
-                        _type[0].toUpperCase() + _type.substring(1),
+                        _typeLabel(_type, l10n),
                         style: AppTheme.formInput,
                       ),
                     ),
@@ -197,7 +212,7 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
             TextFormField(
               controller: _descriptionController,
               decoration: InputDecoration(
-                hintText: 'Description',
+                hintText: l10n.description,
                 hintStyle: AppTheme.formHint,
                 prefixIcon: Icon(Icons.description_outlined, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                 border: OutlineInputBorder(
@@ -209,13 +224,13 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
               ),
               style: AppTheme.formInput,
-              validator: (v) => v?.isEmpty ?? true ? 'La description est requise' : null,
+              validator: (v) => v?.isEmpty ?? true ? l10n.descriptionRequired : null,
             ),
             const SizedBox(height: AppTheme.spacingLarge),
             TextFormField(
               controller: _medicamentController,
               decoration: InputDecoration(
-                hintText: 'Médicament (optionnel)',
+                hintText: l10n.medicineOptional,
                 hintStyle: AppTheme.formHint,
                 prefixIcon: Icon(Icons.medication, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                 border: OutlineInputBorder(
@@ -232,7 +247,7 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
             TextFormField(
               controller: _veterinaireController,
               decoration: InputDecoration(
-                hintText: 'Vétérinaire (optionnel)',
+                hintText: l10n.vetOptional,
                 hintStyle: AppTheme.formHint,
                 prefixIcon: Icon(Icons.person_outline, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                 border: OutlineInputBorder(
@@ -253,15 +268,13 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
                 borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
               child: SwitchListTile(
-                title: Text(
-                  'Payé',
+                title: Text(l10n.paid,
                   style: AppTheme.formLabel.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
                 ),
-                subtitle: Text(
-                  'Le soin est-il payé ?',
+                subtitle: Text(l10n.paidQuestion,
                   style: AppTheme.formHint,
                 ),
                 value: _estPaye,
@@ -275,7 +288,7 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
               TextFormField(
                 controller: _coutController,
                 decoration: InputDecoration(
-                  hintText: 'Coût (€) - optionnel',
+                  hintText: l10n.costOptional,
                   hintStyle: AppTheme.formHint,
                   prefixIcon: Icon(Icons.euro, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                   border: OutlineInputBorder(
@@ -307,12 +320,9 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(l10n.date, style: AppTheme.bodyTextSecondary),
                           Text(
-                            'Date',
-                            style: AppTheme.bodyTextSecondary,
-                          ),
-                          Text(
-                            DateFormat('d MMMM yyyy', 'fr_FR').format(_date),
+                            '${_date.day.toString().padLeft(2,'0')} ${settings.monthName(_date.month)} ${_date.year}',
                             style: AppTheme.formLabel,
                           ),
                         ],
@@ -327,7 +337,7 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
             TextFormField(
               controller: _notesController,
               decoration: InputDecoration(
-                hintText: 'Notes (optionnel)',
+                hintText: l10n.notesOptional,
                 hintStyle: AppTheme.formHint,
                 prefixIcon: const Padding(
                   padding: EdgeInsets.only(bottom: AppTheme.spacingXXLarge),
@@ -345,11 +355,7 @@ class _HealthFormScreenState extends State<HealthFormScreen> {
               maxLines: 3,
             ),
             const SizedBox(height: AppTheme.spacingXXLarge),
-            PrimaryButton(
-              text: 'Enregistrer',
-              icon: Icons.check,
-              onPressed: _save,
-            ),
+            PrimaryButton(text: l10n.save, icon: Icons.check, onPressed: _save),
           ],
         ),
       ),

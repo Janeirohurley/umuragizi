@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
+import '../providers/settings_provider.dart';
 import '../utils/app_theme.dart';
 
 class CustomDatePicker {
@@ -18,7 +21,7 @@ class CustomDatePicker {
         initialDate: initialDate,
         firstDate: firstDate ?? DateTime(1990),
         lastDate: lastDate ?? DateTime.now(),
-        title: title ?? 'Sélectionner une date',
+        title: title ?? AppLocalizations.of(context)!.selectDate,
       ),
     );
   }
@@ -156,7 +159,7 @@ class _DatePickerBottomSheetState extends State<_DatePickerBottomSheet> {
                   icon: Icon(Icons.chevron_left, color: AppTheme.textPrimaryOf(context)),
                 ),
                 Text(
-                  DateFormat('MMMM yyyy', 'fr_FR').format(_displayedMonth),
+                  '${context.watch<SettingsProvider>().monthName(_displayedMonth.month)} ${_displayedMonth.year}',
                   style: AppTheme.cardTitle.copyWith(
                     color: AppTheme.textPrimaryOf(context),
                   ),
@@ -179,20 +182,24 @@ class _DatePickerBottomSheetState extends State<_DatePickerBottomSheet> {
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingXLarge),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: ['L', 'M', 'M', 'J', 'V', 'S', 'D']
-                  .map((day) => SizedBox(
-                        width: AppTheme.spacingXXLarge,
-                        child: Center(
-                          child: Text(
-                            day,
-                            style: AppTheme.bodyTextSecondary.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textSecondaryOf(context),
-                            ),
-                          ),
-                        ),
-                      ))
-                  .toList(),
+              children: List.generate(7, (i) {
+                // Lundi=1 ... Dimanche=7, on génère à partir du lundi
+                final day = DateTime(2024, 1, 1 + i); // 2024-01-01 est un lundi
+                final label = DateFormat('E', context.watch<SettingsProvider>().intlLocale)
+                    .format(day)[0].toUpperCase();
+                return SizedBox(
+                  width: AppTheme.spacingXXLarge,
+                  child: Center(
+                    child: Text(
+                      label,
+                      style: AppTheme.bodyTextSecondary.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondaryOf(context),
+                      ),
+                    ),
+                  ),
+                );
+              }),
             ),
           ),
           const SizedBox(height: AppTheme.spacingMedium),
@@ -268,7 +275,7 @@ class _DatePickerBottomSheetState extends State<_DatePickerBottomSheet> {
                       ),
                     ),
                     child: Text(
-                      'Annuler',
+                      AppLocalizations.of(context)!.cancel,
                       style: AppTheme.buttonTextSecondary.copyWith(
                         color: AppTheme.textPrimaryOf(context),
                       ),
@@ -289,7 +296,7 @@ class _DatePickerBottomSheetState extends State<_DatePickerBottomSheet> {
                       ),
                     ),
                     child: Text(
-                      'Confirmer',
+                      AppLocalizations.of(context)!.confirm,
                       style: AppTheme.buttonText,
                     ),
                   ),

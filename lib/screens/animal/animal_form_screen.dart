@@ -7,9 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 import '../../models/models.dart';
 import '../../providers/animal_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/constants.dart';
 import '../../widgets/widgets.dart';
+import '../../l10n/app_localizations.dart';
 
 class AnimalFormScreen extends StatefulWidget {
   final Animal? animal;
@@ -68,28 +70,25 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       final bytes = await File(image.path).readAsBytes();
-      final base64String = base64Encode(bytes);
       setState(() {
         _photoPath = image.path;
-        _photoBase64 = base64String;
+        _photoBase64 = base64Encode(bytes);
       });
     }
   }
 
   Future<void> _selectDate() async {
+    final l10n = AppLocalizations.of(context)!;
     final date = await CustomDatePicker.show(
       context,
       initialDate: _dateNaissance,
       firstDate: DateTime(1990),
       lastDate: DateTime.now(),
-      title: 'Date de naissance',
+      title: l10n.birthDate,
     );
-    if (date != null) {
-      setState(() => _dateNaissance = date);
-    }
+    if (date != null) setState(() => _dateNaissance = date);
   }
 
-  // Âge minimum en mois pour être mère selon l'espèce
   static int _ageMinMere(String espece) {
     switch (espece.toLowerCase()) {
       case 'bovin': return 24;
@@ -104,81 +103,53 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
   }
 
   void _showMereBottomSheet() {
-    final espece = _espece;
-    final ageMin = _ageMinMere(espece);
-    final animaux = context
-        .read<AnimalProvider>()
-        .animaux
-        .where((a) =>
-            a.sexe == 'Femelle' &&
-            a.id != widget.animal?.id &&
-            a.espece.toLowerCase() == espece.toLowerCase() &&
-            a.ageEnMois >= ageMin)
-        .toList();
+    final l10n = AppLocalizations.of(context)!;
+    final ageMin = _ageMinMere(_espece);
+    final animaux = context.read<AnimalProvider>().animaux.where((a) =>
+        a.sexe == 'Femelle' &&
+        a.id != widget.animal?.id &&
+        a.espece.toLowerCase() == _espece.toLowerCase() &&
+        a.ageEnMois >= ageMin).toList();
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
         width: double.infinity,
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.6,
-        ),
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.6),
         decoration: BoxDecoration(
           color: AppTheme.cardBackgroundOf(context),
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppTheme.radiusXLarge),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXLarge)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(height: AppTheme.spacingMedium),
             Container(
-              width: 40,
-              height: 4,
+              width: 40, height: 4,
               decoration: BoxDecoration(
                 color: AppTheme.textLightOf(context),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             SizedBox(height: AppTheme.spacingLarge),
-            Text(
-              'Sélectionner la mère',
-              style: AppTheme.bottomSheetTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-            ),
+            Text(l10n.selectMother, style: AppTheme.bottomSheetTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingLarge),
             if (animaux.isEmpty)
               Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingXXLarge,
-                  vertical: AppTheme.spacingXXLarge,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingXXLarge, vertical: AppTheme.spacingXXLarge),
                 child: Column(
                   children: [
                     Container(
                       padding: EdgeInsets.all(AppTheme.spacingLarge),
-                      decoration: BoxDecoration(
-                        color: AppTheme.warningOrange.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.warning_amber_rounded,
-                        size: AppTheme.iconSizeXLarge,
-                        color: AppTheme.warningOrange,
-                      ),
+                      decoration: BoxDecoration(color: AppTheme.warningOrange.withValues(alpha: 0.1), shape: BoxShape.circle),
+                      child: Icon(Icons.warning_amber_rounded, size: AppTheme.iconSizeXLarge, color: AppTheme.warningOrange),
                     ),
                     SizedBox(height: AppTheme.spacingLarge),
-                    const Text(
-                      'Aucune femelle disponible',
-                      style: AppTheme.sectionSubtitle,
-                    ),
+                    Text(l10n.noFemaleAvailable, style: AppTheme.sectionSubtitle),
                     SizedBox(height: AppTheme.spacingSmall),
-                    const Text(
-                      'Aucune femelle de la même espèce avec l\'âge requis n\'est disponible.',
-                      textAlign: TextAlign.center,
-                      style: AppTheme.bodyTextLight,
-                    ),
+                    Text(l10n.noFemaleAvailableDesc, textAlign: TextAlign.center, style: AppTheme.bodyTextLight),
                     SizedBox(height: AppTheme.spacingXLarge),
                     SizedBox(
                       width: double.infinity,
@@ -187,14 +158,9 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                         style: TextButton.styleFrom(
                           backgroundColor: AppTheme.warningOrange.withValues(alpha: 0.1),
                           padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
                         ),
-                        child: Text(
-                          'Compris',
-                          style: AppTheme.buttonText.copyWith(color: AppTheme.warningOrange),
-                        ),
+                        child: Text(l10n.understood, style: AppTheme.buttonText.copyWith(color: AppTheme.warningOrange)),
                       ),
                     ),
                   ],
@@ -208,60 +174,22 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                   itemBuilder: (context, index) {
                     if (index == 0) {
                       return ListTile(
-                        leading: Icon(
-                          Icons.clear,
-                          color: AppTheme.textSecondary,
-                          size: AppTheme.iconSizeMedium,
-                        ),
-                        title: Text(
-                          'Aucune mère',
-                          style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                        ),
-                        trailing: _mereId == null
-                            ? Icon(
-                                Icons.check_circle,
-                                color: AppTheme.primaryPurple,
-                                size: AppTheme.iconSizeMedium,
-                              )
-                            : null,
-                        onTap: () {
-                          setState(() => _mereId = null);
-                          Navigator.pop(context);
-                        },
+                        leading: Icon(Icons.clear, color: AppTheme.textSecondary, size: AppTheme.iconSizeMedium),
+                        title: Text(l10n.noMother, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                        trailing: _mereId == null ? Icon(Icons.check_circle, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium) : null,
+                        onTap: () { setState(() => _mereId = null); Navigator.pop(context); },
                       );
                     }
                     final animal = animaux[index - 1];
                     final isSelected = _mereId == animal.id;
                     return ListTile(
-                      leading: Icon(
-                        Icons.pets,
-                        color: isSelected ? AppTheme.primaryPurple : AppTheme.textSecondaryOf(context),
-                        size: AppTheme.iconSizeMedium,
-                      ),
-                      title: Text(
-                        animal.nom,
-                        style: isSelected
-                            ? AppTheme.listItemTitle.copyWith(
-                                color: AppTheme.primaryPurple,
-                                fontWeight: FontWeight.w600,
-                              )
-                            : AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                      ),
-                      subtitle: Text(
-                        '${animal.espece} • ${animal.race}',
-                        style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context)),
-                      ),
-                      trailing: isSelected
-                          ? Icon(
-                              Icons.check_circle,
-                              color: AppTheme.primaryPurple,
-                              size: AppTheme.iconSizeMedium,
-                            )
-                          : null,
-                      onTap: () {
-                        setState(() => _mereId = animal.id);
-                        Navigator.pop(context);
-                      },
+                      leading: Icon(Icons.pets, color: isSelected ? AppTheme.primaryPurple : AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
+                      title: Text(animal.nom, style: isSelected
+                          ? AppTheme.listItemTitle.copyWith(color: AppTheme.primaryPurple, fontWeight: FontWeight.w600)
+                          : AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                      subtitle: Text('${animal.espece} • ${animal.race}', style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
+                      trailing: isSelected ? Icon(Icons.check_circle, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium) : null,
+                      onTap: () { setState(() => _mereId = animal.id); Navigator.pop(context); },
                     );
                   },
                 ),
@@ -273,51 +201,55 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
     );
   }
 
-  String _getExemplePourEspece(String espece) {
+  String _getEspeceLabel(String espece, AppLocalizations l10n) {
     switch (espece.toLowerCase()) {
-      case 'bovin': return 'ex: Vache, Taureau, Veau';
-      case 'ovin': return 'ex: Mouton, Brebis, Bélier';
-      case 'caprin': return 'ex: Chèvre, Bouc, Chevreau';
-      case 'porcin': return 'ex: Porc, Truie, Porcelet';
-      case 'volaille': return 'ex: Poule, Coq, Dindon';
-      case 'équin': return 'ex: Cheval, Âne, Mule';
-      case 'lapin': return 'ex: Lapin, Lapine';
+      case 'bovin': return l10n.especeBovinLabel;
+      case 'ovin': return l10n.especeOvinLabel;
+      case 'caprin': return l10n.especeCaprinLabel;
+      case 'porcin': return l10n.especePorcinLabel;
+      case 'volaille': return l10n.especeVolailleLabel;
+      case 'équin': return l10n.especeEquinLabel;
+      case 'lapin': return l10n.especeLapinLabel;
+      default: return espece;
+    }
+  }
+
+  String _getExemplePourEspece(String espece) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (espece.toLowerCase()) {
+      case 'bovin': return l10n.especeBovin;
+      case 'ovin': return l10n.especeOvin;
+      case 'caprin': return l10n.especeCaprin;
+      case 'porcin': return l10n.especePorcin;
+      case 'volaille': return l10n.especeVolaille;
+      case 'équin': return l10n.especeEquin;
+      case 'lapin': return l10n.especeLapin;
       default: return '';
     }
   }
 
   void _showEspeceBottomSheet() {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.6,
-        ),
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.6),
         decoration: BoxDecoration(
           color: AppTheme.cardBackgroundOf(context),
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppTheme.radiusXLarge),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXLarge)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(height: AppTheme.spacingMedium),
             Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppTheme.textLightOf(context),
-                borderRadius: BorderRadius.circular(2),
-              ),
+              width: 40, height: 4,
+              decoration: BoxDecoration(color: AppTheme.textLightOf(context), borderRadius: BorderRadius.circular(2)),
             ),
             SizedBox(height: AppTheme.spacingLarge),
-            Text(
-              'Sélectionner une espèce',
-              style: AppTheme.bottomSheetTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-            ),
+            Text(l10n.selectSpecies, style: AppTheme.bottomSheetTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
             Flexible(
               child: ListView.builder(
@@ -326,41 +258,17 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                 itemBuilder: (context, index) {
                   final espece = AppConstants.especesCommunes[index];
                   final isSelected = _espece == espece;
+                  final exemple = _getExemplePourEspece(espece);
                   return ListTile(
-                    leading: Icon(
-                      Icons.pets,
-                      color: isSelected ? AppTheme.primaryPurple : AppTheme.textSecondaryOf(context),
-                      size: AppTheme.iconSizeMedium,
-                    ),
-                    title: Text(
-                      espece,
-                      style: isSelected
-                          ? AppTheme.listItemTitle.copyWith(
-                              color: AppTheme.primaryPurple,
-                              fontWeight: FontWeight.w600,
-                            )
-                          : AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                    ),
-                    subtitle: _getExemplePourEspece(espece).isNotEmpty
-                        ? Text(
-                            _getExemplePourEspece(espece),
-                            style: AppTheme.listItemSubtitle.copyWith(
-                              color: AppTheme.textSecondaryOf(context),
-                              fontSize: 12,
-                            ),
-                          )
+                    leading: Icon(Icons.pets, color: isSelected ? AppTheme.primaryPurple : AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
+                    title: Text(_getEspeceLabel(espece, l10n), style: isSelected
+                        ? AppTheme.listItemTitle.copyWith(color: AppTheme.primaryPurple, fontWeight: FontWeight.w600)
+                        : AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                    subtitle: exemple.isNotEmpty
+                        ? Text(exemple, style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context), fontSize: 12))
                         : null,
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check_circle,
-                            color: AppTheme.primaryPurple,
-                            size: AppTheme.iconSizeMedium,
-                          )
-                        : null,
-                    onTap: () {
-                      setState(() => _espece = espece);
-                      Navigator.pop(context);
-                    },
+                    trailing: isSelected ? Icon(Icons.check_circle, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium) : null,
+                    onTap: () { setState(() => _espece = espece); Navigator.pop(context); },
                   );
                 },
               ),
@@ -375,7 +283,6 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
   void _save() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-
       final animal = Animal(
         id: widget.animal?.id ?? const Uuid().v4(),
         nom: _nomController.text,
@@ -389,24 +296,22 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
         dateAjout: widget.animal?.dateAjout ?? DateTime.now(),
         notes: _notesController.text.isEmpty ? null : _notesController.text,
         mereId: _mereId,
-        prixAchat: _prixAchatController.text.isEmpty
-            ? null
-            : double.parse(_prixAchatController.text),
+        prixAchat: _prixAchatController.text.isEmpty ? null : double.parse(_prixAchatController.text),
         statut: _statut,
       );
-
       if (widget.animal == null) {
         context.read<AnimalProvider>().ajouterAnimal(animal);
       } else {
         context.read<AnimalProvider>().modifierAnimal(animal);
       }
-
       Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(
@@ -420,16 +325,12 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               boxShadow: AppTheme.softShadow,
             ),
-            child: Icon(
-              Icons.arrow_back,
-              color: AppTheme.textPrimaryOf(context),
-              size: AppTheme.iconSizeMedium,
-            ),
+            child: Icon(Icons.arrow_back, color: AppTheme.textPrimaryOf(context), size: AppTheme.iconSizeMedium),
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          widget.animal == null ? 'Nouvel animal' : 'Modifier',
+          widget.animal == null ? l10n.newAnimal : l10n.edit,
           style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         centerTitle: true,
@@ -439,7 +340,6 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
         child: ListView(
           padding: EdgeInsets.all(AppTheme.spacingXLarge),
           children: [
-            // Photo selector
             GestureDetector(
               onTap: _pickImage,
               child: Container(
@@ -450,34 +350,18 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                   borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
                   boxShadow: AppTheme.softShadow,
                   image: _photoBase64 != null
-                      ? DecorationImage(
-                          image: MemoryImage(base64Decode(_photoBase64!)),
-                          fit: BoxFit.cover,
-                        )
+                      ? DecorationImage(image: MemoryImage(base64Decode(_photoBase64!)), fit: BoxFit.cover)
                       : _photoPath != null
-                      ? DecorationImage(
-                          image: FileImage(File(_photoPath!)),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
+                          ? DecorationImage(image: FileImage(File(_photoPath!)), fit: BoxFit.cover)
+                          : null,
                 ),
                 child: _photoBase64 == null && _photoPath == null
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.add_a_photo_outlined,
-                            size: AppTheme.iconSizeXLarge,
-                            color: AppTheme.primaryPurple,
-                          ),
+                          Icon(Icons.add_a_photo_outlined, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
                           SizedBox(height: AppTheme.spacingXSmall),
-                          Text(
-                            'Ajouter photo',
-                            style: AppTheme.bodyText.copyWith(
-                              color: AppTheme.primaryPurple,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                          Text(l10n.addPhoto, style: AppTheme.bodyText.copyWith(color: AppTheme.primaryPurple, fontWeight: FontWeight.w500)),
                         ],
                       )
                     : null,
@@ -485,147 +369,103 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
             ),
             SizedBox(height: AppTheme.spacingXXLarge),
 
-            // Nom
-            const Text('Informations', style: AppTheme.sectionTitle),
+            Text(l10n.informations, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
             _buildTextField(
               controller: _nomController,
-              label: 'Nom de l\'animal',
+              label: l10n.animalName,
               icon: Icons.pets,
-              validator: (v) => v?.isEmpty ?? true ? 'Le nom est requis' : null,
+              validator: (v) => v?.isEmpty ?? true ? l10n.animalNameRequired : null,
             ),
             SizedBox(height: AppTheme.spacingLarge),
 
-            // Espèce
             GestureDetector(
               onTap: _showEspeceBottomSheet,
               child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingLarge,
-                  vertical: AppTheme.spacingMedium + 2,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceColorOf(context),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                ),
+                padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium + 2),
+                decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.category_outlined,
-                      color: AppTheme.textSecondaryOf(context),
-                      size: AppTheme.iconSizeMedium,
-                    ),
+                    Icon(Icons.category_outlined, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                     SizedBox(width: AppTheme.spacingMedium),
-                    Expanded(
-                      child: Text(_espece, style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context))),
-                    ),
-                    Icon(
-                      Icons.arrow_drop_down,
-                      color: AppTheme.textLightOf(context),
-                      size: AppTheme.iconSizeLarge,
-                    ),
+                    Expanded(child: Text(_getEspeceLabel(_espece, l10n), style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)))),
+                    Icon(Icons.arrow_drop_down, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeLarge),
                   ],
                 ),
               ),
             ),
             SizedBox(height: AppTheme.spacingLarge),
 
-            // Race
             _buildTextField(
               controller: _raceController,
-              label: 'Race',
+              label: l10n.breed,
               icon: Icons.label_outline,
-              validator: (v) => v?.isEmpty ?? true ? 'La race est requise' : null,
+              validator: (v) => v?.isEmpty ?? true ? l10n.breedRequired : null,
             ),
             SizedBox(height: AppTheme.spacingXXLarge),
 
-            // Sexe
-            const Text('Caractéristiques', style: AppTheme.sectionTitle),
+            Text(l10n.characteristics, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
-            _buildSexeSelector(),
+            _buildSexeSelector(l10n),
             SizedBox(height: AppTheme.spacingLarge),
 
-            // Date de naissance
-            _buildDateSelector(),
+            _buildDateSelector(settings, l10n),
             SizedBox(height: AppTheme.spacingXXLarge),
 
-            // Généalogie
-            const Text('Généalogie (optionnel)', style: AppTheme.sectionTitle),
+            Text(l10n.genealogy, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
             GestureDetector(
               onTap: _showMereBottomSheet,
               child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingLarge,
-                  vertical: AppTheme.spacingMedium + 2,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceColorOf(context),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                ),
+                padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium + 2),
+                decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.family_restroom,
-                      color: AppTheme.textSecondaryOf(context),
-                      size: AppTheme.iconSizeSmall + 1,
-                    ),
+                    Icon(Icons.family_restroom, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeSmall + 1),
                     SizedBox(width: AppTheme.spacingMedium),
                     Expanded(
                       child: Text(
                         _mereId == null
-                            ? 'Sélectionner la mère'
-                            : context
-                                      .read<AnimalProvider>()
-                                      .getAnimal(_mereId!)
-                                      ?.nom ??
-                                  'Mère inconnue',
+                            ? l10n.selectMother
+                            : context.read<AnimalProvider>().getAnimal(_mereId!)?.nom ?? l10n.unknownMother,
                         style: _mereId == null
                             ? AppTheme.formHint.copyWith(color: AppTheme.textLightOf(context))
                             : AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
                       ),
                     ),
-                    Icon(
-                      Icons.arrow_drop_down,
-                      color: AppTheme.textLightOf(context),
-                      size: AppTheme.iconSizeLarge,
-                    ),
+                    Icon(Icons.arrow_drop_down, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeLarge),
                   ],
                 ),
               ),
             ),
             SizedBox(height: AppTheme.spacingXXLarge),
 
-            // Statut
-            const Text('Statut', style: AppTheme.sectionTitle),
+            Text(l10n.status, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
             _buildStatutSelector(),
             SizedBox(height: AppTheme.spacingXXLarge),
 
-            // Finances
-            const Text('Finances (optionnel)', style: AppTheme.sectionTitle),
+            Text(l10n.finances, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
             _buildTextField(
               controller: _prixAchatController,
-              label: 'Prix d\'achat (€)',
-              icon: Icons.euro,
+              label: l10n.purchasePrice,
+              icon: Icons.monetization_on_outlined,
             ),
             SizedBox(height: AppTheme.spacingXXLarge),
 
-            // Notes
-            const Text('Notes (optionnel)', style: AppTheme.sectionTitle),
+            Text(l10n.notesOptional, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
             _buildTextField(
               controller: _notesController,
-              label: 'Notes supplémentaires',
+              label: l10n.additionalNotes,
               icon: Icons.edit_note_outlined,
               maxLines: 3,
             ),
             SizedBox(height: AppTheme.spacingXXLarge),
 
-            // Submit button
             PrimaryButton(
-              text: widget.animal == null ? 'Ajouter l\'animal' : 'Enregistrer',
+              text: widget.animal == null ? l10n.addAnimalBtn : l10n.save,
               icon: widget.animal == null ? Icons.add : Icons.check,
               isLoading: _isLoading,
               onPressed: _save,
@@ -658,37 +498,26 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                 child: Icon(icon, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
               )
             : Icon(icon, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeSmall + 2),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          borderSide: BorderSide.none,
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          borderSide: const BorderSide(
-            color: AppTheme.primaryPurple,
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: AppTheme.primaryPurple, width: 1),
         ),
         filled: true,
         fillColor: AppTheme.surfaceColorOf(context),
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: AppTheme.spacingLarge,
-          vertical: AppTheme.spacingMedium - 2,
-        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium - 2),
       ),
     );
   }
 
   Widget _buildStatutSelector() {
-    const statuts = [
-      ('Actif', AppTheme.successGreen, Icons.check_circle),
-      ('Vendu', AppTheme.infoBlue, Icons.sell),
-      ('Mort', AppTheme.errorRed, Icons.close),
-      ('Réformé', AppTheme.warningOrange, Icons.block),
+    final l10n = AppLocalizations.of(context)!;
+    final statuts = [
+      ('Actif',   l10n.statutActif,   AppTheme.successGreen,  Icons.check_circle),
+      ('Vendu',   l10n.statutVendu,   AppTheme.infoBlue,      Icons.sell),
+      ('Mort',    l10n.statutMort,    AppTheme.errorRed,      Icons.close),
+      ('Réformé', l10n.statutReforme, AppTheme.warningOrange, Icons.block),
     ];
     return Wrap(
       spacing: AppTheme.spacingSmall,
@@ -701,15 +530,15 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
             duration: const Duration(milliseconds: 200),
             padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
             decoration: BoxDecoration(
-              color: isSelected ? s.$2 : AppTheme.surfaceColorOf(context),
+              color: isSelected ? s.$3 : AppTheme.surfaceColorOf(context),
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(s.$3, color: isSelected ? Colors.white : s.$2, size: AppTheme.iconSizeMedium),
+                Icon(s.$4, color: isSelected ? Colors.white : s.$3, size: AppTheme.iconSizeMedium),
                 SizedBox(width: AppTheme.spacingSmall),
-                Text(s.$1, style: AppTheme.bodyText.copyWith(
+                Text(s.$2, style: AppTheme.bodyText.copyWith(
                   color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
                   fontWeight: FontWeight.w600,
                 )),
@@ -721,7 +550,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
     );
   }
 
-  Widget _buildSexeSelector() {
+  Widget _buildSexeSelector(AppLocalizations l10n) {
     return Row(
       children: [
         Expanded(
@@ -737,19 +566,12 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.male,
-                    size: AppTheme.iconSizeSmall + 1,
-                    color: _sexe == 'Mâle' ? Colors.white : AppTheme.infoBlue,
-                  ),
+                  Icon(Icons.male, size: AppTheme.iconSizeSmall + 1, color: _sexe == 'Mâle' ? Colors.white : AppTheme.infoBlue),
                   SizedBox(width: AppTheme.spacingSmall - 2),
-                  Text(
-                    'Mâle',
-                    style: AppTheme.bodyText.copyWith(
-                      color: _sexe == 'Mâle' ? Colors.white : AppTheme.textSecondaryOf(context),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text(l10n.male, style: AppTheme.bodyText.copyWith(
+                    color: _sexe == 'Mâle' ? Colors.white : AppTheme.textSecondaryOf(context),
+                    fontWeight: FontWeight.w600,
+                  )),
                 ],
               ),
             ),
@@ -769,19 +591,12 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.female,
-                    size: AppTheme.iconSizeSmall + 1,
-                    color: _sexe == 'Femelle' ? Colors.white : const Color(0xFFEC4899),
-                  ),
+                  Icon(Icons.female, size: AppTheme.iconSizeSmall + 1, color: _sexe == 'Femelle' ? Colors.white : const Color(0xFFEC4899)),
                   SizedBox(width: AppTheme.spacingSmall - 2),
-                  Text(
-                    'Femelle',
-                    style: AppTheme.bodyText.copyWith(
-                      color: _sexe == 'Femelle' ? Colors.white : AppTheme.textSecondaryOf(context),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text(l10n.female, style: AppTheme.bodyText.copyWith(
+                    color: _sexe == 'Femelle' ? Colors.white : AppTheme.textSecondaryOf(context),
+                    fontWeight: FontWeight.w600,
+                  )),
                 ],
               ),
             ),
@@ -791,34 +606,23 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
     );
   }
 
-  Widget _buildDateSelector() {
+  Widget _buildDateSelector(SettingsProvider settings, AppLocalizations l10n) {
     return GestureDetector(
       onTap: _selectDate,
       child: Container(
         padding: EdgeInsets.all(AppTheme.spacingMedium + 2),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColorOf(context),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        ),
+        decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Row(
           children: [
-            Icon(
-              Icons.cake_outlined,
-              color: AppTheme.primaryPurple,
-              size: AppTheme.iconSizeSmall + 1,
-            ),
+            Icon(Icons.cake_outlined, color: AppTheme.primaryPurple, size: AppTheme.iconSizeSmall + 1),
             SizedBox(width: AppTheme.spacingMedium),
             Expanded(
               child: Text(
-                DateFormat('d MMMM yyyy', 'fr_FR').format(_dateNaissance),
+                DateFormat('d MMMM yyyy', settings.intlLocale).format(_dateNaissance),
                 style: AppTheme.formLabel.copyWith(color: AppTheme.textPrimaryOf(context)),
               ),
             ),
-            Icon(
-              Icons.calendar_today_outlined,
-              color: AppTheme.textLightOf(context),
-              size: AppTheme.iconSizeSmall + 1,
-            ),
+            Icon(Icons.calendar_today_outlined, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeSmall + 1),
           ],
         ),
       ),

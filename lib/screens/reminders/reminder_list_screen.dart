@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import 'package:umuragizi/l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../providers/animal_provider.dart';
 import '../../providers/rappel_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
+import '../animal/animal_list_screen.dart';
 import 'reminder_form_screen.dart';
 
 class ReminderListScreen extends StatefulWidget {
@@ -19,7 +21,7 @@ class ReminderListScreen extends StatefulWidget {
 class _ReminderListScreenState extends State<ReminderListScreen> {
   String? _selectedAnimalId;
   int _selectedFilterIndex = 0;
-  final List<String> _filters = ['Tous', 'En retard', "Aujourd'hui", 'À venir'];
+  List<String> _getFilters(AppLocalizations l10n) => [l10n.all, l10n.filterLate, l10n.today, l10n.filterUpcoming];
 
   @override
   Widget build(BuildContext context) {
@@ -56,13 +58,14 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
   }
 
   Widget _buildHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.fromLTRB(AppTheme.spacingXLarge, AppTheme.spacingLarge, AppTheme.spacingXLarge, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Mes Tâches',
+          Text(
+            l10n.myTasks,
             style: AppTheme.pageTitle,
           ),
           Consumer<RappelProvider>(
@@ -75,7 +78,7 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
                   borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                 ),
                 child: Text(
-                  '$total en cours',
+                  '$total ${l10n.inProgress}',
                   style: AppTheme.tagText,
                 ),
               );
@@ -115,7 +118,7 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
                   SizedBox(width: AppTheme.spacingMedium),
                   Expanded(
                     child: Text(
-                      selectedAnimal?.nom ?? 'Tous les animaux',
+                      selectedAnimal?.nom ?? AppLocalizations.of(context)!.allAnimals,
                       style: _selectedAnimalId == null
                           ? AppTheme.formHint.copyWith(color: AppTheme.textLightOf(context))
                           : AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
@@ -158,7 +161,7 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
             ),
             SizedBox(height: AppTheme.spacingXLarge),
             Text(
-              'Sélectionner un animal',
+              AppLocalizations.of(context)!.selectAnimal,
               style: AppTheme.bottomSheetTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
             ),
             SizedBox(height: AppTheme.spacingLarge),
@@ -178,7 +181,7 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
                         ),
                         child: Icon(Icons.pets, color: AppTheme.primaryPurple, size: AppTheme.iconSizeSmall),
                       ),
-                      title: Text('Tous les animaux', style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                      title: Text(AppLocalizations.of(context)!.allAnimals, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                       trailing: _selectedAnimalId == null
                           ? Icon(Icons.check, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium)
                           : null,
@@ -206,7 +209,7 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
                           ? AppTheme.listItemTitle.copyWith(color: AppTheme.primaryPurple)
                           : AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                     ),
-                    subtitle: Text('${animal.espece} • ${animal.race}', style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
+                    subtitle: Text('${especeLabel(animal.espece, AppLocalizations.of(context)!)} • ${animal.race}', style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
                     trailing: isSelected
                         ? Icon(Icons.check, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium)
                         : null,
@@ -226,14 +229,16 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
   }
 
   Widget _buildFilters() {
+    final l10n = AppLocalizations.of(context)!;
+    final filters = _getFilters(l10n);
     return SizedBox(
       height: 32,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingXLarge),
-        itemCount: _filters.length,
+        itemCount: filters.length,
         itemBuilder: (context, index) {
-          final filter = _filters[index];
+          final filter = filters[index];
           final isSelected = _selectedFilterIndex == index;
 
           Color? badgeColor;
@@ -249,7 +254,7 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
           }
 
           return Padding(
-            padding: EdgeInsets.only(right: index < _filters.length - 1 ? AppTheme.spacingSmall : 0),
+            padding: EdgeInsets.only(right: index < filters.length - 1 ? AppTheme.spacingSmall : 0),
             child: GestureDetector(
               onTap: () => setState(() => _selectedFilterIndex = index),
               child: AnimatedContainer(
@@ -301,6 +306,7 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
   }
 
   Widget _buildRappelsList() {
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<RappelProvider>(
       builder: (context, rappelProvider, _) {
         List<Rappel> rappels = _selectedAnimalId == null
@@ -350,20 +356,20 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
                   SizedBox(height: AppTheme.spacingXLarge),
                   Text(
                     _selectedFilterIndex == 0
-                        ? 'Tout est à jour !'
-                        : 'Aucune tâche',
+                        ? l10n.allUpToDate
+                        : l10n.noTask,
                     style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                   ),
                   SizedBox(height: AppTheme.spacingSmall),
                   Text(
-                    _getEmptyMessage(),
+                    _getEmptyMessage(l10n),
                     style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
                     textAlign: TextAlign.center,
                   ),
                   if (_selectedAnimalId != null) ...[
                     SizedBox(height: AppTheme.spacingXXLarge),
                     PrimaryButton(
-                      text: 'Ajouter une tâche',
+                      text: l10n.addTask,
                       icon: Icons.add,
                       width: 200,
                       onPressed: () => Navigator.push(
@@ -390,19 +396,19 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
             padding: EdgeInsets.fromLTRB(AppTheme.spacingXLarge, 0, AppTheme.spacingXLarge, 100),
             children: [
               if (enRetard.isNotEmpty) ...[
-                _buildSectionHeader('En retard', AppTheme.errorRed, enRetard.length),
+                _buildSectionHeader(l10n.filterLate, AppTheme.errorRed, enRetard.length),
                 SizedBox(height: AppTheme.spacingMedium),
                 ...enRetard.map((r) => _ModernRappelCard(rappel: r)),
                 SizedBox(height: AppTheme.spacingXLarge),
               ],
               if (aujourdhui.isNotEmpty) ...[
-                _buildSectionHeader("Aujourd'hui", AppTheme.warningOrange, aujourdhui.length),
+                _buildSectionHeader(l10n.today, AppTheme.warningOrange, aujourdhui.length),
                 SizedBox(height: AppTheme.spacingMedium),
                 ...aujourdhui.map((r) => _ModernRappelCard(rappel: r)),
                 SizedBox(height: AppTheme.spacingXLarge),
               ],
               if (aVenir.isNotEmpty) ...[
-                _buildSectionHeader('À venir', AppTheme.primaryPurple, aVenir.length),
+                _buildSectionHeader(l10n.filterUpcoming, AppTheme.primaryPurple, aVenir.length),
                 SizedBox(height: AppTheme.spacingMedium),
                 ...aVenir.map((r) => _ModernRappelCard(rappel: r)),
               ],
@@ -456,16 +462,12 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
     );
   }
 
-  String _getEmptyMessage() {
+  String _getEmptyMessage(AppLocalizations l10n) {
     switch (_selectedFilterIndex) {
-      case 1:
-        return 'Aucune tâche en retard';
-      case 2:
-        return "Aucune tâche pour aujourd'hui";
-      case 3:
-        return 'Aucune tâche à venir';
-      default:
-        return 'Aucune tâche programmée';
+      case 1: return l10n.noTaskLate;
+      case 2: return l10n.noTaskToday;
+      case 3: return l10n.noTaskUpcoming;
+      default: return l10n.noTaskScheduled;
     }
   }
 
@@ -473,9 +475,10 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
     final animaux = context.read<AnimalProvider>().animaux;
 
     if (animaux.isEmpty) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Ajoutez d\'abord un animal', style: AppTheme.bodyText.copyWith(color: Colors.white)),
+          content: Text(l10n.addAnimalFirst, style: AppTheme.bodyText.copyWith(color: Colors.white)),
           backgroundColor: AppTheme.warningOrange,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusSmall)),
@@ -512,8 +515,8 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
               ),
             ),
             SizedBox(height: AppTheme.spacingXLarge),
-            const Text(
-              'Sélectionner un animal',
+            Text(
+              AppLocalizations.of(context)!.selectAnimal,
               style: AppTheme.bottomSheetTitle,
             ),
             SizedBox(height: AppTheme.spacingLarge),
@@ -535,7 +538,7 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
                       child: Icon(Icons.pets, color: AppTheme.primaryPurple, size: AppTheme.iconSizeSmall),
                     ),
                     title: Text(animal.nom, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
-                    subtitle: Text('${animal.espece} • ${animal.race}', style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
+                    subtitle: Text('${especeLabel(animal.espece, AppLocalizations.of(context)!)} • ${animal.race}', style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -570,15 +573,17 @@ class _ModernRappelCard extends StatelessWidget {
     Color statusColor;
     String statusText;
 
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.read<SettingsProvider>();
     if (isEnRetard) {
       statusColor = AppTheme.errorRed;
-      statusText = 'En retard';
+      statusText = l10n.filterLate;
     } else if (isAujourdhui) {
       statusColor = AppTheme.warningOrange;
-      statusText = "Aujourd'hui";
+      statusText = l10n.today;
     } else {
       statusColor = AppTheme.primaryPurple;
-      statusText = DateFormat('d MMM', 'fr_FR').format(rappel.dateRappel);
+      statusText = '${rappel.dateRappel.day} ${settings.monthName(rappel.dateRappel.month)}';
     }
 
     return Padding(
@@ -641,7 +646,7 @@ class _ModernRappelCard extends StatelessWidget {
                             ),
                             SizedBox(width: AppTheme.spacingXSmall),
                             Text(
-                              rappel.type,
+                              _getLabelForType(rappel.type, l10n),
                               style: AppTheme.bodyTextSecondary.copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: _getColorForType(rappel.type),
@@ -678,8 +683,8 @@ class _ModernRappelCard extends StatelessWidget {
                         SizedBox(width: AppTheme.spacingXSmall),
                         Text(
                           rappel.intervalleHeures != null
-                              ? 'Récurrent (${rappel.intervalleHeures} heures)'
-                              : 'Récurrent (${rappel.intervalleJours} jours)',
+                              ? l10n.recurringHours(rappel.intervalleHeures!)
+                              : l10n.recurringDays(rappel.intervalleJours!),
                           style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context)),
                         ),
                       ],
@@ -696,7 +701,7 @@ class _ModernRappelCard extends StatelessWidget {
                         ),
                         SizedBox(width: AppTheme.spacingXSmall),
                         Text(
-                          'Jusqu\'au ${DateFormat('d MMM yyyy', 'fr_FR').format(rappel.dateFin!)}',
+                          '${l10n.until} ${rappel.dateFin!.day} ${settings.monthName(rappel.dateFin!.month)} ${rappel.dateFin!.year}',
                           style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context)),
                         ),
                       ],
@@ -738,6 +743,7 @@ class _ModernRappelCard extends StatelessWidget {
   }
 
   void _showDeleteConfirmation(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -774,14 +780,14 @@ class _ModernRappelCard extends StatelessWidget {
             ),
             SizedBox(height: AppTheme.spacingXLarge),
             Text(
-              'Supprimer la tâche ?',
+              l10n.deleteTask,
               style: AppTheme.sectionTitle.copyWith(fontSize: 20, color: AppTheme.textPrimaryOf(context)),
             ),
             SizedBox(height: AppTheme.spacingMedium),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingXXLarge),
               child: Text(
-                'Voulez-vous vraiment supprimer "${rappel.titre}" ?',
+                l10n.confirmDeleteMessage(rappel.titre),
                 style: AppTheme.cardSubtitle.copyWith(fontSize: 14, color: AppTheme.textSecondaryOf(context)),
                 textAlign: TextAlign.center,
               ),
@@ -802,7 +808,7 @@ class _ModernRappelCard extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'Annuler',
+                        l10n.cancel,
                         style: AppTheme.buttonText.copyWith(
                           fontSize: 14,
                           color: AppTheme.textPrimaryOf(context),
@@ -828,7 +834,7 @@ class _ModernRappelCard extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'Supprimer',
+                        l10n.confirmDelete,
                         style: AppTheme.buttonText.copyWith(fontSize: 14),
                       ),
                     ),
@@ -840,6 +846,16 @@ class _ModernRappelCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getLabelForType(String type, AppLocalizations l10n) {
+    switch (type) {
+      case 'Vaccination': return l10n.typeVaccination;
+      case 'Vermifuge': return l10n.typeVermifuge;
+      case 'Visite vétérinaire': return l10n.typeVetVisit;
+      case 'Soin spécifique': return l10n.typeSpecificCare;
+      default: return l10n.typeOther;
+    }
   }
 
   IconData _getIconForType(String type) {

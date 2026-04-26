@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:umuragizi/l10n/app_localizations.dart';
 import '../utils/app_theme.dart';
 import '../widgets/widgets.dart';
 
@@ -19,6 +20,7 @@ class GoogleDriveSettingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final i10n = AppLocalizations.of(context)!;
     return CustomCard(
       child: Row(
         children: [
@@ -49,9 +51,9 @@ class GoogleDriveSettingCard extends StatelessWidget {
                 Text(
                   isConnected 
                       ? (lastSyncDate != null 
-                          ? 'Dernière sync: ${DateFormat('dd/MM/yyyy à HH:mm').format(lastSyncDate!)}'
-                          : 'Synchronisation activée')
-                      : 'Activer la synchronisation cloud',
+                          ? '${i10n.lastSync}: ${DateFormat('dd/MM/yyyy à HH:mm').format(lastSyncDate!)}'
+                          : i10n.syncEnabled)
+                      : i10n.syncDisabled,
                   style: AppTheme.cardSubtitle.copyWith(
                     color: AppTheme.textSecondaryOf(context),
                   ),

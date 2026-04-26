@@ -3,10 +3,12 @@ import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import '../../models/models.dart';
 import '../../providers/rappel_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/constants.dart';
 import '../../widgets/widgets.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 class ReminderFormScreen extends StatefulWidget {
@@ -67,22 +69,20 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
   }
 
   Future<void> _selectDate() async {
+    final l10n = AppLocalizations.of(context)!;
     final date = await CustomDatePicker.show(
       context,
       initialDate: _dateRappel,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-      title: 'Date du rappel',
+      title: l10n.date,
     );
-    if (date != null) {
-      setState(() => _dateRappel = date);
-    }
+    if (date != null) setState(() => _dateRappel = date);
   }
 
   void _save() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-
       final rappel = Rappel(
         id: widget.rappel?.id ?? const Uuid().v4(),
         animalId: widget.animalId,
@@ -95,13 +95,11 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
         intervalleHeures: _recurrent && _uniteIntervalle == 'heures' ? _intervalleHeures : null,
         dateFin: _recurrent && _avecDateFin ? _dateFin : null,
       );
-
       if (widget.rappel == null) {
         context.read<RappelProvider>().ajouterRappel(rappel);
       } else {
         context.read<RappelProvider>().modifierRappel(rappel);
       }
-      
       await NotificationService.scheduleReminderNotification(rappel);
       Navigator.pop(context);
     }
@@ -109,6 +107,7 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(
@@ -127,10 +126,8 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          widget.rappel == null ? 'Nouvelle tâche' : 'Modifier la tâche',
-          style: AppTheme.pageTitle.copyWith(
-            color: AppTheme.textPrimaryOf(context),
-          ),
+          widget.rappel == null ? l10n.newTask : l10n.editTask,
+          style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         centerTitle: true,
       ),
@@ -139,47 +136,47 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppTheme.spacingXLarge),
           children: [
-            _buildSectionTitle('Type de tâche'),
+            _buildSectionTitle(l10n.taskType),
             const SizedBox(height: AppTheme.spacingMedium),
             _buildTypeSelector(),
             const SizedBox(height: AppTheme.spacingXXLarge),
-            _buildSectionTitle('Détails'),
+            _buildSectionTitle(l10n.details),
             const SizedBox(height: AppTheme.spacingMedium),
             _buildTextField(
               controller: _titreController,
-              label: 'Titre',
+              label: l10n.title,
               icon: Icons.title,
-              validator: (v) => v?.isEmpty ?? true ? 'Le titre est requis' : null,
+              validator: (v) => v?.isEmpty ?? true ? l10n.titleRequired : null,
             ),
             const SizedBox(height: AppTheme.spacingLarge),
             _buildTextField(
               controller: _descriptionController,
-              label: 'Description',
+              label: l10n.description,
               icon: Icons.description_outlined,
               maxLines: 3,
-              validator: (v) => v?.isEmpty ?? true ? 'La description est requise' : null,
+              validator: (v) => v?.isEmpty ?? true ? l10n.descriptionRequired : null,
             ),
             const SizedBox(height: AppTheme.spacingXXLarge),
-            _buildSectionTitle('Planification'),
+            _buildSectionTitle(l10n.planning),
             const SizedBox(height: AppTheme.spacingMedium),
             _buildDateSelector(),
             const SizedBox(height: AppTheme.spacingLarge),
-            _buildRecurrenceToggle(),
+            _buildRecurrenceToggle(l10n),
             if (_recurrent) ...[
               const SizedBox(height: AppTheme.spacingLarge),
-              _buildUniteSelector(),
+              _buildUniteSelector(l10n),
               const SizedBox(height: AppTheme.spacingLarge),
-              _buildFrequencySelector(),
+              _buildFrequencySelector(l10n),
               const SizedBox(height: AppTheme.spacingLarge),
-              _buildDateFinToggle(),
+              _buildDateFinToggle(l10n),
               if (_avecDateFin) ...[
                 const SizedBox(height: AppTheme.spacingLarge),
-                _buildDateFinSelector(),
+                _buildDateFinSelector(l10n),
               ],
             ],
             const SizedBox(height: AppTheme.spacingXXLarge),
             PrimaryButton(
-              text: widget.rappel == null ? 'Créer la tâche' : 'Enregistrer',
+              text: widget.rappel == null ? l10n.createTask : l10n.save,
               icon: widget.rappel == null ? Icons.add : Icons.check,
               isLoading: _isLoading,
               onPressed: _save,
@@ -192,21 +189,25 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: AppTheme.sectionTitle.copyWith(
-        color: AppTheme.textPrimaryOf(context),
-      ),
-    );
+    return Text(title, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)));
+  }
+
+  String _getLabelForType(String type, AppLocalizations l10n) {
+    switch (type) {
+      case 'Vaccination': return l10n.typeVaccination;
+      case 'Vermifuge': return l10n.typeVermifuge;
+      case 'Visite vétérinaire': return l10n.typeVetVisit;
+      case 'Soin spécifique': return l10n.typeSpecificCare;
+      default: return l10n.typeOther;
+    }
   }
 
   Widget _buildTypeSelector() {
-    final types = AppConstants.typesRappel;
-
+    final l10n = AppLocalizations.of(context)!;
     return Wrap(
       spacing: AppTheme.spacingSmall,
       runSpacing: AppTheme.spacingSmall,
-      children: types.map((type) {
+      children: AppConstants.typesRappel.map((type) {
         final isSelected = _type == type;
         return GestureDetector(
           onTap: () => setState(() => _type = type),
@@ -217,28 +218,17 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
               color: isSelected ? _getColorForType(type) : AppTheme.cardBackgroundOf(context),
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               boxShadow: AppTheme.softShadow,
-              border: Border.all(
-                color: isSelected ? _getColorForType(type) : Colors.transparent,
-                width: 2,
-              ),
+              border: Border.all(color: isSelected ? _getColorForType(type) : Colors.transparent, width: 2),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  _getIconForType(type),
-                  size: AppTheme.iconSizeSmall,
-                  color: isSelected ? Colors.white : _getColorForType(type),
-                ),
+                Icon(_getIconForType(type), size: AppTheme.iconSizeSmall, color: isSelected ? Colors.white : _getColorForType(type)),
                 const SizedBox(width: AppTheme.spacingSmall),
-                Text(
-                  type,
-                  style: AppTheme.cardSubtitle.copyWith(
-                    color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
-                    fontWeight: FontWeight.w600,
-                   
-                  ),
-                ),
+                Text(_getLabelForType(type, l10n), style: AppTheme.cardSubtitle.copyWith(
+                  color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
+                  fontWeight: FontWeight.w600,
+                )),
               ],
             ),
           ),
@@ -268,148 +258,132 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
                 child: Icon(icon, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
               )
             : Icon(icon, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeSmall),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          borderSide: BorderSide.none,
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          borderSide: const BorderSide(
-            color: AppTheme.primaryPurple,
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: AppTheme.primaryPurple, width: 1),
         ),
         filled: true,
         fillColor: AppTheme.surfaceColorOf(context),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spacingLarge,
-          vertical: AppTheme.spacingMedium,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
       ),
     );
   }
 
   Widget _buildDateSelector() {
+    final settings = context.watch<SettingsProvider>();
     return GestureDetector(
       onTap: _selectDate,
       child: Container(
         padding: const EdgeInsets.all(AppTheme.spacingMedium),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColorOf(context),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        ),
+        decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Row(
           children: [
-            Icon(
-              Icons.calendar_today_outlined,
-              color: AppTheme.primaryPurple,
-              size: AppTheme.iconSizeMedium,
-            ),
+            Icon(Icons.calendar_today_outlined, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
             const SizedBox(width: AppTheme.spacingMedium),
-            Expanded(
-              child: Text(
-                DateFormat('d MMMM yyyy', 'fr_FR').format(_dateRappel),
-                style: AppTheme.formLabel,
-              ),
-            ),
-            Icon(
-              Icons.edit_calendar_outlined,
-              color: AppTheme.textLightOf(context),
-              size: AppTheme.iconSizeMedium,
-            ),
+            Expanded(child: Text(DateFormat('d MMMM yyyy', settings.intlLocale).format(_dateRappel), style: AppTheme.formLabel)),
+            Icon(Icons.edit_calendar_outlined, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeMedium),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildRecurrenceToggle() {
+  Widget _buildRecurrenceToggle(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingXSmall),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColorOf(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-      ),
+      decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
       child: SwitchListTile(
-        title: Text(
-          'Tâche récurrente',
-          style: AppTheme.cardSubtitle.copyWith(
-            fontWeight: FontWeight.w600,
-            
-            color: AppTheme.textPrimaryOf(context),
-          ),
-        ),
-        subtitle: Text(
-          'Se répète automatiquement',
-          style: AppTheme.bodyText.copyWith(
-            color: AppTheme.textSecondaryOf(context),
-          ),
-        ),
+        title: Text(l10n.recurringTask, style: AppTheme.cardSubtitle.copyWith(fontWeight: FontWeight.w600, color: AppTheme.textPrimaryOf(context))),
+        subtitle: Text(l10n.repeatsAutomatically, style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context))),
         value: _recurrent,
         onChanged: (v) => setState(() => _recurrent = v),
         activeTrackColor: AppTheme.lightPurple,
-        thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return AppTheme.primaryPurple;
-          }
-          return AppTheme.textLightOf(context);
-        }),
+        thumbColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected) ? AppTheme.primaryPurple : AppTheme.textLightOf(context)),
         contentPadding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
       ),
     );
   }
 
-  Widget _buildFrequencySelector() {
+  Widget _buildUniteSelector(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spacingLarge),
+      decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.repeatUnit, style: AppTheme.cardSubtitle.copyWith(fontWeight: FontWeight.w600, color: AppTheme.textPrimaryOf(context))),
+          const SizedBox(height: AppTheme.spacingMedium),
+          Row(
+            children: [
+              Expanded(child: _buildUniteButton('heures', l10n.hours, Icons.access_time)),
+              const SizedBox(width: AppTheme.spacingMedium),
+              Expanded(child: _buildUniteButton('jours', l10n.days, Icons.calendar_today)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUniteButton(String value, String label, IconData icon) {
+    final isSelected = _uniteIntervalle == value;
+    return GestureDetector(
+      onTap: () => setState(() => _uniteIntervalle = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryPurple : AppTheme.cardBackgroundOf(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: AppTheme.iconSizeSmall, color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context)),
+            const SizedBox(width: AppTheme.spacingSmall),
+            Text(label, style: AppTheme.cardSubtitle.copyWith(
+              color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
+              fontWeight: FontWeight.w600,
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFrequencySelector(AppLocalizations l10n) {
     if (_uniteIntervalle == 'heures') {
       return Container(
         padding: const EdgeInsets.all(AppTheme.spacingLarge),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColorOf(context),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        ),
+        decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.access_time, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
-                const SizedBox(width: AppTheme.spacingSmall),
-                Text(
-                  'Toutes les',
-                  style: AppTheme.cardSubtitle.copyWith(
-                    fontWeight: FontWeight.w600,
-                
-                    color: AppTheme.textPrimaryOf(context),
-                  ),
-                ),
-              ],
-            ),
+            Row(children: [
+              Icon(Icons.access_time, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
+              const SizedBox(width: AppTheme.spacingSmall),
+              Text(l10n.everyHours, style: AppTheme.cardSubtitle.copyWith(fontWeight: FontWeight.w600, color: AppTheme.textPrimaryOf(context))),
+            ]),
             const SizedBox(height: AppTheme.spacingMedium),
             Wrap(
               spacing: AppTheme.spacingSmall,
               runSpacing: AppTheme.spacingSmall,
-              children: [1, 2, 3, 4, 6, 8, 12].map((heures) {
-                final isSelected = _intervalleHeures == heures;
+              children: [1, 2, 3, 4, 6, 8, 12].map((h) {
+                final isSelected = _intervalleHeures == h;
                 return GestureDetector(
-                  onTap: () => setState(() => _intervalleHeures = heures),
+                  onTap: () => setState(() => _intervalleHeures = h),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium, vertical: AppTheme.spacingSmall),
                     decoration: BoxDecoration(
                       color: isSelected ? AppTheme.primaryPurple : AppTheme.cardBackgroundOf(context),
                       borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     ),
-                    child: Text(
-                      '$heures h',
-                      style: AppTheme.bodyTextSecondary.copyWith(
-                        color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
-                        fontWeight: FontWeight.w500,
-                      
-                      ),
-                    ),
+                    child: Text('$h h', style: AppTheme.bodyTextSecondary.copyWith(
+                      color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
+                      fontWeight: FontWeight.w500,
+                    )),
                   ),
                 );
               }).toList(),
@@ -420,36 +394,24 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
     }
 
     final frequencies = [
-      {'value': 7, 'label': 'Chaque semaine'},
-      {'value': 30, 'label': 'Chaque mois'},
-      {'value': 90, 'label': 'Tous les 3 mois'},
-      {'value': 180, 'label': 'Tous les 6 mois'},
-      {'value': 365, 'label': 'Chaque année'},
+      {'value': 7, 'label': l10n.everyWeek},
+      {'value': 30, 'label': l10n.everyMonth},
+      {'value': 90, 'label': l10n.every3Months},
+      {'value': 180, 'label': l10n.every6Months},
+      {'value': 365, 'label': l10n.everyYear},
     ];
 
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingLarge),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColorOf(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-      ),
+      decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.repeat, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
-              const SizedBox(width: AppTheme.spacingSmall),
-              Text(
-                'Fréquence',
-                style: AppTheme.cardSubtitle.copyWith(
-                  fontWeight: FontWeight.w600,
-                  
-                  color: AppTheme.textPrimaryOf(context),
-                ),
-              ),
-            ],
-          ),
+          Row(children: [
+            Icon(Icons.repeat, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
+            const SizedBox(width: AppTheme.spacingSmall),
+            Text(l10n.frequency, style: AppTheme.cardSubtitle.copyWith(fontWeight: FontWeight.w600, color: AppTheme.textPrimaryOf(context))),
+          ]),
           const SizedBox(height: AppTheme.spacingMedium),
           Wrap(
             spacing: AppTheme.spacingSmall,
@@ -464,14 +426,10 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
                     color: isSelected ? AppTheme.primaryPurple : AppTheme.cardBackgroundOf(context),
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                   ),
-                  child: Text(
-                    freq['label'] as String,
-                    style: AppTheme.bodyTextSecondary.copyWith(
-                      color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
-                      fontWeight: FontWeight.w500,
-                    
-                    ),
-                  ),
+                  child: Text(freq['label'] as String, style: AppTheme.bodyTextSecondary.copyWith(
+                    color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
+                    fontWeight: FontWeight.w500,
+                  )),
                 ),
               );
             }).toList(),
@@ -481,141 +439,30 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
     );
   }
 
-  Widget _buildUniteSelector() {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingLarge),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColorOf(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Unité de répétition',
-            style: AppTheme.cardSubtitle.copyWith(
-              fontWeight: FontWeight.w600,
-             
-              color: AppTheme.textPrimaryOf(context),
-            ),
-          ),
-          const SizedBox(height: AppTheme.spacingMedium),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _uniteIntervalle = 'heures'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
-                    decoration: BoxDecoration(
-                      color: _uniteIntervalle == 'heures' ? AppTheme.primaryPurple : AppTheme.cardBackgroundOf(context),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          size: AppTheme.iconSizeSmall,
-                          color: _uniteIntervalle == 'heures' ? Colors.white : AppTheme.textSecondaryOf(context),
-                        ),
-                        const SizedBox(width: AppTheme.spacingSmall),
-                        Text(
-                          'Heures',
-                          style: AppTheme.cardSubtitle.copyWith(
-                            color: _uniteIntervalle == 'heures' ? Colors.white : AppTheme.textSecondaryOf(context),
-                            fontWeight: FontWeight.w600,
-                           
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppTheme.spacingMedium),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _uniteIntervalle = 'jours'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
-                    decoration: BoxDecoration(
-                      color: _uniteIntervalle == 'jours' ? AppTheme.primaryPurple : AppTheme.cardBackgroundOf(context),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: AppTheme.iconSizeSmall,
-                          color: _uniteIntervalle == 'jours' ? Colors.white : AppTheme.textSecondaryOf(context),
-                        ),
-                        const SizedBox(width: AppTheme.spacingSmall),
-                        Text(
-                          'Jours',
-                          style: AppTheme.cardSubtitle.copyWith(
-                            color: _uniteIntervalle == 'jours' ? Colors.white : AppTheme.textSecondaryOf(context),
-                            fontWeight: FontWeight.w600,
-                            
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateFinToggle() {
+  Widget _buildDateFinToggle(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingXSmall),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColorOf(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-      ),
+      decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
       child: SwitchListTile(
-        title: Text(
-          'Définir une durée',
-          style: AppTheme.cardSubtitle.copyWith(
-            fontWeight: FontWeight.w600,
-           
-            color: AppTheme.textPrimaryOf(context),
-          ),
-        ),
-        subtitle: Text(
-          'La tâche s\'arrêtera automatiquement',
-          style: AppTheme.bodyText.copyWith(
-            color: AppTheme.textSecondaryOf(context),
-          ),
-        ),
+        title: Text(l10n.setDuration, style: AppTheme.cardSubtitle.copyWith(fontWeight: FontWeight.w600, color: AppTheme.textPrimaryOf(context))),
+        subtitle: Text(l10n.taskStopsAuto, style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context))),
         value: _avecDateFin,
         onChanged: (v) {
           setState(() {
             _avecDateFin = v;
-            if (v && _dateFin == null) {
-              _dateFin = _dateRappel.add(const Duration(days: 21));
-            }
+            if (v && _dateFin == null) _dateFin = _dateRappel.add(const Duration(days: 21));
           });
         },
         activeTrackColor: AppTheme.lightPurple,
-        thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return AppTheme.primaryPurple;
-          }
-          return AppTheme.textLightOf(context);
-        }),
+        thumbColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected) ? AppTheme.primaryPurple : AppTheme.textLightOf(context)),
         contentPadding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
       ),
     );
   }
 
-  Widget _buildDateFinSelector() {
+  Widget _buildDateFinSelector(AppLocalizations l10n) {
+    final settings = context.watch<SettingsProvider>();
     return GestureDetector(
       onTap: () async {
         final date = await CustomDatePicker.show(
@@ -623,39 +470,24 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
           initialDate: _dateFin ?? _dateRappel.add(const Duration(days: 21)),
           firstDate: _dateRappel.add(const Duration(days: 1)),
           lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-          title: 'Date de fin',
+          title: l10n.endDate,
         );
-        if (date != null) {
-          setState(() => _dateFin = date);
-        }
+        if (date != null) setState(() => _dateFin = date);
       },
       child: Container(
         padding: const EdgeInsets.all(AppTheme.spacingMedium),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColorOf(context),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        ),
+        decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Row(
           children: [
-            Icon(
-              Icons.event_busy,
-              color: AppTheme.primaryPurple,
-              size: AppTheme.iconSizeMedium,
-            ),
+            Icon(Icons.event_busy, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
             const SizedBox(width: AppTheme.spacingMedium),
             Expanded(
               child: Text(
-                _dateFin != null
-                    ? DateFormat('d MMMM yyyy', 'fr_FR').format(_dateFin!)
-                    : 'Sélectionner une date',
+                _dateFin != null ? DateFormat('d MMMM yyyy', settings.intlLocale).format(_dateFin!) : l10n.selectDate,
                 style: _dateFin != null ? AppTheme.formLabel : AppTheme.formHint,
               ),
             ),
-            Icon(
-              Icons.calendar_today_outlined,
-              color: AppTheme.textLightOf(context),
-              size: AppTheme.iconSizeMedium,
-            ),
+            Icon(Icons.calendar_today_outlined, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeMedium),
           ],
         ),
       ),
@@ -664,31 +496,21 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
 
   IconData _getIconForType(String type) {
     switch (type.toLowerCase()) {
-      case 'vaccination':
-        return Icons.vaccines;
-      case 'vermifuge':
-        return Icons.medication;
-      case 'visite vétérinaire':
-        return Icons.local_hospital;
-      case 'soin spécifique':
-        return Icons.healing;
-      default:
-        return Icons.notifications;
+      case 'vaccination': return Icons.vaccines;
+      case 'vermifuge': return Icons.medication;
+      case 'visite vétérinaire': return Icons.local_hospital;
+      case 'soin spécifique': return Icons.healing;
+      default: return Icons.notifications;
     }
   }
 
   Color _getColorForType(String type) {
     switch (type.toLowerCase()) {
-      case 'vaccination':
-        return AppTheme.primaryPurple;
-      case 'vermifuge':
-        return AppTheme.accentOrange;
-      case 'visite vétérinaire':
-        return AppTheme.infoBlue;
-      case 'soin spécifique':
-        return AppTheme.successGreen;
-      default:
-        return AppTheme.textSecondary;
+      case 'vaccination': return AppTheme.primaryPurple;
+      case 'vermifuge': return AppTheme.accentOrange;
+      case 'visite vétérinaire': return AppTheme.infoBlue;
+      case 'soin spécifique': return AppTheme.successGreen;
+      default: return AppTheme.textSecondary;
     }
   }
 }

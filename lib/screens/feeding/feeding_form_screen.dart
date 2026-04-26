@@ -7,6 +7,8 @@ import '../../providers/finance_provider.dart';
 import '../../services/database_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/settings_provider.dart';
 
 class FeedingFormScreen extends StatefulWidget {
   final String animalId;
@@ -150,6 +152,8 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(
@@ -168,7 +172,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          widget.alimentation == null ? 'Ajouter alimentation' : 'Modifier alimentation',
+          widget.alimentation == null ? l10n.addFeeding : l10n.editFeeding,
           style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         centerTitle: true,
@@ -181,7 +185,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
             TextFormField(
               controller: _typeController,
               decoration: InputDecoration(
-                hintText: 'Type d\'aliment',
+                hintText: l10n.foodType,
                 hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
                 prefixIcon: Icon(Icons.restaurant, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                 border: OutlineInputBorder(
@@ -192,7 +196,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
                 fillColor: AppTheme.surfaceColorOf(context),
                 contentPadding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
               ),
-              validator: (v) => v?.isEmpty ?? true ? 'Le type est requis' : null,
+              validator: (v) => v?.isEmpty ?? true ? l10n.foodTypeRequired : null,
             ),
             SizedBox(height: AppTheme.spacingLarge),
             Row(
@@ -202,7 +206,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
                   child: TextFormField(
                     controller: _quantiteController,
                     decoration: InputDecoration(
-                      hintText: 'Quantité',
+                      hintText: l10n.quantity,
                       hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
                       prefixIcon: Icon(Icons.scale, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                       border: OutlineInputBorder(
@@ -214,7 +218,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
                       contentPadding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
                     ),
                     keyboardType: TextInputType.number,
-                    validator: (v) => v?.isEmpty ?? true ? 'Requis' : null,
+                    validator: (v) => v?.isEmpty ?? true ? l10n.required : null,
                   ),
                 ),
                 SizedBox(width: AppTheme.spacingMedium),
@@ -222,7 +226,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _unite,
                     decoration: InputDecoration(
-                      hintText: 'Unité',
+                      hintText: l10n.unit,
                       hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
@@ -242,7 +246,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
             TextFormField(
               controller: _prixUnitaireController,
               decoration: InputDecoration(
-                hintText: 'Prix unitaire (€) - optionnel',
+                hintText: l10n.unitPrice,
                 hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
                 prefixIcon: Icon(Icons.euro, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                 border: OutlineInputBorder(
@@ -273,11 +277,11 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Date et heure',
+                            l10n.dateTime,
                             style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
                           ),
                           Text(
-                            DateFormat('d MMMM yyyy à HH:mm', 'fr_FR').format(_date),
+                            '${_date.day.toString().padLeft(2,'0')} ${settings.monthName(_date.month)} ${_date.year} à ${_date.hour.toString().padLeft(2,'0')}:${_date.minute.toString().padLeft(2,'0')}',
                             style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                           ),
                         ],
@@ -292,7 +296,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
             TextFormField(
               controller: _notesController,
               decoration: InputDecoration(
-                hintText: 'Notes (optionnel)',
+                hintText: l10n.notesOptional,
                 hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
                 prefixIcon: Padding(
                   padding: EdgeInsets.only(bottom: AppTheme.spacingXXLarge + AppTheme.spacingLarge),
@@ -310,7 +314,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
             ),
             SizedBox(height: AppTheme.spacingXXLarge),
             PrimaryButton(
-              text: 'Enregistrer',
+              text: l10n.save,
               icon: Icons.check,
               onPressed: _save,
             ),

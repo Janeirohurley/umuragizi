@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/finance_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -189,8 +188,8 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
                             color: isRevenu ? AppTheme.successGreen : AppTheme.errorRed,
                           ),
                         ),
-                        title: Text(tx.categorie, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
-                        subtitle: Text(DateFormat('dd MMMM yyyy').format(tx.date)),
+                        title: Text(categorieLabel(tx.categorie, l10n), style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+                        subtitle: Text('${tx.date.day.toString().padLeft(2, '0')} ${settings.monthName(tx.date.month)} ${tx.date.year}'),
                         trailing: Text(
                           '${isRevenu ? '+' : '-'}${CurrencyHelper.format(tx.montant, settings)}',
                           style: TextStyle(

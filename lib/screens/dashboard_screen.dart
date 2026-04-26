@@ -114,8 +114,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, l10n.dashboard),
                 _buildNavItem(1, Icons.pets_outlined, Icons.pets, l10n.animals),
-                _buildNavItem(2, Icons.notifications_outlined, Icons.notifications, 'Tasks'), // Note: Add 'tasks' to l10n later if needed
-                _buildNavItem(3, Icons.bar_chart_outlined, Icons.bar_chart_rounded, 'Stats'),
+                _buildNavItem(2, Icons.notifications_outlined, Icons.notifications, l10n.tasks),
+                _buildNavItem(3, Icons.bar_chart_outlined, Icons.bar_chart_rounded, l10n.stats),
                 _buildNavItem(4, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, l10n.finance),
               ],
             ),
@@ -216,7 +216,7 @@ class _AccueilTabState extends State<_AccueilTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Bonjour',
+                AppLocalizations.of(context)!.hello,
                 style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context)),
               ),
               SizedBox(height: AppTheme.spacingXSmall),
@@ -265,7 +265,7 @@ class _AccueilTabState extends State<_AccueilTab> {
   }
 
   Widget _buildDateSelector() {
-    final settings = context.watch<SettingsProvider>();
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<RappelProvider>(
       builder: (context, rappelProvider, child) {
         final datesWithTasks = rappelProvider.rappels
@@ -279,14 +279,13 @@ class _AccueilTabState extends State<_AccueilTab> {
             children: [
               MonthYearHeader(
                 date: _selectedDate,
-                locale: settings.locale.languageCode,
                 onTap: () async {
                   final date = await CustomDatePicker.show(
                     context,
                     initialDate: _selectedDate,
                     firstDate: DateTime(2020),
                     lastDate: DateTime.now().add(const Duration(days: 365)),
-                    title: 'Date',
+                    title: l10n.date,
                   );
                   if (date != null) {
                     setState(() => _selectedDate = date);
@@ -312,7 +311,6 @@ class _AccueilTabState extends State<_AccueilTab> {
                   key: ValueKey<String>('${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}'),
                   selectedDate: _selectedDate,
                   datesWithTasks: datesWithTasks,
-                  locale: settings.locale.languageCode,
                   onDateSelected: (date) {
                     setState(() => _selectedDate = date);
                   },
@@ -335,7 +333,7 @@ class _AccueilTabState extends State<_AccueilTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Vue d\'ensemble',
+                l10n.overview,
                 style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
               ),
               SizedBox(height: AppTheme.spacingMedium),
@@ -361,19 +359,19 @@ class _AccueilTabState extends State<_AccueilTab> {
                       ),
                       _ModernStatCard(
                         icon: Icons.warning_amber_rounded,
-                        label: 'Retard',
+                        label: l10n.late,
                         value: '${rappelProvider.nombreRappelsEnRetard}',
                         color: AppTheme.errorRed,
                       ),
                       _ModernStatCard(
                         icon: Icons.today_rounded,
-                        label: 'Aujourd\'hui',
+                        label: l10n.today,
                         value: '${rappelProvider.nombreRappelsDuJour}',
                         color: AppTheme.warningOrange,
                       ),
                       _ModernStatCard(
                         icon: Icons.check_circle_rounded,
-                        label: 'Fait',
+                        label: l10n.done,
                         value: '${rappelProvider.rappels.where((r) => r.estComplete).length}',
                         color: AppTheme.primaryPurple,
                       ),
@@ -407,6 +405,7 @@ class _AccueilTabState extends State<_AccueilTab> {
 
   Widget _buildTachesEnCours(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<RappelProvider>(
       builder: (context, rappelProvider, child) {
         final rappelsEnRetard = rappelProvider.rappelsEnRetard;
@@ -434,7 +433,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    isToday ? 'Tâches' : 'Tâches - ${DateFormat('d MMM', settings.intlLocale).format(_selectedDate)}',
+                    isToday ? l10n.tasks : '${l10n.tasks} - ${DateFormat('d MMM', settings.intlLocale).format(_selectedDate)}',
                     style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                   ),
                   if (tousLesRappels.isNotEmpty)
@@ -447,7 +446,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                           ),
                         );
                       },
-                      child: const Text('Voir'),
+                      child: Text(AppLocalizations.of(context)!.see),
                     ),
                 ],
               ),
@@ -462,7 +461,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                             children: [
                                Icon(Icons.check_circle_outline, size: 48, color: AppTheme.successGreen),
                                SizedBox(height: 16),
-                               Text('Tout est fait !', style: AppTheme.sectionSubtitle),
+                               Text(AppLocalizations.of(context)!.allDone, style: AppTheme.sectionSubtitle),
                             ],
                           ),
                         ),
@@ -492,7 +491,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Especes',
+                    AppLocalizations.of(context)!.species,
                     style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                   ),
                   TextButton(
@@ -504,14 +503,14 @@ class _AccueilTabState extends State<_AccueilTab> {
                         ),
                       );
                     },
-                    child: Text('Voir plus', style: AppTheme.bodyText.copyWith(color: AppTheme.primaryPurple)),
+                    child: Text(AppLocalizations.of(context)!.seeMore, style: AppTheme.bodyText.copyWith(color: AppTheme.primaryPurple)),
                   ),
                 ],
               ),
               SizedBox(height: AppTheme.spacingMedium),
               if (especes.isEmpty)
                 CustomCard(
-                  child: Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Aucun animal'))),
+                  child: Center(child: Padding(padding: EdgeInsets.all(32), child: Text(AppLocalizations.of(context)!.noAnimal))),
                 )
               else
                 GridView.builder(
@@ -557,12 +556,13 @@ class _ModernRappelCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isEnRetard = rappel.estEnRetard;
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.only(bottom: AppTheme.spacingSmall),
       child: TaskCard(
         title: rappel.titre,
         subtitle: rappel.description,
-        tag: isEnRetard ? 'Retard' : "Aujourd'hui",
+        tag: isEnRetard ? l10n.late : l10n.today,
         tagColor: isEnRetard ? AppTheme.errorRed : AppTheme.warningOrange,
         onComplete: () {
           context.read<RappelProvider>().marquerComplete(rappel.id);
@@ -594,6 +594,7 @@ class _GroupeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -608,7 +609,7 @@ class _GroupeCard extends StatelessWidget {
           children: [
             Icon(_getIconForEspece(espece), color: AppTheme.primaryPurple),
             SizedBox(height: 4),
-            Text(espece, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTheme.bodyText),
+            Text(especeLabel(espece, l10n), maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTheme.bodyText),
             Text('$count', style: AppTheme.bodyTextSecondary),
           ],
         ),

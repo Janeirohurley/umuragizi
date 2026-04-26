@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../providers/animal_provider.dart';
 import '../../services/database_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/widgets.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/settings_provider.dart';
 import 'health_form_screen.dart';
 import 'growth_form_screen.dart';
 
@@ -20,6 +21,7 @@ class _HealthListScreenState extends State<HealthListScreen> {
   int _selectedTab = 0;
 
   void _showAnimalBottomSheet() {
+    final l10n = AppLocalizations.of(context)!;
     final animaux = context.read<AnimalProvider>().animaux;
     showModalBottomSheet(
       context: context,
@@ -43,7 +45,7 @@ class _HealthListScreenState extends State<HealthListScreen> {
             ),
             SizedBox(height: AppTheme.spacingLarge),
             Text(
-              'Sélectionner un animal',
+              l10n.selectAnimal,
               style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
             ),
             SizedBox(height: AppTheme.spacingLarge),
@@ -75,6 +77,8 @@ class _HealthListScreenState extends State<HealthListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
     final animaux = context.watch<AnimalProvider>().animaux;
     final selectedAnimal = _selectedAnimalId != null && animaux.any((a) => a.id == _selectedAnimalId)
         ? animaux.firstWhere((a) => a.id == _selectedAnimalId)
@@ -98,7 +102,7 @@ class _HealthListScreenState extends State<HealthListScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Santé & Croissance',
+          l10n.healthAndGrowth,
           style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         centerTitle: true,
@@ -145,12 +149,12 @@ class _HealthListScreenState extends State<HealthListScreen> {
                   ),
                   SizedBox(height: AppTheme.spacingLarge),
                   Text(
-                    'Aucun animal',
+                    l10n.noAnimal,
                     style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
                   ),
                   SizedBox(height: AppTheme.spacingSmall),
                   Text(
-                    'Ajoutez un animal pour commencer',
+                    l10n.addAnimalToStart,
                     style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
                   ),
                 ],
@@ -173,7 +177,7 @@ class _HealthListScreenState extends State<HealthListScreen> {
                         SizedBox(width: AppTheme.spacingMedium),
                         Expanded(
                           child: Text(
-                            _selectedAnimalId == null ? 'Sélectionner un animal' : (selectedAnimal?.nom ?? 'Sélectionner un animal'),
+                            _selectedAnimalId == null ? l10n.selectAnimal : (selectedAnimal?.nom ?? l10n.selectAnimal),
                             style: _selectedAnimalId == null ? AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)) : AppTheme.bodyText.copyWith(color: AppTheme.textPrimaryOf(context)),
                           ),
                         ),
@@ -206,7 +210,7 @@ class _HealthListScreenState extends State<HealthListScreen> {
                                 ),
                                 SizedBox(width: AppTheme.spacingSmall),
                                 Text(
-                                  'Santé',
+                                  l10n.sante,
                                   style: AppTheme.bodyText.copyWith(
                                     color: _selectedTab == 0 ? Colors.white : AppTheme.textSecondaryOf(context),
                                     fontWeight: FontWeight.w600,
@@ -238,7 +242,7 @@ class _HealthListScreenState extends State<HealthListScreen> {
                                 ),
                                 SizedBox(width: AppTheme.spacingSmall),
                                 Text(
-                                  'Croissance',
+                                  l10n.growth,
                                   style: AppTheme.bodyText.copyWith(
                                     color: _selectedTab == 1 ? Colors.white : AppTheme.textSecondaryOf(context),
                                     fontWeight: FontWeight.w600,
@@ -262,6 +266,8 @@ class _HealthListScreenState extends State<HealthListScreen> {
   }
 
   Widget _buildSanteList(String animalId) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
     final santes = DatabaseService.getSantesParAnimal(animalId);
 
     if (santes.isEmpty) {
@@ -271,31 +277,17 @@ class _HealthListScreenState extends State<HealthListScreen> {
             SizedBox(height: AppTheme.spacingXXLarge),
             Container(
               padding: EdgeInsets.all(AppTheme.spacingXXLarge),
-              decoration: BoxDecoration(
-                color: AppTheme.lightRed,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: AppTheme.lightRed, shape: BoxShape.circle),
               child: Icon(Icons.favorite, size: AppTheme.iconSizeXLarge * 1.5, color: AppTheme.errorRed),
             ),
             SizedBox(height: AppTheme.spacingLarge),
-            Text(
-              'Aucune donnée',
-              style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-            ),
+            Text(l10n.noData, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingSmall),
-            Text(
-              'Aucune donnée de santé',
-              style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
-            ),
+            Text(l10n.noHealthData, style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context))),
             SizedBox(height: AppTheme.spacingXXLarge),
             PrimaryButton(
-              text: 'Ajouter',
-              icon: Icons.add,
-              width: 200,
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HealthFormScreen(animalId: animalId)),
-              ).then((_) => setState(() {})),
+              text: l10n.add, icon: Icons.add, width: 200,
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => HealthFormScreen(animalId: animalId))).then((_) => setState(() {})),
             ),
           ],
         ),
@@ -310,10 +302,7 @@ class _HealthListScreenState extends State<HealthListScreen> {
             children: [
               Container(
                 padding: EdgeInsets.all(AppTheme.spacingMedium),
-                decoration: BoxDecoration(
-                  color: _getColorForType(sante.type).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                ),
+                decoration: BoxDecoration(color: _getColorForType(sante.type).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
                 child: Icon(_getIconForType(sante.type), color: _getColorForType(sante.type), size: AppTheme.iconSizeLarge),
               ),
               SizedBox(width: AppTheme.spacingMedium),
@@ -321,35 +310,16 @@ class _HealthListScreenState extends State<HealthListScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      sante.description,
-                      style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                    ),
+                    Text(sante.description, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                     SizedBox(height: AppTheme.spacingXSmall),
-                    Text(
-                      sante.type,
-                      style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context)),
-                    ),
-                    Text(
-                      DateFormat('d MMMM yyyy', 'fr_FR').format(sante.date),
-                      style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
-                    ),
+                    Text(_typeLabel(sante.type, l10n), style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
+                    Text('${sante.date.day.toString().padLeft(2,'0')} ${settings.monthName(sante.date.month)} ${sante.date.year}', style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context))),
                   ],
                 ),
               ),
               IconButton(
-                icon: Container(
-                  padding: EdgeInsets.all(AppTheme.spacingSmall),
-                  decoration: BoxDecoration(
-                    color: AppTheme.errorRed.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                  ),
-                  child: Icon(Icons.delete_outline, color: AppTheme.errorRed, size: AppTheme.iconSizeSmall),
-                ),
-                onPressed: () {
-                  DatabaseService.supprimerSante(sante.id);
-                  setState(() {});
-                },
+                icon: Container(padding: EdgeInsets.all(AppTheme.spacingSmall), decoration: BoxDecoration(color: AppTheme.errorRed.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)), child: Icon(Icons.delete_outline, color: AppTheme.errorRed, size: AppTheme.iconSizeSmall)),
+                onPressed: () { DatabaseService.supprimerSante(sante.id); setState(() {}); },
               ),
             ],
           ),
@@ -359,6 +329,8 @@ class _HealthListScreenState extends State<HealthListScreen> {
   }
 
   Widget _buildCroissanceList(String animalId) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
     final croissances = DatabaseService.getCroissancesParAnimal(animalId);
 
     if (croissances.isEmpty) {
@@ -368,31 +340,17 @@ class _HealthListScreenState extends State<HealthListScreen> {
             SizedBox(height: AppTheme.spacingXXLarge),
             Container(
               padding: EdgeInsets.all(AppTheme.spacingXXLarge),
-              decoration: BoxDecoration(
-                color: AppTheme.lightGreen,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: AppTheme.lightGreen, shape: BoxShape.circle),
               child: Icon(Icons.trending_up, size: AppTheme.iconSizeXLarge * 1.5, color: AppTheme.primaryGreen),
             ),
             SizedBox(height: AppTheme.spacingLarge),
-            Text(
-              'Aucune donnée',
-              style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-            ),
+            Text(l10n.noData, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingSmall),
-            Text(
-              'Aucune donnée de croissance',
-              style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
-            ),
+            Text(l10n.noGrowthData, style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context))),
             SizedBox(height: AppTheme.spacingXXLarge),
             PrimaryButton(
-              text: 'Ajouter',
-              icon: Icons.add,
-              width: 200,
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => GrowthFormScreen(animalId: animalId)),
-              ).then((_) => setState(() {})),
+              text: l10n.add, icon: Icons.add, width: 200,
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => GrowthFormScreen(animalId: animalId))).then((_) => setState(() {})),
             ),
           ],
         ),
@@ -407,10 +365,7 @@ class _HealthListScreenState extends State<HealthListScreen> {
             children: [
               Container(
                 padding: EdgeInsets.all(AppTheme.spacingMedium),
-                decoration: BoxDecoration(
-                  color: AppTheme.lightGreen,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                ),
+                decoration: BoxDecoration(color: AppTheme.lightGreen, borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
                 child: Icon(Icons.trending_up, color: AppTheme.primaryGreen, size: AppTheme.iconSizeLarge),
               ),
               SizedBox(width: AppTheme.spacingMedium),
@@ -418,43 +373,34 @@ class _HealthListScreenState extends State<HealthListScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '${croissance.poids} kg',
-                      style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
-                    ),
+                    Text('${croissance.poids} kg', style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                     if (croissance.taille != null) ...[
                       SizedBox(height: AppTheme.spacingXSmall),
-                      Text(
-                        'Taille: ${croissance.taille} cm',
-                        style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context)),
-                      ),
+                      Text('${l10n.heightLabel}: ${croissance.taille} cm', style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
                     ],
-                    Text(
-                      DateFormat('d MMMM yyyy', 'fr_FR').format(croissance.date),
-                      style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
-                    ),
+                    Text('${croissance.date.day.toString().padLeft(2,'0')} ${settings.monthName(croissance.date.month)} ${croissance.date.year}', style: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context))),
                   ],
                 ),
               ),
               IconButton(
-                icon: Container(
-                  padding: EdgeInsets.all(AppTheme.spacingSmall),
-                  decoration: BoxDecoration(
-                    color: AppTheme.errorRed.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                  ),
-                  child: Icon(Icons.delete_outline, color: AppTheme.errorRed, size: AppTheme.iconSizeSmall),
-                ),
-                onPressed: () {
-                  DatabaseService.supprimerCroissance(croissance.id);
-                  setState(() {});
-                },
+                icon: Container(padding: EdgeInsets.all(AppTheme.spacingSmall), decoration: BoxDecoration(color: AppTheme.errorRed.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusSmall)), child: Icon(Icons.delete_outline, color: AppTheme.errorRed, size: AppTheme.iconSizeSmall)),
+                onPressed: () { DatabaseService.supprimerCroissance(croissance.id); setState(() {}); },
               ),
             ],
           ),
         ),
       )).toList(),
     );
+  }
+
+  String _typeLabel(String type, AppLocalizations l10n) {
+    switch (type.toLowerCase()) {
+      case 'vaccination': return l10n.typeVaccination;
+      case 'traitement': return l10n.typeTraitement;
+      case 'maladie': return l10n.typeMaladie;
+      case 'visite': return l10n.typeVisite;
+      default: return type;
+    }
   }
 
   Color _getColorForType(String type) {
