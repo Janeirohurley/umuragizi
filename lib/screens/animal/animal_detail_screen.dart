@@ -16,10 +16,12 @@ import '../production/production_form_screen.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/reproduction_provider.dart';
+import '../../providers/genetic_provider.dart';
 import '../../utils/age_helper.dart';
 import '../../providers/finance_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../utils/currency_helper.dart';
+import '../../services/genetic_service.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final String animalId;
@@ -496,7 +498,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
     }
 
     return DefaultTabController(
-      length: animal.sexe == 'Femelle' ? 7 : 6,
+      length: animal.sexe == 'Femelle' ? 8 : 7,
       child: Scaffold(
         backgroundColor: AppTheme.backgroundColorOf(context),
         body: NestedScrollView(
@@ -671,6 +673,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                 indicatorColor: AppTheme.primaryPurple,
                 tabs: [
                   Tab(icon: const Icon(Icons.dashboard, size: 16), text: l10n.dashboard),
+                  Tab(icon: const Icon(Icons.science_outlined, size: 16), text: l10n.genetics),
                   if (animal.sexe == 'Femelle')
                     Tab(icon: const Icon(Icons.family_restroom, size: 16), text: l10n.reproduction),
                   Tab(icon: const Icon(Icons.restaurant, size: 16), text: l10n.alimentation),
@@ -686,6 +689,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         body: TabBarView(
           children: [
             _InfoTab(animal: animal),
+            _GeneticTab(animal: animal),
             if (animal.sexe == 'Femelle') _ReproductionTab(animal: animal),
             _AlimentationTab(animalId: animal.id),
             _ProductionTab(animal: animal),
@@ -816,6 +820,276 @@ class _InfoCard extends StatelessWidget {
                 Text(label, style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
                 Text(value, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GeneticTab extends StatelessWidget {
+  final Animal animal;
+
+  const _GeneticTab({required this.animal});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = context.watch<SettingsProvider>();
+    final geneticProvider = context.watch<GeneticProvider>();
+    final geneticInfo = geneticProvider.getGeneticInfo(animal.id);
+    final metrics = GeneticService.metricsForAnimal(animal);
+    final mother = animal.mereId == null
+        ? null
+        : context.read<AnimalProvider>().getAnimal(animal.mereId!);
+    final father = animal.pereId == null
+        ? null
+        : context.read<AnimalProvider>().getAnimal(animal.pereId!);
+    final hasCompletePedigree = animal.mereId != null && animal.pereId != null;
+
+    return ListView(
+      padding: EdgeInsets.all(AppTheme.spacingXLarge),
+      children: [
+        if (geneticInfo == null)
+          CustomCard(
+            child: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(AppTheme.spacingLarge),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryPurple.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.science_outlined,
+                    color: AppTheme.primaryPurple,
+                    size: AppTheme.iconSizeXLarge,
+                  ),
+                ),
+                SizedBox(height: AppTheme.spacingLarge),
+                Text(
+                  l10n.noGeneticData,
+                  style: AppTheme.sectionTitle.copyWith(
+                    color: AppTheme.textPrimaryOf(context),
+                  ),
+                ),
+                SizedBox(height: AppTheme.spacingSmall),
+                Text(
+                  l10n.geneticHint,
+                  textAlign: TextAlign.center,
+                  style: AppTheme.bodyTextSecondary.copyWith(
+                    color: AppTheme.textSecondaryOf(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        SizedBox(height: AppTheme.spacingMedium),
+        CustomCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.genealogy,
+                style: AppTheme.sectionTitle.copyWith(
+                  color: AppTheme.textPrimaryOf(context),
+                ),
+              ),
+              SizedBox(height: AppTheme.spacingMedium),
+              Row(
+                children: [
+                  Expanded(
+                    child: _ParentInfoTile(
+                      label: l10n.mother,
+                      value: mother?.nom ?? l10n.unknownMother,
+                      color: const Color(0xFFEC4899),
+                      icon: Icons.female,
+                    ),
+                  ),
+                  SizedBox(width: AppTheme.spacingMedium),
+                  Expanded(
+                    child: _ParentInfoTile(
+                      label: l10n.father,
+                      value: father?.nom ?? l10n.unknownFather,
+                      color: AppTheme.infoBlue,
+                      icon: Icons.male,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        if (!hasCompletePedigree) ...[
+          SizedBox(height: AppTheme.spacingMedium),
+          CustomCard(
+            backgroundColor: AppTheme.warningOrange.withValues(alpha: 0.08),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: AppTheme.warningOrange,
+                  size: AppTheme.iconSizeLarge,
+                ),
+                SizedBox(width: AppTheme.spacingMedium),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.incompletePedigree,
+                        style: AppTheme.listItemTitle.copyWith(
+                          color: AppTheme.textPrimaryOf(context),
+                        ),
+                      ),
+                      SizedBox(height: AppTheme.spacingXSmall),
+                      Text(
+                        l10n.incompletePedigreeDesc,
+                        style: AppTheme.bodyTextSecondary.copyWith(
+                          color: AppTheme.textSecondaryOf(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        SizedBox(height: AppTheme.spacingMedium),
+        _InfoCard(
+          icon: Icons.trending_up,
+          label: l10n.ebv,
+          value: geneticInfo == null
+              ? l10n.notCalculated
+              : _formatSigned(geneticInfo.ebv),
+          colorIcon: geneticInfo == null
+              ? AppTheme.primaryPurple
+              : _ebvColor(geneticInfo.ebv),
+          backgroundIcon: (geneticInfo == null
+                  ? AppTheme.primaryPurple
+                  : _ebvColor(geneticInfo.ebv))
+              .withValues(alpha: 0.12),
+        ),
+        SizedBox(height: AppTheme.spacingMedium),
+        _InfoCard(
+          icon: Icons.hub_outlined,
+          label: l10n.inbreedingCoefficient,
+          value: geneticInfo == null
+              ? l10n.notCalculated
+              : '${(geneticInfo.inbreedingCoefficient * 100).toStringAsFixed(2)}%',
+          colorIcon: geneticInfo == null
+              ? AppTheme.primaryPurple
+              : _inbreedingColor(geneticInfo.inbreedingCoefficient),
+          backgroundIcon: (geneticInfo == null
+                  ? AppTheme.primaryPurple
+                  : _inbreedingColor(geneticInfo.inbreedingCoefficient))
+              .withValues(alpha: 0.12),
+        ),
+        if (metrics.latestWeight != null) ...[
+          SizedBox(height: AppTheme.spacingMedium),
+          _InfoCard(
+            icon: Icons.monitor_weight_outlined,
+            label: l10n.weight,
+            value: '${metrics.latestWeight!.toStringAsFixed(1)} kg',
+            colorIcon: AppTheme.primaryGreen,
+            backgroundIcon: AppTheme.lightGreen,
+          ),
+        ],
+        if (metrics.averageDailyGain != null) ...[
+          SizedBox(height: AppTheme.spacingMedium),
+          _InfoCard(
+            icon: Icons.show_chart,
+            label: l10n.growth,
+            value: '${metrics.averageDailyGain!.toStringAsFixed(3)} kg/day',
+            colorIcon: AppTheme.infoBlue,
+            backgroundIcon: AppTheme.lightBlue,
+          ),
+        ],
+        SizedBox(height: AppTheme.spacingMedium),
+        _InfoCard(
+          icon: Icons.schedule,
+          label: l10n.lastCalculated,
+          value: geneticInfo == null
+              ? l10n.notCalculated
+              : DateFormat(
+                  'dd MMM yyyy HH:mm',
+                  settings.intlLocale,
+                ).format(geneticInfo.lastCalculatedAt),
+        ),
+        SizedBox(height: AppTheme.spacingXLarge),
+        PrimaryButton(
+          text: geneticInfo == null ? l10n.calculate : l10n.recalculate,
+          icon: Icons.science_outlined,
+          isLoading: geneticProvider.isUpdatingAnimal(animal.id),
+          onPressed: () async {
+            await context.read<GeneticProvider>().updateForAnimal(animal);
+          },
+        ),
+      ],
+    );
+  }
+
+  String _formatSigned(double value) {
+    final sign = value >= 0 ? '+' : '';
+    return '$sign${value.toStringAsFixed(2)}';
+  }
+
+  Color _ebvColor(double value) {
+    return value >= 0 ? AppTheme.successGreen : AppTheme.errorRed;
+  }
+
+  Color _inbreedingColor(double value) {
+    if (value >= 0.125) {
+      return AppTheme.errorRed;
+    }
+    if (value >= 0.0625) {
+      return AppTheme.warningOrange;
+    }
+    return AppTheme.successGreen;
+  }
+}
+
+class _ParentInfoTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final IconData icon;
+
+  const _ParentInfoTile({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(AppTheme.spacingMedium),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: AppTheme.iconSizeMedium),
+          SizedBox(height: AppTheme.spacingSmall),
+          Text(
+            label,
+            style: AppTheme.listItemSubtitle.copyWith(
+              color: AppTheme.textSecondaryOf(context),
+            ),
+          ),
+          SizedBox(height: AppTheme.spacingXSmall),
+          Text(
+            value,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTheme.listItemTitle.copyWith(
+              color: AppTheme.textPrimaryOf(context),
             ),
           ),
         ],

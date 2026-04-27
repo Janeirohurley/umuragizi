@@ -493,6 +493,63 @@ class AppLocalizationsSw extends AppLocalizations {
   String get unknownMother => 'Mama asiyejulikana';
 
   @override
+  String get selectFather => 'Chagua baba';
+
+  @override
+  String get noFather => 'Hakuna baba';
+
+  @override
+  String get noMaleAvailable => 'Hakuna dume anayepatikana';
+
+  @override
+  String get noMaleAvailableDesc =>
+      'Hakuna dume wa aina moja mwenye umri unaohitajika anayepatikana.';
+
+  @override
+  String get unknownFather => 'Baba asiyejulikana';
+
+  @override
+  String get mother => 'Mama';
+
+  @override
+  String get father => 'Baba';
+
+  @override
+  String get genetics => 'Jenetiki';
+
+  @override
+  String get ebv => 'EBV';
+
+  @override
+  String get inbreedingCoefficient => 'Kiwango cha udugu wa damu';
+
+  @override
+  String get calculate => 'Hesabu';
+
+  @override
+  String get recalculate => 'Hesabu tena';
+
+  @override
+  String get lastCalculated => 'Mara ya mwisho kuhesabiwa';
+
+  @override
+  String get notCalculated => 'Haijahesabiwa';
+
+  @override
+  String get noGeneticData => 'Hakuna data ya jenetiki bado';
+
+  @override
+  String get geneticHint =>
+      'Endesha hesabu ili kulinganisha mnyama huyu na utendaji na ukoo wa kundi.';
+
+  @override
+  String get incompletePedigree => 'Ukoo haujakamilika';
+
+  @override
+  String get incompletePedigreeDesc =>
+      'Ongeza mama na baba ili kuboresha usahihi wa kiwango cha udugu wa damu.';
+
+  @override
   String get selectSpecies => 'Chagua aina';
 
   @override

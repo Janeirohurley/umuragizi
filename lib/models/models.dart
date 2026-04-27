@@ -1,4 +1,5 @@
 export 'animal.dart';
+export 'genetic_info.dart';
 export 'alimentation.dart';
 export 'sante.dart';
 export 'rappel.dart';

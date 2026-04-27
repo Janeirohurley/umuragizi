@@ -30,14 +30,15 @@ class AnimalAdapter extends TypeAdapter<Animal> {
       notes: fields[9] as String?,
       mereId: fields[11] as String?,
       prixAchat: fields[12] as double?,
-      statut: fields[13] as String? ?? 'Actif',
+      pereId: fields[15] as String?,
+      statut: fields[13] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Animal obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -62,9 +63,10 @@ class AnimalAdapter extends TypeAdapter<Animal> {
       ..write(obj.notes)
       ..writeByte(11)
       ..write(obj.mereId)
-      ..writeByte(14)
       ..writeByte(12)
       ..write(obj.prixAchat)
+      ..writeByte(15)
+      ..write(obj.pereId)
       ..writeByte(13)
       ..write(obj.statut);
   }

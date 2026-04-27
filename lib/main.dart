@@ -17,6 +17,7 @@ import 'providers/animal_provider.dart';
 import 'providers/rappel_provider.dart';
 import 'providers/reproduction_provider.dart';
 import 'providers/finance_provider.dart';
+import 'providers/genetic_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
 import 'screens/auth/pin_screen.dart';
@@ -126,6 +127,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => RappelProvider()),
         ChangeNotifierProvider(create: (_) => ReproductionProvider()),
         ChangeNotifierProvider(create: (_) => FinanceProvider()..chargerTransactions()),
+        ChangeNotifierProvider(create: (_) => GeneticProvider()..chargerGeneticInfos()),
       ],
       child: Consumer2<ThemeProvider, SettingsProvider>(
         builder: (context, themeProvider, settingsProvider, child) {

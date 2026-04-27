@@ -11,6 +11,7 @@ class DatabaseService {
   static const String reproductionBoxName = 'reproductions';
   static const String transactionBoxName = 'transactions';
   static const String productionBoxName = 'productions';
+  static const String geneticInfoBoxName = 'genetic_infos';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -24,6 +25,7 @@ class DatabaseService {
     Hive.registerAdapter(ReproductionAdapter());
     Hive.registerAdapter(TransactionAdapter());
     Hive.registerAdapter(ProductionAdapter());
+    Hive.registerAdapter(GeneticInfoAdapter());
 
     // Ouvrir les boxes
     await Hive.openBox<Animal>(animalBoxName);
@@ -34,6 +36,7 @@ class DatabaseService {
     await Hive.openBox<Reproduction>(reproductionBoxName);
     await Hive.openBox<Transaction>(transactionBoxName);
     await Hive.openBox<Production>(productionBoxName);
+    await Hive.openBox<GeneticInfo>(geneticInfoBoxName);
   }
 
   // Box getters
@@ -45,6 +48,7 @@ class DatabaseService {
   static Box<Reproduction> get reproductionBox => Hive.box<Reproduction>(reproductionBoxName);
   static Box<Transaction> get transactionBox => Hive.box<Transaction>(transactionBoxName);
   static Box<Production> get productionBox => Hive.box<Production>(productionBoxName);
+  static Box<GeneticInfo> get geneticInfoBox => Hive.box<GeneticInfo>(geneticInfoBoxName);
 
   // CRUD Animaux
   static Future<void> ajouterAnimal(Animal animal) async {
@@ -84,6 +88,7 @@ class DatabaseService {
     for (var t in transactions) {
       await t.delete();
     }
+    await geneticInfoBox.delete(id);
     GoogleDriveService.autoSync();
   }
 
@@ -296,6 +301,21 @@ class DatabaseService {
   static List<Croissance> getAllCroissances() => croissanceBox.values.toList();
   static List<Reproduction> getAllReproductions() => reproductionBox.values.toList();
   static List<Transaction> getAllTransactions() => transactionBox.values.toList();
+  static List<GeneticInfo> getAllGeneticInfos() => geneticInfoBox.values.toList();
+
+  static Future<void> saveGeneticInfo(GeneticInfo info) async {
+    await geneticInfoBox.put(info.animalId, info);
+    GoogleDriveService.autoSync();
+  }
+
+  static GeneticInfo? getGeneticInfo(String animalId) {
+    return geneticInfoBox.get(animalId);
+  }
+
+  static Future<void> deleteGeneticInfo(String animalId) async {
+    await geneticInfoBox.delete(animalId);
+    GoogleDriveService.autoSync();
+  }
 
   // CRUD Production
   static Future<void> ajouterProduction(Production production) async {

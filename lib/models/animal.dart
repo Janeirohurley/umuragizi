@@ -43,6 +43,9 @@ class Animal extends HiveObject {
   @HiveField(12)
   double? prixAchat;
 
+  @HiveField(15)
+  String? pereId;
+
   @HiveField(13)
   String statut; // 'Actif', 'Vendu', 'Mort', 'Réformé'
 
@@ -60,6 +63,7 @@ class Animal extends HiveObject {
     this.notes,
     this.mereId,
     this.prixAchat,
+    this.pereId,
     this.statut = 'Actif',
   });
 

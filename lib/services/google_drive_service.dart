@@ -217,7 +217,9 @@ class GoogleDriveService {
       'dateAjout': a.dateAjout.toIso8601String(),
       'notes': a.notes,
       'mereId': a.mereId,
+      'pereId': a.pereId,
       'prixAchat': a.prixAchat,
+      'statut': a.statut,
     }).toList();
     
     final alimentations = DatabaseService.getAllAlimentations().map((a) => {
@@ -286,6 +288,13 @@ class GoogleDriveService {
       'montant': t.montant,
       'description': t.description,
     }).toList();
+
+    final geneticInfos = DatabaseService.getAllGeneticInfos().map((g) => {
+      'animalId': g.animalId,
+      'ebv': g.ebv,
+      'inbreedingCoefficient': g.inbreedingCoefficient,
+      'lastCalculatedAt': g.lastCalculatedAt.toIso8601String(),
+    }).toList();
     
     return {
       'animals': animals,
@@ -295,6 +304,7 @@ class GoogleDriveService {
       'rappels': rappels,
       'reproductions': reproductions,
       'transactions': transactions,
+      'geneticInfos': geneticInfos,
       'export_date': DateTime.now().toIso8601String(),
     };
   }
@@ -302,6 +312,7 @@ class GoogleDriveService {
   static Future<void> _uploadToGoogleDrive(Map<String, dynamic> data) async {
     try {
       final jsonData = jsonEncode(data);
+      final jsonBytes = utf8.encode(jsonData);
       
       // Chercher le fichier existant
       final existingFiles = await _driveApi!.files.list(
@@ -310,8 +321,8 @@ class GoogleDriveService {
       );
       
       final media = drive.Media(
-        Stream.fromIterable([utf8.encode(jsonData)]),
-        jsonData.length,
+        Stream.fromIterable([jsonBytes]),
+        jsonBytes.length,
       );
       
       if (existingFiles.files?.isNotEmpty == true) {
@@ -378,6 +389,9 @@ class GoogleDriveService {
     if (data.containsKey('transactions')) {
       await _mergeTransactions(data['transactions'] as List);
     }
+    if (data.containsKey('geneticInfos')) {
+      await _mergeGeneticInfos(data['geneticInfos'] as List);
+    }
   }
 
   static Future<void> _mergeAnimals(List animalsList) async {
@@ -399,6 +413,8 @@ class GoogleDriveService {
           notes: animalData['notes'],
           mereId: animalData['mereId'],
           prixAchat: animalData['prixAchat']?.toDouble(),
+          statut: animalData['statut'] as String? ?? 'Actif',
+          pereId: animalData['pereId'] as String?,
         );
         await DatabaseService.ajouterAnimal(animal);
       }
@@ -526,6 +542,23 @@ class GoogleDriveService {
           description: txData['description'],
         );
         await DatabaseService.ajouterTransaction(tx);
+      }
+    }
+  }
+
+  static Future<void> _mergeGeneticInfos(List geneticInfoList) async {
+    final existingIds = DatabaseService.getAllGeneticInfos()
+        .map((info) => info.animalId)
+        .toSet();
+    for (final infoData in geneticInfoList) {
+      if (!existingIds.contains(infoData['animalId'])) {
+        final info = GeneticInfo(
+          animalId: infoData['animalId'],
+          ebv: infoData['ebv'].toDouble(),
+          inbreedingCoefficient: infoData['inbreedingCoefficient'].toDouble(),
+          lastCalculatedAt: DateTime.parse(infoData['lastCalculatedAt']),
+        );
+        await DatabaseService.saveGeneticInfo(info);
       }
     }
   }

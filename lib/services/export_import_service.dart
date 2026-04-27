@@ -21,6 +21,10 @@ class ExportImportService {
         'identifiant': a.identifiant,
         'dateAjout': a.dateAjout.toIso8601String(),
         'notes': a.notes,
+        'mereId': a.mereId,
+        'pereId': a.pereId,
+        'prixAchat': a.prixAchat,
+        'statut': a.statut,
       }).toList(),
       'alimentations': DatabaseService.getAllAlimentations().map((a) => {
         'id': a.id,
@@ -63,6 +67,12 @@ class ExportImportService {
         'intervalleHeures': r.intervalleHeures,
         'dateFin': r.dateFin?.toIso8601String(),
       }).toList(),
+      'geneticInfos': DatabaseService.getAllGeneticInfos().map((g) => {
+        'animalId': g.animalId,
+        'ebv': g.ebv,
+        'inbreedingCoefficient': g.inbreedingCoefficient,
+        'lastCalculatedAt': g.lastCalculatedAt.toIso8601String(),
+      }).toList(),
     };
 
     return jsonEncode(data);
@@ -95,6 +105,10 @@ class ExportImportService {
           identifiant: animalData['identifiant'],
           dateAjout: DateTime.parse(animalData['dateAjout']),
           notes: animalData['notes'],
+          mereId: animalData['mereId'],
+          prixAchat: animalData['prixAchat']?.toDouble(),
+          statut: animalData['statut'] as String? ?? 'Actif',
+          pereId: animalData['pereId'] as String?,
         );
         await DatabaseService.ajouterAnimal(animal);
       }
@@ -170,6 +184,18 @@ class ExportImportService {
               : null,
         );
         await DatabaseService.ajouterRappel(rappel);
+      }
+    }
+
+    if (data['geneticInfos'] != null) {
+      for (var infoData in data['geneticInfos']) {
+        final info = GeneticInfo(
+          animalId: infoData['animalId'],
+          ebv: infoData['ebv'].toDouble(),
+          inbreedingCoefficient: infoData['inbreedingCoefficient'].toDouble(),
+          lastCalculatedAt: DateTime.parse(infoData['lastCalculatedAt']),
+        );
+        await DatabaseService.saveGeneticInfo(info);
       }
     }
   }

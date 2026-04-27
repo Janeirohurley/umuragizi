@@ -1068,6 +1068,114 @@ abstract class AppLocalizations {
   /// **'Mère inconnue'**
   String get unknownMother;
 
+  /// No description provided for @selectFather.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionner le père'**
+  String get selectFather;
+
+  /// No description provided for @noFather.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun père'**
+  String get noFather;
+
+  /// No description provided for @noMaleAvailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun mâle disponible'**
+  String get noMaleAvailable;
+
+  /// No description provided for @noMaleAvailableDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun mâle de la même espèce avec l\'âge requis n\'est disponible.'**
+  String get noMaleAvailableDesc;
+
+  /// No description provided for @unknownFather.
+  ///
+  /// In fr, this message translates to:
+  /// **'Père inconnu'**
+  String get unknownFather;
+
+  /// No description provided for @mother.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mère'**
+  String get mother;
+
+  /// No description provided for @father.
+  ///
+  /// In fr, this message translates to:
+  /// **'Père'**
+  String get father;
+
+  /// No description provided for @genetics.
+  ///
+  /// In fr, this message translates to:
+  /// **'Génétique'**
+  String get genetics;
+
+  /// No description provided for @ebv.
+  ///
+  /// In fr, this message translates to:
+  /// **'EBV'**
+  String get ebv;
+
+  /// No description provided for @inbreedingCoefficient.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coefficient de consanguinité'**
+  String get inbreedingCoefficient;
+
+  /// No description provided for @calculate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calculer'**
+  String get calculate;
+
+  /// No description provided for @recalculate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recalculer'**
+  String get recalculate;
+
+  /// No description provided for @lastCalculated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernier calcul'**
+  String get lastCalculated;
+
+  /// No description provided for @notCalculated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non calculé'**
+  String get notCalculated;
+
+  /// No description provided for @noGeneticData.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune donnée génétique'**
+  String get noGeneticData;
+
+  /// No description provided for @geneticHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lancez un calcul pour comparer cet animal aux performances et au pedigree du troupeau.'**
+  String get geneticHint;
+
+  /// No description provided for @incompletePedigree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pedigree incomplet'**
+  String get incompletePedigree;
+
+  /// No description provided for @incompletePedigreeDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez la mère et le père pour améliorer la précision du coefficient de consanguinité.'**
+  String get incompletePedigreeDesc;
+
   /// No description provided for @selectSpecies.
   ///
   /// In fr, this message translates to:

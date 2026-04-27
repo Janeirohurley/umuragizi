@@ -36,6 +36,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
   String? _photoPath;
   String? _photoBase64;
   String? _mereId;
+  String? _pereId;
   bool _isLoading = false;
 
   @override
@@ -53,6 +54,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
       _photoPath = widget.animal!.photoPath;
       _photoBase64 = widget.animal!.photoBase64;
       _mereId = widget.animal!.mereId;
+      _pereId = widget.animal!.pereId;
     }
   }
 
@@ -89,7 +91,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
     if (date != null) setState(() => _dateNaissance = date);
   }
 
-  static int _ageMinMere(String espece) {
+  static int _ageMinReproduction(String espece) {
     switch (espece.toLowerCase()) {
       case 'bovin': return 24;
       case 'équin': return 36;
@@ -102,14 +104,19 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
     }
   }
 
-  void _showMereBottomSheet() {
+  bool _isFemaleAnimal(Animal animal) => animal.sexe == 'Femelle';
+
+  void _showParentBottomSheet({required bool isMother}) {
     final l10n = AppLocalizations.of(context)!;
-    final ageMin = _ageMinMere(_espece);
-    final animaux = context.read<AnimalProvider>().animaux.where((a) =>
-        a.sexe == 'Femelle' &&
-        a.id != widget.animal?.id &&
-        a.espece.toLowerCase() == _espece.toLowerCase() &&
-        a.ageEnMois >= ageMin).toList();
+    final ageMin = _ageMinReproduction(_espece);
+    final selectedId = isMother ? _mereId : _pereId;
+    final animaux = context.read<AnimalProvider>().animaux.where((a) {
+      final isEligibleSex = isMother ? _isFemaleAnimal(a) : !_isFemaleAnimal(a);
+      return isEligibleSex &&
+          a.id != widget.animal?.id &&
+          a.espece.toLowerCase() == _espece.toLowerCase() &&
+          a.ageEnMois >= ageMin;
+    }).toList();
 
     showModalBottomSheet(
       context: context,
@@ -134,7 +141,12 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
               ),
             ),
             SizedBox(height: AppTheme.spacingLarge),
-            Text(l10n.selectMother, style: AppTheme.bottomSheetTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+            Text(
+              isMother ? l10n.selectMother : l10n.selectFather,
+              style: AppTheme.bottomSheetTitle.copyWith(
+                color: AppTheme.textPrimaryOf(context),
+              ),
+            ),
             SizedBox(height: AppTheme.spacingLarge),
             if (animaux.isEmpty)
               Padding(
@@ -147,9 +159,18 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                       child: Icon(Icons.warning_amber_rounded, size: AppTheme.iconSizeXLarge, color: AppTheme.warningOrange),
                     ),
                     SizedBox(height: AppTheme.spacingLarge),
-                    Text(l10n.noFemaleAvailable, style: AppTheme.sectionSubtitle),
+                    Text(
+                      isMother ? l10n.noFemaleAvailable : l10n.noMaleAvailable,
+                      style: AppTheme.sectionSubtitle,
+                    ),
                     SizedBox(height: AppTheme.spacingSmall),
-                    Text(l10n.noFemaleAvailableDesc, textAlign: TextAlign.center, style: AppTheme.bodyTextLight),
+                    Text(
+                      isMother
+                          ? l10n.noFemaleAvailableDesc
+                          : l10n.noMaleAvailableDesc,
+                      textAlign: TextAlign.center,
+                      style: AppTheme.bodyTextLight,
+                    ),
                     SizedBox(height: AppTheme.spacingXLarge),
                     SizedBox(
                       width: double.infinity,
@@ -175,13 +196,33 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                     if (index == 0) {
                       return ListTile(
                         leading: Icon(Icons.clear, color: AppTheme.textSecondary, size: AppTheme.iconSizeMedium),
-                        title: Text(l10n.noMother, style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
-                        trailing: _mereId == null ? Icon(Icons.check_circle, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium) : null,
-                        onTap: () { setState(() => _mereId = null); Navigator.pop(context); },
+                        title: Text(
+                          isMother ? l10n.noMother : l10n.noFather,
+                          style: AppTheme.listItemTitle.copyWith(
+                            color: AppTheme.textPrimaryOf(context),
+                          ),
+                        ),
+                        trailing: selectedId == null
+                            ? Icon(
+                                Icons.check_circle,
+                                color: AppTheme.primaryPurple,
+                                size: AppTheme.iconSizeMedium,
+                              )
+                            : null,
+                        onTap: () {
+                          setState(() {
+                            if (isMother) {
+                              _mereId = null;
+                            } else {
+                              _pereId = null;
+                            }
+                          });
+                          Navigator.pop(context);
+                        },
                       );
                     }
                     final animal = animaux[index - 1];
-                    final isSelected = _mereId == animal.id;
+                    final isSelected = selectedId == animal.id;
                     return ListTile(
                       leading: Icon(Icons.pets, color: isSelected ? AppTheme.primaryPurple : AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
                       title: Text(animal.nom, style: isSelected
@@ -189,7 +230,16 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                           : AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
                       subtitle: Text('${animal.espece} • ${animal.race}', style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context))),
                       trailing: isSelected ? Icon(Icons.check_circle, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium) : null,
-                      onTap: () { setState(() => _mereId = animal.id); Navigator.pop(context); },
+                      onTap: () {
+                        setState(() {
+                          if (isMother) {
+                            _mereId = animal.id;
+                          } else {
+                            _pereId = animal.id;
+                          }
+                        });
+                        Navigator.pop(context);
+                      },
                     );
                   },
                 ),
@@ -268,7 +318,14 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                         ? Text(exemple, style: AppTheme.listItemSubtitle.copyWith(color: AppTheme.textSecondaryOf(context), fontSize: 12))
                         : null,
                     trailing: isSelected ? Icon(Icons.check_circle, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium) : null,
-                    onTap: () { setState(() => _espece = espece); Navigator.pop(context); },
+                    onTap: () {
+                      setState(() {
+                        _espece = espece;
+                        _mereId = null;
+                        _pereId = null;
+                      });
+                      Navigator.pop(context);
+                    },
                   );
                 },
               ),
@@ -296,6 +353,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
         dateAjout: widget.animal?.dateAjout ?? DateTime.now(),
         notes: _notesController.text.isEmpty ? null : _notesController.text,
         mereId: _mereId,
+        pereId: _pereId,
         prixAchat: _prixAchatController.text.isEmpty ? null : double.parse(_prixAchatController.text),
         statut: _statut,
       );
@@ -415,7 +473,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
             Text(l10n.genealogy, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
             GestureDetector(
-              onTap: _showMereBottomSheet,
+              onTap: () => _showParentBottomSheet(isMother: true),
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium + 2),
                 decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
@@ -429,6 +487,31 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                             ? l10n.selectMother
                             : context.read<AnimalProvider>().getAnimal(_mereId!)?.nom ?? l10n.unknownMother,
                         style: _mereId == null
+                            ? AppTheme.formHint.copyWith(color: AppTheme.textLightOf(context))
+                            : AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
+                      ),
+                    ),
+                    Icon(Icons.arrow_drop_down, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeLarge),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: AppTheme.spacingLarge),
+            GestureDetector(
+              onTap: () => _showParentBottomSheet(isMother: false),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium + 2),
+                decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+                child: Row(
+                  children: [
+                    Icon(Icons.family_restroom, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeSmall + 1),
+                    SizedBox(width: AppTheme.spacingMedium),
+                    Expanded(
+                      child: Text(
+                        _pereId == null
+                            ? l10n.selectFather
+                            : context.read<AnimalProvider>().getAnimal(_pereId!)?.nom ?? l10n.unknownFather,
+                        style: _pereId == null
                             ? AppTheme.formHint.copyWith(color: AppTheme.textLightOf(context))
                             : AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
                       ),

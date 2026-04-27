@@ -18,6 +18,7 @@ import 'reminders/reminder_list_screen.dart';
 import 'statistics/statistics_screen.dart';
 import 'settings/settings_screen.dart';
 import 'finance/finance_dashboard_screen.dart';
+import 'genetics/genetic_screen.dart';
 import '../providers/finance_provider.dart';
 import '../providers/reproduction_provider.dart';
 
@@ -177,8 +178,7 @@ class _AccueilTabState extends State<_AccueilTab> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       body: SafeArea(
-        child: RefreshIndicator(
-          color: AppTheme.primaryPurple,
+        child: PetRefreshIndicator(
           onRefresh: () async {
             context.read<AnimalProvider>().chargerAnimaux();
             context.read<RappelProvider>().chargerRappels();
@@ -244,6 +244,16 @@ class _AccueilTabState extends State<_AccueilTab> {
                   Navigator.push(
                     context,
                     SlidePageRoute(page: const HealthListScreen()),
+                  );
+                },
+              ),
+              SizedBox(width: AppTheme.spacingMedium),
+              IconButtonCircle(
+                icon: Icons.science_outlined,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    SlidePageRoute(page: const GeneticScreen()),
                   );
                 },
               ),

@@ -493,6 +493,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unknownMother => 'Unknown mother';
 
   @override
+  String get selectFather => 'Select father';
+
+  @override
+  String get noFather => 'No father';
+
+  @override
+  String get noMaleAvailable => 'No male available';
+
+  @override
+  String get noMaleAvailableDesc =>
+      'No male of the same species with the required age is available.';
+
+  @override
+  String get unknownFather => 'Unknown father';
+
+  @override
+  String get mother => 'Mother';
+
+  @override
+  String get father => 'Father';
+
+  @override
+  String get genetics => 'Genetics';
+
+  @override
+  String get ebv => 'EBV';
+
+  @override
+  String get inbreedingCoefficient => 'Inbreeding coefficient';
+
+  @override
+  String get calculate => 'Calculate';
+
+  @override
+  String get recalculate => 'Recalculate';
+
+  @override
+  String get lastCalculated => 'Last calculated';
+
+  @override
+  String get notCalculated => 'Not calculated';
+
+  @override
+  String get noGeneticData => 'No genetic data yet';
+
+  @override
+  String get geneticHint =>
+      'Run a calculation to compare this animal with herd performance and pedigree data.';
+
+  @override
+  String get incompletePedigree => 'Incomplete pedigree';
+
+  @override
+  String get incompletePedigreeDesc =>
+      'Add both mother and father to improve inbreeding accuracy.';
+
+  @override
   String get selectSpecies => 'Select a species';
 
   @override

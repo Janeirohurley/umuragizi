@@ -494,6 +494,63 @@ class AppLocalizationsRn extends AppLocalizations {
   String get unknownMother => 'Nyina ntazwi';
 
   @override
+  String get selectFather => 'Cagura se';
+
+  @override
+  String get noFather => 'Nta se';
+
+  @override
+  String get noMaleAvailable => 'Nta gabo iboneka';
+
+  @override
+  String get noMaleAvailableDesc =>
+      'Nta gabo y\'ubwoko bumwe ifise imyaka ibwirizwa iboneka.';
+
+  @override
+  String get unknownFather => 'Se ntazwi';
+
+  @override
+  String get mother => 'Nyina';
+
+  @override
+  String get father => 'Se';
+
+  @override
+  String get genetics => 'Jenetike';
+
+  @override
+  String get ebv => 'EBV';
+
+  @override
+  String get inbreedingCoefficient => 'Igipimo c\'ukurondana kw\'amaraso';
+
+  @override
+  String get calculate => 'Harura';
+
+  @override
+  String get recalculate => 'Subira uharure';
+
+  @override
+  String get lastCalculated => 'Biheruka guharurwa';
+
+  @override
+  String get notCalculated => 'Ntibiraharurwa';
+
+  @override
+  String get noGeneticData => 'Nta makuru ya jenetike arihari';
+
+  @override
+  String get geneticHint =>
+      'Tangura guharura kugira ugereranye iki gitungwa n\'ibimenyetso vy\'umusaruro n\'inkomoko y\'umukuku.';
+
+  @override
+  String get incompletePedigree => 'Inkomoko ntizuzuye';
+
+  @override
+  String get incompletePedigreeDesc =>
+      'Shiramwo nyina na se kugira igipimo c\'ukurondana kw\'amaraso kirushirize kuba c\'ukuri.';
+
+  @override
   String get selectSpecies => 'Cagura ubwoko';
 
   @override

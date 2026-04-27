@@ -495,6 +495,63 @@ class AppLocalizationsFr extends AppLocalizations {
   String get unknownMother => 'Mère inconnue';
 
   @override
+  String get selectFather => 'Sélectionner le père';
+
+  @override
+  String get noFather => 'Aucun père';
+
+  @override
+  String get noMaleAvailable => 'Aucun mâle disponible';
+
+  @override
+  String get noMaleAvailableDesc =>
+      'Aucun mâle de la même espèce avec l\'âge requis n\'est disponible.';
+
+  @override
+  String get unknownFather => 'Père inconnu';
+
+  @override
+  String get mother => 'Mère';
+
+  @override
+  String get father => 'Père';
+
+  @override
+  String get genetics => 'Génétique';
+
+  @override
+  String get ebv => 'EBV';
+
+  @override
+  String get inbreedingCoefficient => 'Coefficient de consanguinité';
+
+  @override
+  String get calculate => 'Calculer';
+
+  @override
+  String get recalculate => 'Recalculer';
+
+  @override
+  String get lastCalculated => 'Dernier calcul';
+
+  @override
+  String get notCalculated => 'Non calculé';
+
+  @override
+  String get noGeneticData => 'Aucune donnée génétique';
+
+  @override
+  String get geneticHint =>
+      'Lancez un calcul pour comparer cet animal aux performances et au pedigree du troupeau.';
+
+  @override
+  String get incompletePedigree => 'Pedigree incomplet';
+
+  @override
+  String get incompletePedigreeDesc =>
+      'Ajoutez la mère et le père pour améliorer la précision du coefficient de consanguinité.';
+
+  @override
   String get selectSpecies => 'Sélectionner une espèce';
 
   @override

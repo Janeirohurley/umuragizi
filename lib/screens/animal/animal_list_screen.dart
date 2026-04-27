@@ -232,8 +232,7 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
           );
         }
 
-        return RefreshIndicator(
-          color: AppTheme.primaryPurple,
+        return PetRefreshIndicator(
           onRefresh: () async => animalProvider.chargerAnimaux(),
           child: ListView.builder(
             padding: EdgeInsets.fromLTRB(AppTheme.spacingXLarge, 0, AppTheme.spacingXLarge, 100),
