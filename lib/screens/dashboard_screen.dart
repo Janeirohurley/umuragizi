@@ -295,7 +295,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                     initialDate: _selectedDate,
                     firstDate: DateTime(2020),
                     lastDate: DateTime.now().add(const Duration(days: 365)),
-                    title: l10n.date,
+                    title:  l10n.date,
                   );
                   if (date != null) {
                     setState(() => _selectedDate = date);

@@ -34,29 +34,17 @@ class _GrowthFormScreenState extends State<GrowthFormScreen> {
     super.dispose();
   }
 
-  Future<void> _selectDate() async {
-    final date = await showDatePicker(
-      context: context,
+
+    Future<void> _selectDate() async {
+    final l10n = AppLocalizations.of(context)!;
+    final date = await CustomDatePicker.show(
+      context,
       initialDate: _date,
-      firstDate: DateTime(2020),
+      firstDate: DateTime(1990),
       lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppTheme.primaryPurple,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppTheme.textPrimary,
-            ),
-          ),
-          child: child!,
-        );
-      },
+      title: l10n.birthDate,
     );
-    if (date != null) {
-      setState(() => _date = date);
-    }
+    if (date != null) setState(() => _date = date);
   }
 
   String _etatLabel(String? etat, AppLocalizations l10n) {

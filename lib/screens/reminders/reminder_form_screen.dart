@@ -47,7 +47,8 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
       _recurrent = widget.rappel!.recurrent;
       _intervalleJours = widget.rappel!.intervalleJours ?? 30;
       _intervalleHeures = widget.rappel!.intervalleHeures ?? 2;
-      _uniteIntervalle = widget.rappel!.intervalleHeures != null ? 'heures' : 'jours';
+      _uniteIntervalle =
+          widget.rappel!.intervalleHeures != null ? 'heures' : 'jours';
       _dateFin = widget.rappel!.dateFin;
       _avecDateFin = _dateFin != null;
     } else {
@@ -91,8 +92,11 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
         dateRappel: _dateRappel,
         type: _type,
         recurrent: _recurrent,
-        intervalleJours: _recurrent && _uniteIntervalle == 'jours' ? _intervalleJours : null,
-        intervalleHeures: _recurrent && _uniteIntervalle == 'heures' ? _intervalleHeures : null,
+        intervalleJours:
+            _recurrent && _uniteIntervalle == 'jours' ? _intervalleJours : null,
+        intervalleHeures: _recurrent && _uniteIntervalle == 'heures'
+            ? _intervalleHeures
+            : null,
         dateFin: _recurrent && _avecDateFin ? _dateFin : null,
       );
       if (widget.rappel == null) {
@@ -121,13 +125,16 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               boxShadow: AppTheme.softShadow,
             ),
-            child: Icon(Icons.arrow_back, color: AppTheme.textPrimaryOf(context), size: AppTheme.iconSizeMedium),
+            child: Icon(Icons.arrow_back,
+                color: AppTheme.textPrimaryOf(context),
+                size: AppTheme.iconSizeMedium),
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           widget.rappel == null ? l10n.newTask : l10n.editTask,
-          style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+          style: AppTheme.pageTitle
+              .copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         centerTitle: true,
       ),
@@ -154,7 +161,8 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
               label: l10n.description,
               icon: Icons.description_outlined,
               maxLines: 3,
-              validator: (v) => v?.isEmpty ?? true ? l10n.descriptionRequired : null,
+              validator: (v) =>
+                  v?.isEmpty ?? true ? l10n.descriptionRequired : null,
             ),
             const SizedBox(height: AppTheme.spacingXXLarge),
             _buildSectionTitle(l10n.planning),
@@ -189,16 +197,23 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(title, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)));
+    return Text(title,
+        style: AppTheme.sectionTitle
+            .copyWith(color: AppTheme.textPrimaryOf(context)));
   }
 
   String _getLabelForType(String type, AppLocalizations l10n) {
     switch (type) {
-      case 'Vaccination': return l10n.typeVaccination;
-      case 'Vermifuge': return l10n.typeVermifuge;
-      case 'Visite vétérinaire': return l10n.typeVetVisit;
-      case 'Soin spécifique': return l10n.typeSpecificCare;
-      default: return l10n.typeOther;
+      case 'Vaccination':
+        return l10n.typeVaccination;
+      case 'Vermifuge':
+        return l10n.typeVermifuge;
+      case 'Visite vétérinaire':
+        return l10n.typeVetVisit;
+      case 'Soin spécifique':
+        return l10n.typeSpecificCare;
+      default:
+        return l10n.typeOther;
     }
   }
 
@@ -213,22 +228,34 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
           onTap: () => setState(() => _type = type),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLarge,
+                vertical: AppTheme.spacingMedium),
             decoration: BoxDecoration(
-              color: isSelected ? _getColorForType(type) : AppTheme.cardBackgroundOf(context),
+              color: isSelected
+                  ? _getColorForType(type)
+                  : AppTheme.cardBackgroundOf(context),
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               boxShadow: AppTheme.softShadow,
-              border: Border.all(color: isSelected ? _getColorForType(type) : Colors.transparent, width: 2),
+              border: Border.all(
+                  color:
+                      isSelected ? _getColorForType(type) : Colors.transparent,
+                  width: 2),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(_getIconForType(type), size: AppTheme.iconSizeSmall, color: isSelected ? Colors.white : _getColorForType(type)),
+                Icon(_getIconForType(type),
+                    size: AppTheme.iconSizeSmall,
+                    color: isSelected ? Colors.white : _getColorForType(type)),
                 const SizedBox(width: AppTheme.spacingSmall),
-                Text(_getLabelForType(type, l10n), style: AppTheme.cardSubtitle.copyWith(
-                  color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
-                  fontWeight: FontWeight.w600,
-                )),
+                Text(_getLabelForType(type, l10n),
+                    style: AppTheme.cardSubtitle.copyWith(
+                      color: isSelected
+                          ? Colors.white
+                          : AppTheme.textSecondaryOf(context),
+                      fontWeight: FontWeight.w600,
+                    )),
               ],
             ),
           ),
@@ -255,18 +282,28 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
         prefixIcon: maxLines > 1
             ? Padding(
                 padding: const EdgeInsets.only(bottom: AppTheme.spacingXXLarge),
-                child: Icon(icon, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
+                child: Icon(icon,
+                    color: AppTheme.textSecondaryOf(context),
+                    size: AppTheme.iconSizeMedium),
               )
-            : Icon(icon, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeSmall),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMedium), borderSide: BorderSide.none),
+            : Icon(icon,
+                color: AppTheme.textSecondaryOf(context),
+                size: AppTheme.iconSizeSmall),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+            borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+            borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           borderSide: const BorderSide(color: AppTheme.primaryPurple, width: 1),
         ),
         filled: true,
         fillColor: AppTheme.surfaceColorOf(context),
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spacingLarge,
+            vertical: AppTheme.spacingMedium),
       ),
     );
   }
@@ -277,13 +314,21 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
       onTap: _selectDate,
       child: Container(
         padding: const EdgeInsets.all(AppTheme.spacingMedium),
-        decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(
+            color: AppTheme.surfaceColorOf(context),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Row(
           children: [
-            Icon(Icons.calendar_today_outlined, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
+            Icon(Icons.calendar_today_outlined,
+                color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
             const SizedBox(width: AppTheme.spacingMedium),
-            Expanded(child: Text(DateFormat('d MMMM yyyy', settings.intlLocale).format(_dateRappel), style: AppTheme.formLabel)),
-            Icon(Icons.edit_calendar_outlined, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeMedium),
+            Expanded(
+                child: Text(
+                    '${_dateRappel.day.toString().padLeft(2, '0')} ${settings.monthName(_dateRappel.month)} ${_dateRappel.year}',
+                    style: AppTheme.formLabel)),
+            Icon(Icons.edit_calendar_outlined,
+                color: AppTheme.textLightOf(context),
+                size: AppTheme.iconSizeMedium),
           ],
         ),
       ),
@@ -293,16 +338,26 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
   Widget _buildRecurrenceToggle(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingXSmall),
-      decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+      decoration: BoxDecoration(
+          color: AppTheme.surfaceColorOf(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
       child: SwitchListTile(
-        title: Text(l10n.recurringTask, style: AppTheme.cardSubtitle.copyWith(fontWeight: FontWeight.w600, color: AppTheme.textPrimaryOf(context))),
-        subtitle: Text(l10n.repeatsAutomatically, style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context))),
+        title: Text(l10n.recurringTask,
+            style: AppTheme.cardSubtitle.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimaryOf(context))),
+        subtitle: Text(l10n.repeatsAutomatically,
+            style: AppTheme.bodyText
+                .copyWith(color: AppTheme.textSecondaryOf(context))),
         value: _recurrent,
         onChanged: (v) => setState(() => _recurrent = v),
         activeTrackColor: AppTheme.lightPurple,
         thumbColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected) ? AppTheme.primaryPurple : AppTheme.textLightOf(context)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
+            states.contains(WidgetState.selected)
+                ? AppTheme.primaryPurple
+                : AppTheme.textLightOf(context)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
       ),
     );
   }
@@ -310,17 +365,26 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
   Widget _buildUniteSelector(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingLarge),
-      decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+      decoration: BoxDecoration(
+          color: AppTheme.surfaceColorOf(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.repeatUnit, style: AppTheme.cardSubtitle.copyWith(fontWeight: FontWeight.w600, color: AppTheme.textPrimaryOf(context))),
+          Text(l10n.repeatUnit,
+              style: AppTheme.cardSubtitle.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textPrimaryOf(context))),
           const SizedBox(height: AppTheme.spacingMedium),
           Row(
             children: [
-              Expanded(child: _buildUniteButton('heures', l10n.hours, Icons.access_time)),
+              Expanded(
+                  child: _buildUniteButton(
+                      'heures', l10n.hours, Icons.access_time)),
               const SizedBox(width: AppTheme.spacingMedium),
-              Expanded(child: _buildUniteButton('jours', l10n.days, Icons.calendar_today)),
+              Expanded(
+                  child: _buildUniteButton(
+                      'jours', l10n.days, Icons.calendar_today)),
             ],
           ),
         ],
@@ -335,18 +399,27 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryPurple : AppTheme.cardBackgroundOf(context),
+          color: isSelected
+              ? AppTheme.primaryPurple
+              : AppTheme.cardBackgroundOf(context),
           borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: AppTheme.iconSizeSmall, color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context)),
+            Icon(icon,
+                size: AppTheme.iconSizeSmall,
+                color: isSelected
+                    ? Colors.white
+                    : AppTheme.textSecondaryOf(context)),
             const SizedBox(width: AppTheme.spacingSmall),
-            Text(label, style: AppTheme.cardSubtitle.copyWith(
-              color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
-              fontWeight: FontWeight.w600,
-            )),
+            Text(label,
+                style: AppTheme.cardSubtitle.copyWith(
+                  color: isSelected
+                      ? Colors.white
+                      : AppTheme.textSecondaryOf(context),
+                  fontWeight: FontWeight.w600,
+                )),
           ],
         ),
       ),
@@ -354,17 +427,24 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
   }
 
   Widget _buildFrequencySelector(AppLocalizations l10n) {
+    final settings = context.watch<SettingsProvider>();
     if (_uniteIntervalle == 'heures') {
       return Container(
         padding: const EdgeInsets.all(AppTheme.spacingLarge),
-        decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(
+            color: AppTheme.surfaceColorOf(context),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              Icon(Icons.access_time, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
+              Icon(Icons.access_time,
+                  color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
               const SizedBox(width: AppTheme.spacingSmall),
-              Text(l10n.everyHours, style: AppTheme.cardSubtitle.copyWith(fontWeight: FontWeight.w600, color: AppTheme.textPrimaryOf(context))),
+              Text(l10n.everyHours,
+                  style: AppTheme.cardSubtitle.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimaryOf(context))),
             ]),
             const SizedBox(height: AppTheme.spacingMedium),
             Wrap(
@@ -375,15 +455,22 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
                 return GestureDetector(
                   onTap: () => setState(() => _intervalleHeures = h),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium, vertical: AppTheme.spacingSmall),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingMedium,
+                        vertical: AppTheme.spacingSmall),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppTheme.primaryPurple : AppTheme.cardBackgroundOf(context),
+                      color: isSelected
+                          ? AppTheme.primaryPurple
+                          : AppTheme.cardBackgroundOf(context),
                       borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     ),
-                    child: Text('$h h', style: AppTheme.bodyTextSecondary.copyWith(
-                      color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
-                      fontWeight: FontWeight.w500,
-                    )),
+                    child: Text(settings.timeLabel(h),
+                        style: AppTheme.bodyTextSecondary.copyWith(
+                          color: isSelected
+                              ? Colors.white
+                              : AppTheme.textSecondaryOf(context),
+                          fontWeight: FontWeight.w500,
+                        )),
                   ),
                 );
               }).toList(),
@@ -403,14 +490,20 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
 
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingLarge),
-      decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+      decoration: BoxDecoration(
+          color: AppTheme.surfaceColorOf(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Icon(Icons.repeat, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
+            Icon(Icons.repeat,
+                color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
             const SizedBox(width: AppTheme.spacingSmall),
-            Text(l10n.frequency, style: AppTheme.cardSubtitle.copyWith(fontWeight: FontWeight.w600, color: AppTheme.textPrimaryOf(context))),
+            Text(l10n.frequency,
+                style: AppTheme.cardSubtitle.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimaryOf(context))),
           ]),
           const SizedBox(height: AppTheme.spacingMedium),
           Wrap(
@@ -419,17 +512,25 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
             children: frequencies.map((freq) {
               final isSelected = _intervalleJours == freq['value'];
               return GestureDetector(
-                onTap: () => setState(() => _intervalleJours = freq['value'] as int),
+                onTap: () =>
+                    setState(() => _intervalleJours = freq['value'] as int),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium, vertical: AppTheme.spacingSmall),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.spacingMedium,
+                      vertical: AppTheme.spacingSmall),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primaryPurple : AppTheme.cardBackgroundOf(context),
+                    color: isSelected
+                        ? AppTheme.primaryPurple
+                        : AppTheme.cardBackgroundOf(context),
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                   ),
-                  child: Text(freq['label'] as String, style: AppTheme.bodyTextSecondary.copyWith(
-                    color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
-                    fontWeight: FontWeight.w500,
-                  )),
+                  child: Text(freq['label'] as String,
+                      style: AppTheme.bodyTextSecondary.copyWith(
+                        color: isSelected
+                            ? Colors.white
+                            : AppTheme.textSecondaryOf(context),
+                        fontWeight: FontWeight.w500,
+                      )),
                 ),
               );
             }).toList(),
@@ -442,21 +543,32 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
   Widget _buildDateFinToggle(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingXSmall),
-      decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+      decoration: BoxDecoration(
+          color: AppTheme.surfaceColorOf(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
       child: SwitchListTile(
-        title: Text(l10n.setDuration, style: AppTheme.cardSubtitle.copyWith(fontWeight: FontWeight.w600, color: AppTheme.textPrimaryOf(context))),
-        subtitle: Text(l10n.taskStopsAuto, style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context))),
+        title: Text(l10n.setDuration,
+            style: AppTheme.cardSubtitle.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimaryOf(context))),
+        subtitle: Text(l10n.taskStopsAuto,
+            style: AppTheme.bodyText
+                .copyWith(color: AppTheme.textSecondaryOf(context))),
         value: _avecDateFin,
         onChanged: (v) {
           setState(() {
             _avecDateFin = v;
-            if (v && _dateFin == null) _dateFin = _dateRappel.add(const Duration(days: 21));
+            if (v && _dateFin == null)
+              _dateFin = _dateRappel.add(const Duration(days: 21));
           });
         },
         activeTrackColor: AppTheme.lightPurple,
         thumbColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected) ? AppTheme.primaryPurple : AppTheme.textLightOf(context)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
+            states.contains(WidgetState.selected)
+                ? AppTheme.primaryPurple
+                : AppTheme.textLightOf(context)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
       ),
     );
   }
@@ -476,18 +588,26 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
       },
       child: Container(
         padding: const EdgeInsets.all(AppTheme.spacingMedium),
-        decoration: BoxDecoration(color: AppTheme.surfaceColorOf(context), borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
+        decoration: BoxDecoration(
+            color: AppTheme.surfaceColorOf(context),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMedium)),
         child: Row(
           children: [
-            Icon(Icons.event_busy, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
+            Icon(Icons.event_busy,
+                color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
             const SizedBox(width: AppTheme.spacingMedium),
             Expanded(
               child: Text(
-                _dateFin != null ? DateFormat('d MMMM yyyy', settings.intlLocale).format(_dateFin!) : l10n.selectDate,
-                style: _dateFin != null ? AppTheme.formLabel : AppTheme.formHint,
+                _dateFin != null
+                    ? '${_dateFin!.day.toString().padLeft(2, '0')} ${settings.monthName(_dateFin!.month)} ${_dateFin!.year}'
+                    : l10n.selectDate,
+                style:
+                    _dateFin != null ? AppTheme.formLabel : AppTheme.formHint,
               ),
             ),
-            Icon(Icons.calendar_today_outlined, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeMedium),
+            Icon(Icons.calendar_today_outlined,
+                color: AppTheme.textLightOf(context),
+                size: AppTheme.iconSizeMedium),
           ],
         ),
       ),
@@ -496,21 +616,31 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
 
   IconData _getIconForType(String type) {
     switch (type.toLowerCase()) {
-      case 'vaccination': return Icons.vaccines;
-      case 'vermifuge': return Icons.medication;
-      case 'visite vétérinaire': return Icons.local_hospital;
-      case 'soin spécifique': return Icons.healing;
-      default: return Icons.notifications;
+      case 'vaccination':
+        return Icons.vaccines;
+      case 'vermifuge':
+        return Icons.medication;
+      case 'visite vétérinaire':
+        return Icons.local_hospital;
+      case 'soin spécifique':
+        return Icons.healing;
+      default:
+        return Icons.notifications;
     }
   }
 
   Color _getColorForType(String type) {
     switch (type.toLowerCase()) {
-      case 'vaccination': return AppTheme.primaryPurple;
-      case 'vermifuge': return AppTheme.accentOrange;
-      case 'visite vétérinaire': return AppTheme.infoBlue;
-      case 'soin spécifique': return AppTheme.successGreen;
-      default: return AppTheme.textSecondary;
+      case 'vaccination':
+        return AppTheme.primaryPurple;
+      case 'vermifuge':
+        return AppTheme.accentOrange;
+      case 'visite vétérinaire':
+        return AppTheme.infoBlue;
+      case 'soin spécifique':
+        return AppTheme.successGreen;
+      default:
+        return AppTheme.textSecondary;
     }
   }
 }

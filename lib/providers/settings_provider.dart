@@ -22,21 +22,84 @@ class SettingsProvider with ChangeNotifier {
     return code;
   }
 
+  // Heure traduire selon la langue
+  String timeLabel(int h) {
+    switch (_locale.languageCode) {
+      case 'sw':
+        return 'Saa $h'; // "Saa" est plus naturel que "Wakati" pour l'heure qu'il est
+      case 'rn':
+        return 'Isaha $h';
+      case 'en':
+       return h > 1 ? '$h Hours' : '$h Hour';
+      default:
+        // Gestion du pluriel pour "Heure"
+        return h > 1 ? '$h Heures' : '$h Heure';
+    }
+  }
+
   /// Noms de mois traduits (index 0 = janvier)
   List<String> get monthNames {
     switch (_locale.languageCode) {
       case 'en':
-        return ['January','February','March','April','May','June',
-                'July','August','September','October','November','December'];
+        return [
+          'January',
+          'February',
+          'March',
+          'April',
+          'May',
+          'June',
+          'July',
+          'August',
+          'September',
+          'October',
+          'November',
+          'December'
+        ];
       case 'sw':
-        return ['Januari','Februari','Machi','Aprili','Mei','Juni',
-                'Julai','Agosti','Septemba','Oktoba','Novemba','Desemba'];
+        return [
+          'Januari',
+          'Februari',
+          'Machi',
+          'Aprili',
+          'Mei',
+          'Juni',
+          'Julai',
+          'Agosti',
+          'Septemba',
+          'Oktoba',
+          'Novemba',
+          'Desemba'
+        ];
       case 'rn':
-        return ['Nzero','Ruhuhuma','Ntwarante','Ndamukiza','Rusama','Ruheshi',
-                'Mukakaro','Myandagaro','Nyakanga','Gitugutu','Munyonyo','Kigarama'];
+        return [
+          'Nzero',
+          'Ruhuhuma',
+          'Ntwarante',
+          'Ndamukiza',
+          'Rusama',
+          'Ruheshi',
+          'Mukakaro',
+          'Myandagaro',
+          'Nyakanga',
+          'Gitugutu',
+          'Munyonyo',
+          'Kigarama'
+        ];
       default: // fr
-        return ['Janvier','Février','Mars','Avril','Mai','Juin',
-                'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+        return [
+          'Janvier',
+          'Février',
+          'Mars',
+          'Avril',
+          'Mai',
+          'Juin',
+          'Juillet',
+          'Août',
+          'Septembre',
+          'Octobre',
+          'Novembre',
+          'Décembre'
+        ];
     }
   }
 
@@ -50,7 +113,15 @@ class SettingsProvider with ChangeNotifier {
       case 'sw':
         return ['Jum', 'Jum', 'Jum', 'Alh', 'Iju', 'Jum', 'Jum'];
       case 'rn':
-        return ['Kuwamb', 'Kuwakabiri', 'Kuwagata', 'Kuwaka', 'Kuwagata', 'Kuwagatand', 'Kuwamu'];
+        return [
+          'Kuwamb',
+          'Kuwakabiri',
+          'Kuwagata',
+          'Kuwaka',
+          'Kuwagata',
+          'Kuwagatand',
+          'Kuwamu'
+        ];
       default: // fr
         return ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
     }
@@ -85,11 +156,16 @@ class SettingsProvider with ChangeNotifier {
 
   String get currencySymbol {
     switch (_currency) {
-      case 'USD': return '\$';
-      case 'EUR': return '€';
-      case 'KES': return 'KSh';
-      case 'BIF': return 'FBu';
-      default: return _currency;
+      case 'USD':
+        return '\$';
+      case 'EUR':
+        return '€';
+      case 'KES':
+        return 'KSh';
+      case 'BIF':
+        return 'FBu';
+      default:
+        return _currency;
     }
   }
 }

@@ -246,8 +246,14 @@
   "addAnimalFirst": "Ongeza mnyama kwanza",
   "deleteTask": "Futa kazi?",
   "deleteTaskConfirm": "Je, unataka kweli kufuta",
-  "confirmDeleteMessage": "Je, unataka kweli kufuta \u00ab {name} \u00bb?",
-  "@confirmDeleteMessage": { "placeholders": { "name": { "type": "String" } } },
+  "confirmDeleteMessage": "Je, unataka kweli kufuta « {name} »?",
+  "@confirmDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "recurringHours": "Inayorudiwa (masaa {n})",
   "recurringDays": "Inayorudiwa (siku {n})",
   "until": "Hadi",
@@ -258,15 +264,51 @@
   "typeOther": "Nyingine",
   "confirm": "Thibitisha",
   "ageMonths": "miezi {n}",
-  "@ageMonths": { "placeholders": { "n": { "type": "int" } } },
+  "@ageMonths": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "ageYear": "mwaka {n}",
-  "@ageYear": { "placeholders": { "n": { "type": "int" } } },
+  "@ageYear": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "ageYears": "miaka {n}",
-  "@ageYears": { "placeholders": { "n": { "type": "int" } } },
+  "@ageYears": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "ageYearMonths": "mwaka {n} na miezi {m}",
-  "@ageYearMonths": { "placeholders": { "n": { "type": "int" }, "m": { "type": "int" } } },
+  "@ageYearMonths": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
   "ageYearsMonths": "miaka {n} na miezi {m}",
-  "@ageYearsMonths": { "placeholders": { "n": { "type": "int" }, "m": { "type": "int" } } },
+  "@ageYearsMonths": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
   "newTransaction": "Muamala Mpya",
   "editTransaction": "Hariri Muamala",
   "category": "Kategoria",
@@ -342,9 +384,27 @@
   "unitPriceRevenue": "Bei ya kipimo (hiari → inaunda mapato)",
   "pricePerUnit": "Bei kwa kipimo",
   "tooYoungWarning": "{name} ana {age}. Umri wa chini unaoshauriwa kwa \"{type}\" ni {min}.",
-  "@tooYoungWarning": { "placeholders": { "name": {"type": "String"}, "age": {"type": "String"}, "type": {"type": "String"}, "min": {"type": "String"} } },
+  "@tooYoungWarning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      }
+    }
+  },
   "prodMilk": "Maziwa",
   "prodEggs": "Mayai",
   "prodWool": "Sufu",
-  "prodOther": "Nyingine"
+  "prodOther": "Nyingine",
+  "birthDashboardTitle": "Mizazi Inayotarajiwa",
+  "noBirthsScheduled": "Hakuna mizazi iliyopangwa",
+  "selectTime":"Chagua wakati"
 }

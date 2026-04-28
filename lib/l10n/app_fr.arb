@@ -347,5 +347,8 @@
   "prodMilk": "Lait",
   "prodEggs": "\u0152ufs",
   "prodWool": "Laine",
-  "prodOther": "Autre"
+  "prodOther": "Autre",
+  "birthDashboardTitle": "Prochaines Naissances",
+  "noBirthsScheduled": "Aucune naissance prévue",
+  "selectTime":"Choisir l'heure"
 }

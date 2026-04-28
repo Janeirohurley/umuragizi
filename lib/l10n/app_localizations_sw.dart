@@ -1051,4 +1051,13 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get prodOther => 'Nyingine';
+
+  @override
+  String get birthDashboardTitle => 'Mizazi Inayotarajiwa';
+
+  @override
+  String get noBirthsScheduled => 'Hakuna mizazi iliyopangwa';
+
+  @override
+  String get selectTime => 'Chagua wakati';
 }

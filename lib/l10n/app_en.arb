@@ -346,5 +346,8 @@
   "prodMilk": "Milk",
   "prodEggs": "Eggs",
   "prodWool": "Wool",
-  "prodOther": "Other"
+  "prodOther": "Other",
+  "birthDashboardTitle": "Upcoming Births",
+  "noBirthsScheduled": "No births scheduled",
+  "selectTime": "Select a time"
 }

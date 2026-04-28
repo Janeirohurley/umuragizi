@@ -2141,6 +2141,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Autre'**
   String get prodOther;
+
+  /// No description provided for @birthDashboardTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochaines Naissances'**
+  String get birthDashboardTitle;
+
+  /// No description provided for @noBirthsScheduled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune naissance prévue'**
+  String get noBirthsScheduled;
+
+  /// No description provided for @selectTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir l\'heure'**
+  String get selectTime;
 }
 
 class _AppLocalizationsDelegate

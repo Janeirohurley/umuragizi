@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:umuragizi/widgets/custom_time_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/finance_provider.dart';
@@ -14,7 +14,8 @@ class FeedingFormScreen extends StatefulWidget {
   final String animalId;
   final Alimentation? alimentation;
 
-  const FeedingFormScreen({super.key, required this.animalId, this.alimentation});
+  const FeedingFormScreen(
+      {super.key, required this.animalId, this.alimentation});
 
   @override
   State<FeedingFormScreen> createState() => _FeedingFormScreenState();
@@ -26,7 +27,7 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
   final _quantiteController = TextEditingController();
   final _prixUnitaireController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   String _unite = 'kg';
   DateTime _date = DateTime.now();
   String? _alimentationId;
@@ -58,45 +59,34 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
   }
 
   Future<void> _selectDateTime() async {
-    final date = await showDatePicker(
-      context: context,
+    final l10n = AppLocalizations.of(context)!;
+    final date = await CustomDatePicker.show(
+      context,
       initialDate: _date,
-      firstDate: DateTime(2020),
+      firstDate: DateTime(1990),
       lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppTheme.primaryPurple,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppTheme.textPrimary,
-            ),
-          ),
-          child: child!,
-        );
-      },
+      title: l10n.birthDate,
     );
-    if (date != null) {
-      final time = await showTimePicker(
-        context: context,
+
+    if (date != null && mounted) {
+      // 2. Sélection de l'heure via ton CustomTimePicker (au lieu du sélecteur natif)
+      final time = await CustomTimePicker.show(
+        context,
         initialTime: TimeOfDay.fromDateTime(_date),
-        builder: (context, child) {
-          return Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.light(
-                primary: AppTheme.primaryPurple,
-                onPrimary: Colors.white,
-                surface: Colors.white,
-                onSurface: AppTheme.textPrimary,
-              ),
-            ),
-            child: child!,
-          );
-        },
+        title: AppLocalizations.of(context)!.selectTime, // Utilise ta clé i10n
       );
-      if (time != null) {
-        setState(() => _date = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+
+      if (time != null ) {
+        // 3. Mise à jour de l'état avec la combinaison Date + Heure
+        setState(() {
+          _date = DateTime(
+            date.year,
+            date.month,
+            date.day,
+            time.hour,
+            time.minute,
+          );
+        });
       }
     }
   }
@@ -167,13 +157,16 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               boxShadow: AppTheme.softShadow,
             ),
-            child: Icon(Icons.arrow_back, color: AppTheme.textPrimaryOf(context), size: AppTheme.iconSizeMedium),
+            child: Icon(Icons.arrow_back,
+                color: AppTheme.textPrimaryOf(context),
+                size: AppTheme.iconSizeMedium),
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           widget.alimentation == null ? l10n.addFeeding : l10n.editFeeding,
-          style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+          style: AppTheme.pageTitle
+              .copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         centerTitle: true,
       ),
@@ -186,17 +179,23 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
               controller: _typeController,
               decoration: InputDecoration(
                 hintText: l10n.foodType,
-                hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
-                prefixIcon: Icon(Icons.restaurant, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
+                hintStyle: AppTheme.bodyTextLight
+                    .copyWith(color: AppTheme.textLightOf(context)),
+                prefixIcon: Icon(Icons.restaurant,
+                    color: AppTheme.textSecondaryOf(context),
+                    size: AppTheme.iconSizeMedium),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
                 fillColor: AppTheme.surfaceColorOf(context),
-                contentPadding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
+                contentPadding: EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingLarge,
+                    vertical: AppTheme.spacingMedium),
               ),
-              validator: (v) => v?.isEmpty ?? true ? l10n.foodTypeRequired : null,
+              validator: (v) =>
+                  v?.isEmpty ?? true ? l10n.foodTypeRequired : null,
             ),
             SizedBox(height: AppTheme.spacingLarge),
             Row(
@@ -207,15 +206,21 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
                     controller: _quantiteController,
                     decoration: InputDecoration(
                       hintText: l10n.quantity,
-                      hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
-                      prefixIcon: Icon(Icons.scale, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
+                      hintStyle: AppTheme.bodyTextLight
+                          .copyWith(color: AppTheme.textLightOf(context)),
+                      prefixIcon: Icon(Icons.scale,
+                          color: AppTheme.textSecondaryOf(context),
+                          size: AppTheme.iconSizeMedium),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
                       fillColor: AppTheme.surfaceColorOf(context),
-                      contentPadding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: AppTheme.spacingLarge,
+                          vertical: AppTheme.spacingMedium),
                     ),
                     keyboardType: TextInputType.number,
                     validator: (v) => v?.isEmpty ?? true ? l10n.required : null,
@@ -227,16 +232,22 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
                     initialValue: _unite,
                     decoration: InputDecoration(
                       hintText: l10n.unit,
-                      hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
+                      hintStyle: AppTheme.bodyTextLight
+                          .copyWith(color: AppTheme.textLightOf(context)),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
                       fillColor: AppTheme.surfaceColorOf(context),
-                      contentPadding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: AppTheme.spacingLarge,
+                          vertical: AppTheme.spacingMedium),
                     ),
-                    items: ['kg', 'g', 'L', 'mL'].map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
+                    items: ['kg', 'g', 'L', 'mL']
+                        .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                        .toList(),
                     onChanged: (v) => setState(() => _unite = v!),
                   ),
                 ),
@@ -247,15 +258,20 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
               controller: _prixUnitaireController,
               decoration: InputDecoration(
                 hintText: l10n.unitPrice,
-                hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
-                prefixIcon: Icon(Icons.euro, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
+                hintStyle: AppTheme.bodyTextLight
+                    .copyWith(color: AppTheme.textLightOf(context)),
+                prefixIcon: Icon(Icons.euro,
+                    color: AppTheme.textSecondaryOf(context),
+                    size: AppTheme.iconSizeMedium),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
                 fillColor: AppTheme.surfaceColorOf(context),
-                contentPadding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
+                contentPadding: EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingLarge,
+                    vertical: AppTheme.spacingMedium),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -270,7 +286,9 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
+                    Icon(Icons.calendar_today,
+                        color: AppTheme.textSecondaryOf(context),
+                        size: AppTheme.iconSizeMedium),
                     SizedBox(width: AppTheme.spacingMedium),
                     Expanded(
                       child: Column(
@@ -278,16 +296,20 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
                         children: [
                           Text(
                             l10n.dateTime,
-                            style: AppTheme.bodyTextSecondary.copyWith(color: AppTheme.textSecondaryOf(context)),
+                            style: AppTheme.bodyTextSecondary.copyWith(
+                                color: AppTheme.textSecondaryOf(context)),
                           ),
                           Text(
-                            '${_date.day.toString().padLeft(2,'0')} ${settings.monthName(_date.month)} ${_date.year} à ${_date.hour.toString().padLeft(2,'0')}:${_date.minute.toString().padLeft(2,'0')}',
-                            style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+                            '${_date.day.toString().padLeft(2, '0')} ${settings.monthName(_date.month)} ${_date.year} à ${_date.hour.toString().padLeft(2, '0')}:${_date.minute.toString().padLeft(2, '0')}',
+                            style: AppTheme.listItemTitle.copyWith(
+                                color: AppTheme.textPrimaryOf(context)),
                           ),
                         ],
                       ),
                     ),
-                    Icon(Icons.edit_outlined, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeMedium),
+                    Icon(Icons.edit_outlined,
+                        color: AppTheme.textLightOf(context),
+                        size: AppTheme.iconSizeMedium),
                   ],
                 ),
               ),
@@ -297,10 +319,14 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
               controller: _notesController,
               decoration: InputDecoration(
                 hintText: l10n.notesOptional,
-                hintStyle: AppTheme.bodyTextLight.copyWith(color: AppTheme.textLightOf(context)),
+                hintStyle: AppTheme.bodyTextLight
+                    .copyWith(color: AppTheme.textLightOf(context)),
                 prefixIcon: Padding(
-                  padding: EdgeInsets.only(bottom: AppTheme.spacingXXLarge + AppTheme.spacingLarge),
-                  child: Icon(Icons.edit_note_outlined, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
+                  padding: EdgeInsets.only(
+                      bottom: AppTheme.spacingXXLarge + AppTheme.spacingLarge),
+                  child: Icon(Icons.edit_note_outlined,
+                      color: AppTheme.textSecondaryOf(context),
+                      size: AppTheme.iconSizeMedium),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
@@ -308,7 +334,9 @@ class _FeedingFormScreenState extends State<FeedingFormScreen> {
                 ),
                 filled: true,
                 fillColor: AppTheme.surfaceColorOf(context),
-                contentPadding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium),
+                contentPadding: EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingLarge,
+                    vertical: AppTheme.spacingMedium),
               ),
               maxLines: 3,
             ),

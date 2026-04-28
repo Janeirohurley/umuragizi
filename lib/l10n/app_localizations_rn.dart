@@ -72,7 +72,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get netInvestment => 'Amafaranga asigaye';
 
   @override
-  String get addAnimal => 'Ongerako Igitungwa';
+  String get addAnimal => 'Shiramwo Igitungwa';
 
   @override
   String get editAnimal => 'Hindura';
@@ -84,7 +84,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get save => 'Bika';
 
   @override
-  String get cancel => 'Mpfira';
+  String get cancel => 'Bireke';
 
   @override
   String get confirmDelete => 'Vyanze';
@@ -150,25 +150,25 @@ class AppLocalizationsRn extends AppLocalizations {
   String get overview => 'Incamake';
 
   @override
-  String get late => 'Gucererwa';
+  String get late => 'Ivyacerewe';
 
   @override
   String get today => 'Uyu musi';
 
   @override
-  String get done => 'Birakozwe';
+  String get done => 'Ivyakozwe neza';
 
   @override
-  String get tasks => 'Ivyibutsa';
+  String get tasks => 'Ibikokwa';
 
   @override
   String get see => 'Raba';
 
   @override
-  String get seeMore => 'Raba vyinshi';
+  String get seeMore => 'Raba ubwoko bwose';
 
   @override
-  String get allDone => 'Vyose birakozwe!';
+  String get allDone => 'Vyose vyakozwe neza!';
 
   @override
   String get species => 'Ubwoko';
@@ -273,17 +273,17 @@ class AppLocalizationsRn extends AppLocalizations {
   String get syncDisabled => 'Kwiratira guhuza n\'ibicu';
 
   @override
-  String get pinTitle => 'Shiraho PIN yawe';
+  String get pinTitle => 'Shiramwo PIN yawe';
 
   @override
   String get pinSubtitle =>
-      'Iyi PIN irakenewe kugira ngo winjire muri porogaramu';
+      'Iyi PIN irakenewe kugira ngo winjire m\'ubuhinga bw\'umuragizi';
 
   @override
   String get pinError => 'PIN si yo';
 
   @override
-  String get setPin => 'Shiraho PIN';
+  String get setPin => 'Shiramwo PIN';
 
   @override
   String get changePin => 'Hindura PIN';
@@ -328,7 +328,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get enterPinSubtitle => 'Andika PIN yawe kugira ngo ukomeze';
 
   @override
-  String get skip => 'Reka ubu';
+  String get skip => 'Vyihoze Ubu';
 
   @override
   String get date => 'Itariki';
@@ -337,19 +337,19 @@ class AppLocalizationsRn extends AppLocalizations {
   String get age => 'Imyaka';
 
   @override
-  String get identifier => 'Indangamuntu';
+  String get identifier => 'Indangagikoko';
 
   @override
   String get notes => 'Ivyandikwa';
 
   @override
-  String get male => 'Imfizi';
+  String get male => 'Impfizi';
 
   @override
   String get female => 'Ishashi';
 
   @override
-  String get alimentation => 'Ibiryo';
+  String get alimentation => 'ivyo kudya';
 
   @override
   String get production => 'Umusaruro';
@@ -367,10 +367,10 @@ class AppLocalizationsRn extends AppLocalizations {
   String get deleteConfirm => 'Futa';
 
   @override
-  String get noFeeding => 'Nta biryo';
+  String get noFeeding => 'Nta vyo Kudya';
 
   @override
-  String get noFeedingRecorded => 'Nta biryo vyanditswe';
+  String get noFeedingRecorded => 'Nta vyo Kudya vyanditswe';
 
   @override
   String get noHealthData => 'Nta makuru y\'ubuzima';
@@ -424,7 +424,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get notesHint => 'Amakuru, inomero, ivyagenzwe...';
 
   @override
-  String get add => 'Ongerako';
+  String get add => 'Shiramwo';
 
   @override
   String get birthReminderGenerated => 'Ikibutsa c\'ivuka gishizweko ku';
@@ -442,10 +442,10 @@ class AppLocalizationsRn extends AppLocalizations {
   String get scanQrCode => 'Soma kodi QR';
 
   @override
-  String get scanHint => 'Erekeza kuri kodi QR canke Tagger';
+  String get scanHint => 'Tumbereza kuri kodi QR canke Tagger';
 
   @override
-  String get animalNotFound => 'Nta gitungwa kibonetse gifise indangamuntu';
+  String get animalNotFound => 'Nta gitungwa kibonetse gifise Indangagikoko';
 
   @override
   String get newAnimal => 'Igitungwa gishasha';
@@ -554,7 +554,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get selectSpecies => 'Cagura ubwoko';
 
   @override
-  String get status => 'Imiterere';
+  String get status => 'Amakuru';
 
   @override
   String get finances => 'Amafaranga (Ntibikenewe cane)';
@@ -566,7 +566,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get additionalNotes => 'Ivyandikwa vyiyongera';
 
   @override
-  String get addAnimalBtn => 'Ongerako igitungwa';
+  String get addAnimalBtn => 'Shiramwo igitungwa';
 
   @override
   String get birthDate => 'Itariki y\'ivuka';
@@ -632,7 +632,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get especeLapin => 'nk: Urukwavu, Urukwavu rw\'igitsina gore';
 
   @override
-  String get myTasks => 'Ibinyibutsa vyanje';
+  String get myTasks => 'Ibikokwa vyanje';
 
   @override
   String get inProgress => 'Bigihari';
@@ -644,40 +644,40 @@ class AppLocalizationsRn extends AppLocalizations {
   String get selectAnimal => 'Cagura igitungwa';
 
   @override
-  String get newTask => 'Akazi gashasha';
+  String get newTask => 'Igikorwa gishasha';
 
   @override
-  String get editTask => 'Hindura akazi';
+  String get editTask => 'Hindura Igikorwa';
 
   @override
-  String get taskType => 'Ubwoko bw\'akazi';
+  String get taskType => 'Ubwoko bw\'Igikorwa';
 
   @override
   String get details => 'Amakuru';
 
   @override
-  String get title => 'Umutwe';
+  String get title => 'Umutwe W\'ijambo';
 
   @override
-  String get titleRequired => 'Umutwe urakenewe';
+  String get titleRequired => 'Umutwe W\'ijambo urakenewe';
 
   @override
-  String get description => 'Ibisobanuro';
+  String get description => 'Intangamarara';
 
   @override
-  String get descriptionRequired => 'Ibisobanuro birakenewe';
+  String get descriptionRequired => 'Intangamarara birakenewe';
 
   @override
   String get planning => 'Guteganya';
 
   @override
-  String get recurringTask => 'Akazi gakora kenshi';
+  String get recurringTask => 'Igikorwa gikora kenshi';
 
   @override
-  String get repeatsAutomatically => 'Gakora kenshi wenyene';
+  String get repeatsAutomatically => 'Cisubiriza kenshi Conyene';
 
   @override
-  String get repeatUnit => 'Ingano yo gusubiramo';
+  String get repeatUnit => 'Incuro yo gusubiramo';
 
   @override
   String get hours => 'Amasaha';
@@ -707,10 +707,10 @@ class AppLocalizationsRn extends AppLocalizations {
   String get everyYear => 'Buri mwaka';
 
   @override
-  String get setDuration => 'Shira igihe';
+  String get setDuration => 'Hagarara';
 
   @override
-  String get taskStopsAuto => 'Akazi kazohagara wenyene';
+  String get taskStopsAuto => 'Igikorwa kuzokwihagarika';
 
   @override
   String get endDate => 'Itariki yo kurangira';
@@ -719,7 +719,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get selectDate => 'Cagura itariki';
 
   @override
-  String get createTask => 'Shiraho akazi';
+  String get createTask => 'Shiramwo Igikorwa';
 
   @override
   String get filterLate => 'Wibagiye';
@@ -728,7 +728,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get filterUpcoming => 'Ejo haza';
 
   @override
-  String get allUpToDate => 'Vyose birakozwe!';
+  String get allUpToDate => 'Vyose vyakozwe neza!';
 
   @override
   String get noTask => 'Nta kazi';
@@ -743,16 +743,16 @@ class AppLocalizationsRn extends AppLocalizations {
   String get noTaskUpcoming => 'Nta kazi kazoza';
 
   @override
-  String get noTaskScheduled => 'Nta kazi gateganijwe';
+  String get noTaskScheduled => 'Ntagikorwa co gukora gihara';
 
   @override
-  String get addTask => 'Ongerako akazi';
+  String get addTask => 'Shiramwo Igikorwa';
 
   @override
   String get addAnimalFirst => 'Banza wongereko igitungwa';
 
   @override
-  String get deleteTask => 'Futa akazi?';
+  String get deleteTask => 'Futa Igikorwa?';
 
   @override
   String get deleteTaskConfirm => 'Urashaka koko gufuta';
@@ -776,13 +776,13 @@ class AppLocalizationsRn extends AppLocalizations {
   String get until => 'Gushika';
 
   @override
-  String get typeVaccination => 'Inkingo';
+  String get typeVaccination => 'Urucanco';
 
   @override
   String get typeVermifuge => 'Imiti y\'inzoka';
 
   @override
-  String get typeVetVisit => 'Gusura muganga w\'ibitungwa';
+  String get typeVetVisit => 'Kuraba muganga w\'ibitungwa';
 
   @override
   String get typeSpecificCare => 'Kwitaho bihariye';
@@ -831,7 +831,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get invalidAmount => 'Shira amafaranga akwiye';
 
   @override
-  String get catFood => 'Ibiryo';
+  String get catFood => 'ivyo kudya';
 
   @override
   String get catVet => 'Amafaranga y\'umuganga';
@@ -879,7 +879,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get sexRatio => 'Igipimo c\'ibitsina';
 
   @override
-  String get males => 'Imfizi';
+  String get males => 'Impfizi';
 
   @override
   String get females => 'Ishashi';
@@ -909,28 +909,28 @@ class AppLocalizationsRn extends AppLocalizations {
   String get balance => 'Amafaranga asigaye';
 
   @override
-  String get feedings => 'Ibiryo';
+  String get feedings => 'ivyo kudya';
 
   @override
   String get careByType => 'Ukuriki bw\'ivyitaho';
 
   @override
-  String get productionTotals => 'Ingano zose';
+  String get productionTotals => 'Uko bingana k\'ubwoko';
 
   @override
-  String get addFeeding => 'Ongerako ibiryo';
+  String get addFeeding => 'Shiramwo ivyo kudya';
 
   @override
-  String get editFeeding => 'Hindura ibiryo';
+  String get editFeeding => 'Hindura ivyo kudya';
 
   @override
-  String get foodType => 'Ubwoko bw\'ibiryo';
+  String get foodType => 'Ubwoko bw\'ivyo kudya';
 
   @override
   String get foodTypeRequired => 'Ubwoko burakenewe';
 
   @override
-  String get quantity => 'Ingano';
+  String get quantity => 'Uko bingana';
 
   @override
   String get unit => 'Ingero';
@@ -945,13 +945,13 @@ class AppLocalizationsRn extends AppLocalizations {
   String get required => 'Birakenewe';
 
   @override
-  String get feedingTracking => 'Gukurikirana Ibiryo';
+  String get feedingTracking => 'Gukurikirana ivyo kudya';
 
   @override
-  String get addAnimalToStart => 'Ongerako igitungwa kugira utangure';
+  String get addAnimalToStart => 'Shiramwo igitungwa kugira utangure';
 
   @override
-  String get deleteFeeding => 'Futa ibiryo';
+  String get deleteFeeding => 'Futa ivyo kudya';
 
   @override
   String get deleteEntryConfirm => 'Urashaka koko gufuta iki canditswe?';
@@ -969,7 +969,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get height => 'Uburebure (cm) - ntibikenewe';
 
   @override
-  String get physicalState => 'Imiterere y\'umubiri';
+  String get physicalState => 'Amakuru y\'umubiri';
 
   @override
   String get stateExcellent => 'Vyiza cane';
@@ -984,7 +984,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get stateWeak => 'Bibe';
 
   @override
-  String get addHealth => 'Ongerako ubuzima';
+  String get addHealth => 'Shiramwo ubuzima';
 
   @override
   String get careType => 'Ubwoko bw\'ivyitaho';
@@ -1011,7 +1011,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get typeMaladie => 'Indwara';
 
   @override
-  String get typeVisite => 'Gusura muganga';
+  String get typeVisite => 'Kuraba muganga';
 
   @override
   String get healthAndGrowth => 'Ubuzima & Gukura';
@@ -1023,7 +1023,7 @@ class AppLocalizationsRn extends AppLocalizations {
   String get heightLabel => 'Uburebure';
 
   @override
-  String get addProduction => 'Ongerako umusaruro';
+  String get addProduction => 'Shiramwo umusaruro';
 
   @override
   String get editProduction => 'Hindura umusaruro';
@@ -1053,4 +1053,13 @@ class AppLocalizationsRn extends AppLocalizations {
 
   @override
   String get prodOther => 'Ikindi';
+
+  @override
+  String get birthDashboardTitle => 'Ivyimirije kuvyara';
+
+  @override
+  String get noBirthsScheduled => 'Ntagikoko na kimwe c\'imirije kuvyara';
+
+  @override
+  String get selectTime => 'Cagura isaha';
 }

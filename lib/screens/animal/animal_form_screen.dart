@@ -701,7 +701,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
             SizedBox(width: AppTheme.spacingMedium),
             Expanded(
               child: Text(
-                DateFormat('d MMMM yyyy', settings.intlLocale).format(_dateNaissance),
+                 '${_dateNaissance.day.toString().padLeft(2,'0')} ${settings.monthName(_dateNaissance.month)} ${_dateNaissance.year}',
                 style: AppTheme.formLabel.copyWith(color: AppTheme.textPrimaryOf(context)),
               ),
             ),

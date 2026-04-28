@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:umuragizi/l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/animal_provider.dart';
@@ -23,11 +24,12 @@ class BirthDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final i10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
       appBar: AppBar(
         title: Text(
-          'Prochaines Naissances',
+          i10n.birthDashboardTitle,
           style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         backgroundColor: Colors.transparent,
@@ -46,7 +48,7 @@ class BirthDashboardScreen extends StatelessWidget {
                   Icon(Icons.child_care_outlined, size: 80, color: AppTheme.textLightOf(context).withValues(alpha: 0.3)),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucune naissance prévue',
+                    i10n.noBirthsScheduled,
                     style: AppTheme.sectionTitle.copyWith(color: AppTheme.textSecondaryOf(context)),
                   ),
                 ],

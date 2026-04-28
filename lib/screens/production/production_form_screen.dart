@@ -49,12 +49,12 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
 
   // Âge minimum en mois pour chaque type de production par espèce
   static const Map<String, Map<String, int>> _ageMinProduction = {
-    'bovin':    {'Lait': 24, 'Viande': 18, 'Autre': 0},
-    'caprin':   {'Lait': 12, 'Viande': 12, 'Autre': 0},
-    'ovin':     {'Lait': 12, 'Laine': 12, 'Viande': 12, 'Autre': 0},
+    'bovin': {'Lait': 24, 'Viande': 18, 'Autre': 0},
+    'caprin': {'Lait': 12, 'Viande': 12, 'Autre': 0},
+    'ovin': {'Lait': 12, 'Laine': 12, 'Viande': 12, 'Autre': 0},
     'volaille': {'Oeufs': 5, 'Viande': 3, 'Autre': 0},
-    'porcin':   {'Viande': 6, 'Autre': 0},
-    'lapin':    {'Viande': 4, 'Autre': 0},
+    'porcin': {'Viande': 6, 'Autre': 0},
+    'lapin': {'Viande': 4, 'Autre': 0},
   };
 
   static const Map<String, String> _uniteParType = {
@@ -102,17 +102,13 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
   }
 
   Future<void> _selectDate() async {
-    final date = await showDatePicker(
-      context: context,
+    final l10n = AppLocalizations.of(context)!;
+    final date = await CustomDatePicker.show(
+      context,
       initialDate: _date,
-      firstDate: DateTime(2020),
+      firstDate: DateTime(1990),
       lastDate: DateTime.now(),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(primary: AppTheme.primaryPurple),
-        ),
-        child: child!,
-      ),
+      title: l10n.birthDate,
     );
     if (date != null) setState(() => _date = date);
   }
@@ -143,7 +139,9 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
       }
     }
     final quantite = double.parse(_quantiteController.text);
-    final prix = _prixController.text.isEmpty ? null : double.parse(_prixController.text);
+    final prix = _prixController.text.isEmpty
+        ? null
+        : double.parse(_prixController.text);
 
     if (_ancienneTransactionId != null) {
       DatabaseService.supprimerTransaction(_ancienneTransactionId!);
@@ -198,22 +196,33 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
 
   String _productionTypeLabel(String type, AppLocalizations l10n) {
     switch (type) {
-      case 'Lait': return l10n.prodMilk;
-      case 'Oeufs': return l10n.prodEggs;
-      case 'Laine': return l10n.prodWool;
-      case 'Viande': return l10n.catMeat;
-      case 'Autre': return l10n.prodOther;
-      default: return type;
+      case 'Lait':
+        return l10n.prodMilk;
+      case 'Oeufs':
+        return l10n.prodEggs;
+      case 'Laine':
+        return l10n.prodWool;
+      case 'Viande':
+        return l10n.catMeat;
+      case 'Autre':
+        return l10n.prodOther;
+      default:
+        return type;
     }
   }
 
   IconData _iconForType(String type) {
     switch (type) {
-      case 'Lait': return Icons.water_drop;
-      case 'Oeufs': return Icons.egg;
-      case 'Laine': return Icons.texture;
-      case 'Viande': return Icons.set_meal;
-      default: return Icons.inventory_2;
+      case 'Lait':
+        return Icons.water_drop;
+      case 'Oeufs':
+        return Icons.egg;
+      case 'Laine':
+        return Icons.texture;
+      case 'Viande':
+        return Icons.set_meal;
+      default:
+        return Icons.inventory_2;
     }
   }
 
@@ -234,13 +243,16 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
               borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               boxShadow: AppTheme.softShadow,
             ),
-            child: Icon(Icons.arrow_back, color: AppTheme.textPrimaryOf(context), size: AppTheme.iconSizeMedium),
+            child: Icon(Icons.arrow_back,
+                color: AppTheme.textPrimaryOf(context),
+                size: AppTheme.iconSizeMedium),
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           _productionId == null ? l10n.addProduction : l10n.editProduction,
-          style: AppTheme.pageTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+          style: AppTheme.pageTitle
+              .copyWith(color: AppTheme.textPrimaryOf(context)),
         ),
         centerTitle: true,
       ),
@@ -249,7 +261,9 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
         child: ListView(
           padding: EdgeInsets.all(AppTheme.spacingXLarge),
           children: [
-            Text(l10n.productionType, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+            Text(l10n.productionType,
+                style: AppTheme.sectionTitle
+                    .copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
             Wrap(
               spacing: AppTheme.spacingSmall,
@@ -263,21 +277,31 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
                   }),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppTheme.primaryPurple : AppTheme.surfaceColorOf(context),
+                      color: isSelected
+                          ? AppTheme.primaryPurple
+                          : AppTheme.surfaceColorOf(context),
                       borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_iconForType(t), color: isSelected ? Colors.white : AppTheme.primaryPurple, size: 14),
+                        Icon(_iconForType(t),
+                            color: isSelected
+                                ? Colors.white
+                                : AppTheme.primaryPurple,
+                            size: 14),
                         const SizedBox(width: 4),
-                        Text(_productionTypeLabel(t, l10n), style: AppTheme.bodyTextSecondary.copyWith(
-                          color: isSelected ? Colors.white : AppTheme.textSecondaryOf(context),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        )),
+                        Text(_productionTypeLabel(t, l10n),
+                            style: AppTheme.bodyTextSecondary.copyWith(
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppTheme.textSecondaryOf(context),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            )),
                       ],
                     ),
                   ),
@@ -288,11 +312,14 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
               SizedBox(height: AppTheme.spacingMedium),
               TextFormField(
                 controller: _autreTypeController,
-                style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
+                style: AppTheme.formInput
+                    .copyWith(color: AppTheme.textPrimaryOf(context)),
                 decoration: InputDecoration(
                   hintText: l10n.description,
                   hintStyle: AppTheme.formHint,
-                  prefixIcon: Icon(Icons.edit_outlined, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
+                  prefixIcon: Icon(Icons.edit_outlined,
+                      color: AppTheme.textSecondaryOf(context),
+                      size: AppTheme.iconSizeMedium),
                   filled: true,
                   fillColor: AppTheme.surfaceColorOf(context),
                   border: OutlineInputBorder(
@@ -300,7 +327,9 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
                     borderSide: BorderSide.none,
                   ),
                 ),
-                validator: (v) => _type == 'Autre' && (v?.isEmpty ?? true) ? l10n.required : null,
+                validator: (v) => _type == 'Autre' && (v?.isEmpty ?? true)
+                    ? l10n.required
+                    : null,
               ),
             ],
             SizedBox(height: AppTheme.spacingXLarge),
@@ -331,15 +360,17 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
                   Expanded(
                     child: Text(
                       '${animal.nom} a ${animal.ageFormate}. L\'âge minimum recommandé pour "$_type" est $minLabel.',
-                      style: AppTheme.bodyTextLight.copyWith(
-                          color: AppTheme.warningOrange),
+                      style: AppTheme.bodyTextLight
+                          .copyWith(color: AppTheme.warningOrange),
                     ),
                   ),
                 ]),
               );
             }),
 
-            Text(l10n.quantity, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+            Text(l10n.quantity,
+                style: AppTheme.sectionTitle
+                    .copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
             Row(
               children: [
@@ -348,14 +379,16 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
                   child: TextFormField(
                     controller: _quantiteController,
                     keyboardType: TextInputType.number,
-                    style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
+                    style: AppTheme.formInput
+                        .copyWith(color: AppTheme.textPrimaryOf(context)),
                     decoration: InputDecoration(
                       hintText: l10n.quantity,
                       hintStyle: AppTheme.formHint,
                       filled: true,
                       fillColor: AppTheme.surfaceColorOf(context),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
                         borderSide: BorderSide.none,
                       ),
                     ),
@@ -364,27 +397,37 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
                 ),
                 SizedBox(width: AppTheme.spacingMedium),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingMedium + 4),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: AppTheme.spacingLarge,
+                      vertical: AppTheme.spacingMedium + 4),
                   decoration: BoxDecoration(
                     color: AppTheme.lightPurple,
                     borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   ),
-                  child: Text(_unite, style: AppTheme.bodyText.copyWith(color: AppTheme.primaryPurple, fontWeight: FontWeight.bold)),
+                  child: Text(_unite,
+                      style: AppTheme.bodyText.copyWith(
+                          color: AppTheme.primaryPurple,
+                          fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
             SizedBox(height: AppTheme.spacingLarge),
 
-            Text(l10n.unitPriceRevenue, style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context))),
+            Text(l10n.unitPriceRevenue,
+                style: AppTheme.sectionTitle
+                    .copyWith(color: AppTheme.textPrimaryOf(context))),
             SizedBox(height: AppTheme.spacingMedium),
             TextFormField(
               controller: _prixController,
               keyboardType: TextInputType.number,
-              style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
+              style: AppTheme.formInput
+                  .copyWith(color: AppTheme.textPrimaryOf(context)),
               decoration: InputDecoration(
                 hintText: l10n.pricePerUnit,
                 hintStyle: AppTheme.formHint,
-                prefixIcon: Icon(Icons.attach_money, color: AppTheme.textSecondaryOf(context), size: AppTheme.iconSizeMedium),
+                prefixIcon: Icon(Icons.attach_money,
+                    color: AppTheme.textSecondaryOf(context),
+                    size: AppTheme.iconSizeMedium),
                 filled: true,
                 fillColor: AppTheme.surfaceColorOf(context),
                 border: OutlineInputBorder(
@@ -405,15 +448,20 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today, color: AppTheme.primaryPurple, size: AppTheme.iconSizeMedium),
+                    Icon(Icons.calendar_today,
+                        color: AppTheme.primaryPurple,
+                        size: AppTheme.iconSizeMedium),
                     SizedBox(width: AppTheme.spacingMedium),
                     Expanded(
                       child: Text(
-                        '${_date.day.toString().padLeft(2,'0')} ${settings.monthName(_date.month)} ${_date.year}',
-                        style: AppTheme.listItemTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+                        '${_date.day.toString().padLeft(2, '0')} ${settings.monthName(_date.month)} ${_date.year}',
+                        style: AppTheme.listItemTitle
+                            .copyWith(color: AppTheme.textPrimaryOf(context)),
                       ),
                     ),
-                    Icon(Icons.edit_outlined, color: AppTheme.textLightOf(context), size: AppTheme.iconSizeMedium),
+                    Icon(Icons.edit_outlined,
+                        color: AppTheme.textLightOf(context),
+                        size: AppTheme.iconSizeMedium),
                   ],
                 ),
               ),
@@ -423,7 +471,8 @@ class _ProductionFormScreenState extends State<ProductionFormScreen> {
             TextFormField(
               controller: _notesController,
               maxLines: 2,
-              style: AppTheme.formInput.copyWith(color: AppTheme.textPrimaryOf(context)),
+              style: AppTheme.formInput
+                  .copyWith(color: AppTheme.textPrimaryOf(context)),
               decoration: InputDecoration(
                 hintText: l10n.notesOptional,
                 hintStyle: AppTheme.formHint,

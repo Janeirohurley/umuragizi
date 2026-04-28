@@ -1051,4 +1051,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prodOther => 'Other';
+
+  @override
+  String get birthDashboardTitle => 'Upcoming Births';
+
+  @override
+  String get noBirthsScheduled => 'No births scheduled';
+
+  @override
+  String get selectTime => 'Select a time';
 }
