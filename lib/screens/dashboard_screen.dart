@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:umuragizi/providers/assistant_provider.dart';
+import 'package:umuragizi/screens/chatbot/chat_screen.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/animal_provider.dart';
 import '../providers/rappel_provider.dart';
@@ -34,14 +37,29 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
   String? _animalFilter;
+  final ScrollController _scrollController = ScrollController();
+  bool _isFabVisible = true;
 
   @override
   void initState() {
     super.initState();
+    context.read<AssistantProvider>().lancerSequenceBienvenue();
     _animalFilter = widget.initialFilter;
     if (_animalFilter != null) {
       _selectedIndex = 1;
     }
+    _scrollController.addListener(() {
+      if (_scrollController.hasClients) {
+        if (_scrollController.position.userScrollDirection ==
+            ScrollDirection.reverse) {
+          if (_isFabVisible) setState(() => _isFabVisible = false);
+        } else if (_scrollController.position.userScrollDirection ==
+            ScrollDirection.forward) {
+          if (!_isFabVisible) setState(() => _isFabVisible = true);
+        }
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AnimalProvider>().chargerAnimaux();
       context.read<RappelProvider>().chargerRappels();
@@ -50,22 +68,129 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+
+  @override
+  void dispose() {
+    _scrollController.dispose(); // Ne pas oublier de libérer la mémoire
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final assistantWatch = context.watch<AssistantProvider>();
     final l10n = AppLocalizations.of(context)!;
+    final List<Map<String, double>> bubblesData = [
+      {'top': -9, 'right': 25, 'size': 10},
+      {'top': -17, 'right': 35, 'size': 8},
+      {'top': -20, 'right': 45, 'size': 4},
+      {'top': -21, 'right': 52, 'size': 3},
+    ];
 
     return Scaffold(
       floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  SlidePageRoute(page: const ScannerScreen()),
-                );
-              },
-              backgroundColor: AppTheme.primaryPurple,
-              elevation: 4,
-              child: const Icon(Icons.qr_code_scanner, color: Colors.white),
+          ? AnimatedOpacity(
+              opacity: _isFabVisible ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      // On enlève le "if (_showSupportBubble)" ici pour permettre l'animation
+                      ...bubblesData.map((data) => Positioned(
+                            top: data['top'],
+                            right: data['right'],
+                            child: AnimatedOpacity(
+                              // Si _showSupportBubble est vrai -> 1.0 (visible), sinon 0.0 (invisible)
+                              opacity:
+                                  assistantWatch.showSupportBubble ? 1.0 : 0.0,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                              child: Container(
+                                width: data['size'],
+                                height: data['size'],
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryPurple,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          )),
+                      // Retirez le "if (_showSupportBubble)"
+                      Positioned(
+                        bottom: 50,
+                        right: 60,
+                        child: AnimatedOpacity(
+                          // Si vrai -> 1 (opaque), si faux -> 0 (invisible)
+                          opacity: assistantWatch.showSupportBubble ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOut,
+                          child: Material(
+                            elevation:
+                                2, // Légèrement augmenté pour le détacher du fond
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(AppTheme.radiusSmall),
+                              topRight: Radius.circular(AppTheme.radiusSmall),
+                              bottomLeft: Radius.circular(AppTheme.radiusSmall),
+                            ),
+                            color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              child: Text(
+                                "Bonjour ! Comment puis-je vous aider ?",
+                                style: TextStyle(
+                                  color: AppTheme.primaryPurple,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight
+                                      .w500, // Un peu plus gras pour la lisibilité
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      FloatingActionButton(
+                        heroTag: 'btn_ia_umuragizi',
+                        onPressed: _isFabVisible
+                            ? () {
+                                Navigator.push(
+                                  context,
+                                  SlidePageRoute(page: const ChatScreen()),
+                                );
+                              }
+                            : null,
+                        backgroundColor: _isFabVisible
+                            ? AppTheme.primaryPurple
+                            : AppTheme.primaryPurple.withValues(alpha: 0.1),
+                        elevation: 4,
+                        child: const Icon(Icons.auto_awesome, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: AppTheme.spacingSmall),
+                  FloatingActionButton(
+                    heroTag: 'btn_qrcode_umuragizi',
+                    onPressed: _isFabVisible
+                        ? () {
+                            Navigator.push(
+                              context,
+                              SlidePageRoute(page: const ScannerScreen()),
+                            );
+                          }
+                        : null,
+                    backgroundColor: _isFabVisible
+                        ? AppTheme.primaryPurple
+                        : AppTheme.primaryPurple.withValues(alpha: 0.1),
+                    elevation: 4,
+                    child:
+                        const Icon(Icons.qr_code_scanner, color: Colors.white),
+                  ),
+                ],
+              ),
             )
           : null,
       body: AnimatedSwitcher(
@@ -88,7 +213,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           key: ValueKey<int>(_selectedIndex),
           index: _selectedIndex,
           children: [
-            const _AccueilTab(),
+            _AccueilTab(
+              key: ValueKey('accueil_tab'),
+              scrollController:
+                  _scrollController, // Utilisation du ScrollController existant
+            ),
             AnimalListScreen(initialFilter: _animalFilter),
             const ReminderListScreen(),
             const StatisticsScreen(),
@@ -109,15 +238,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingSmall, vertical: AppTheme.spacingSmall),
+            padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingSmall,
+                vertical: AppTheme.spacingSmall),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, l10n.dashboard),
+                _buildNavItem(
+                    0, Icons.home_outlined, Icons.home_rounded, l10n.dashboard),
                 _buildNavItem(1, Icons.pets_outlined, Icons.pets, l10n.animals),
-                _buildNavItem(2, Icons.notifications_outlined, Icons.notifications, l10n.tasks),
-                _buildNavItem(3, Icons.bar_chart_outlined, Icons.bar_chart_rounded, l10n.stats),
-                _buildNavItem(4, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, l10n.finance),
+                _buildNavItem(2, Icons.notifications_outlined,
+                    Icons.notifications, l10n.tasks),
+                _buildNavItem(3, Icons.bar_chart_outlined,
+                    Icons.bar_chart_rounded, l10n.stats),
+                _buildNavItem(4, Icons.account_balance_wallet_outlined,
+                    Icons.account_balance_wallet, l10n.finance),
               ],
             ),
           ),
@@ -126,16 +261,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, IconData activeIcon, String label) {
+  Widget _buildNavItem(
+      int index, IconData icon, IconData activeIcon, String label) {
     final isSelected = _selectedIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: () {
+        setState(() => _selectedIndex = index);
+        if (index == 0) {
+          context.read<AssistantProvider>().lancerSequenceBienvenue();
+        }
+      },
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium, vertical: AppTheme.spacingSmall),
+        padding: EdgeInsets.symmetric(
+            horizontal: AppTheme.spacingMedium,
+            vertical: AppTheme.spacingSmall),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.lightPurple.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.3 : 1.0) : Colors.transparent,
+          color: isSelected
+              ? AppTheme.lightPurple.withValues(
+                  alpha: Theme.of(context).brightness == Brightness.dark
+                      ? 0.3
+                      : 1.0)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         ),
         child: Row(
@@ -143,7 +291,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Icon(
               isSelected ? activeIcon : icon,
-              color: isSelected ? AppTheme.primaryPurple : AppTheme.textLightOf(context),
+              color: isSelected
+                  ? AppTheme.primaryPurple
+                  : AppTheme.textLightOf(context),
               size: AppTheme.iconSizeMedium,
             ),
             if (isSelected) ...[
@@ -164,7 +314,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 class _AccueilTab extends StatefulWidget {
-  const _AccueilTab();
+  final ScrollController scrollController; // Le tunnel
+
+  // Le constructeur doit maintenant accepter ce paramètre
+  const _AccueilTab({super.key, required this.scrollController});
 
   @override
   State<_AccueilTab> createState() => _AccueilTabState();
@@ -185,6 +338,7 @@ class _AccueilTabState extends State<_AccueilTab> {
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
+            controller: widget.scrollController,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -208,7 +362,8 @@ class _AccueilTabState extends State<_AccueilTab> {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(AppTheme.spacingXLarge, AppTheme.spacingSmall, AppTheme.spacingXLarge, 0),
+      padding: EdgeInsets.fromLTRB(AppTheme.spacingXLarge,
+          AppTheme.spacingSmall, AppTheme.spacingXLarge, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -217,12 +372,14 @@ class _AccueilTabState extends State<_AccueilTab> {
             children: [
               Text(
                 AppLocalizations.of(context)!.hello,
-                style: AppTheme.bodyText.copyWith(color: AppTheme.textSecondaryOf(context)),
+                style: AppTheme.bodyText
+                    .copyWith(color: AppTheme.textSecondaryOf(context)),
               ),
               SizedBox(height: AppTheme.spacingXSmall),
               Text(
                 'Umuragizi',
-                style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+                style: AppTheme.sectionTitle
+                    .copyWith(color: AppTheme.textPrimaryOf(context)),
               ),
             ],
           ),
@@ -295,7 +452,7 @@ class _AccueilTabState extends State<_AccueilTab> {
                     initialDate: _selectedDate,
                     firstDate: DateTime(2020),
                     lastDate: DateTime.now().add(const Duration(days: 365)),
-                    title:  l10n.date,
+                    title: l10n.date,
                   );
                   if (date != null) {
                     setState(() => _selectedDate = date);
@@ -318,7 +475,8 @@ class _AccueilTabState extends State<_AccueilTab> {
                   );
                 },
                 child: HorizontalDateSelector(
-                  key: ValueKey<String>('${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}'),
+                  key: ValueKey<String>(
+                      '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}'),
                   selectedDate: _selectedDate,
                   datesWithTasks: datesWithTasks,
                   onDateSelected: (date) {
@@ -344,7 +502,8 @@ class _AccueilTabState extends State<_AccueilTab> {
             children: [
               Text(
                 l10n.overview,
-                style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+                style: AppTheme.sectionTitle
+                    .copyWith(color: AppTheme.textPrimaryOf(context)),
               ),
               SizedBox(height: AppTheme.spacingMedium),
               LayoutBuilder(
@@ -382,7 +541,8 @@ class _AccueilTabState extends State<_AccueilTab> {
                       _ModernStatCard(
                         icon: Icons.check_circle_rounded,
                         label: l10n.done,
-                        value: '${rappelProvider.rappels.where((r) => r.estComplete).length}',
+                        value:
+                            '${rappelProvider.rappels.where((r) => r.estComplete).length}',
                         color: AppTheme.primaryPurple,
                       ),
                       Consumer<ReproductionProvider>(
@@ -396,7 +556,8 @@ class _AccueilTabState extends State<_AccueilTab> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                SlidePageRoute(page: const BirthDashboardScreen()),
+                                SlidePageRoute(
+                                    page: const BirthDashboardScreen()),
                               );
                             },
                           );
@@ -420,19 +581,20 @@ class _AccueilTabState extends State<_AccueilTab> {
       builder: (context, rappelProvider, child) {
         final rappelsEnRetard = rappelProvider.rappelsEnRetard;
         final rappelsDuJour = rappelProvider.rappelsDuJour;
-        
+
         final rappelsFiltres = rappelProvider.rappels.where((r) {
           if (r.estComplete) return false;
           return r.dateRappel.year == _selectedDate.year &&
-                 r.dateRappel.month == _selectedDate.month &&
-                 r.dateRappel.day == _selectedDate.day;
+              r.dateRappel.month == _selectedDate.month &&
+              r.dateRappel.day == _selectedDate.day;
         }).toList();
-        
+
         final isToday = _selectedDate.year == DateTime.now().year &&
-                        _selectedDate.month == DateTime.now().month &&
-                        _selectedDate.day == DateTime.now().day;
-        
-        final tousLesRappels = isToday ? [...rappelsEnRetard, ...rappelsDuJour] : rappelsFiltres;
+            _selectedDate.month == DateTime.now().month &&
+            _selectedDate.day == DateTime.now().day;
+
+        final tousLesRappels =
+            isToday ? [...rappelsEnRetard, ...rappelsDuJour] : rappelsFiltres;
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingXLarge),
@@ -443,8 +605,11 @@ class _AccueilTabState extends State<_AccueilTab> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    isToday ? l10n.tasks : '${l10n.tasks} - ${DateFormat('d MMM', settings.intlLocale).format(_selectedDate)}',
-                    style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+                    isToday
+                        ? l10n.tasks
+                        : '${l10n.tasks} - ${DateFormat('d MMM', settings.intlLocale).format(_selectedDate)}',
+                    style: AppTheme.sectionTitle
+                        .copyWith(color: AppTheme.textPrimaryOf(context)),
                   ),
                   if (tousLesRappels.isNotEmpty)
                     TextButton(
@@ -452,7 +617,8 @@ class _AccueilTabState extends State<_AccueilTab> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const DashboardScreen(initialFilter: 'Tous'),
+                            builder: (context) =>
+                                const DashboardScreen(initialFilter: 'Tous'),
                           ),
                         );
                       },
@@ -469,15 +635,20 @@ class _AccueilTabState extends State<_AccueilTab> {
                         child: Center(
                           child: Column(
                             children: [
-                               Icon(Icons.check_circle_outline, size: 48, color: AppTheme.successGreen),
-                               SizedBox(height: 16),
-                               Text(AppLocalizations.of(context)!.allDone, style: AppTheme.sectionSubtitle),
+                              Icon(Icons.check_circle_outline,
+                                  size: 48, color: AppTheme.successGreen),
+                              SizedBox(height: 16),
+                              Text(AppLocalizations.of(context)!.allDone,
+                                  style: AppTheme.sectionSubtitle),
                             ],
                           ),
                         ),
                       )
                     : Column(
-                        children: tousLesRappels.take(3).map((rappel) => _ModernRappelCard(rappel: rappel)).toList(),
+                        children: tousLesRappels
+                            .take(3)
+                            .map((rappel) => _ModernRappelCard(rappel: rappel))
+                            .toList(),
                       ),
               ),
             ],
@@ -502,25 +673,32 @@ class _AccueilTabState extends State<_AccueilTab> {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.species,
-                    style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+                    style: AppTheme.sectionTitle
+                        .copyWith(color: AppTheme.textPrimaryOf(context)),
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const DashboardScreen(initialFilter: 'Tous'),
+                          builder: (context) =>
+                              const DashboardScreen(initialFilter: 'Tous'),
                         ),
                       );
                     },
-                    child: Text(AppLocalizations.of(context)!.seeMore, style: AppTheme.bodyText.copyWith(color: AppTheme.primaryPurple)),
+                    child: Text(AppLocalizations.of(context)!.seeMore,
+                        style: AppTheme.bodyText
+                            .copyWith(color: AppTheme.primaryPurple)),
                   ),
                 ],
               ),
               SizedBox(height: AppTheme.spacingMedium),
               if (especes.isEmpty)
                 CustomCard(
-                  child: Center(child: Padding(padding: EdgeInsets.all(32), child: Text(AppLocalizations.of(context)!.noAnimal))),
+                  child: Center(
+                      child: Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Text(AppLocalizations.of(context)!.noAnimal))),
                 )
               else
                 GridView.builder(
@@ -535,7 +713,8 @@ class _AccueilTabState extends State<_AccueilTab> {
                   itemCount: especes.length > 6 ? 6 : especes.length,
                   itemBuilder: (context, index) {
                     final espece = especes[index];
-                    final count = animalProvider.filtrerParEspece(espece).length;
+                    final count =
+                        animalProvider.filtrerParEspece(espece).length;
                     return _GroupeCard(
                       espece: espece,
                       count: count,
@@ -543,7 +722,8 @@ class _AccueilTabState extends State<_AccueilTab> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => DashboardScreen(initialFilter: espece),
+                            builder: (context) =>
+                                DashboardScreen(initialFilter: espece),
                           ),
                         );
                       },
@@ -577,16 +757,20 @@ class _ModernRappelCard extends StatelessWidget {
         onComplete: () {
           context.read<RappelProvider>().marquerComplete(rappel.id);
         },
-        trailing: Icon(_getIconForType(rappel.type), color: AppTheme.primaryPurple),
+        trailing:
+            Icon(_getIconForType(rappel.type), color: AppTheme.primaryPurple),
       ),
     );
   }
 
   IconData _getIconForType(String type) {
     switch (type.toLowerCase()) {
-      case 'vaccination': return Icons.vaccines;
-      case 'vermifuge': return Icons.medication;
-      default: return Icons.notifications;
+      case 'vaccination':
+        return Icons.vaccines;
+      case 'vermifuge':
+        return Icons.medication;
+      default:
+        return Icons.notifications;
     }
   }
 }
@@ -619,7 +803,10 @@ class _GroupeCard extends StatelessWidget {
           children: [
             Icon(_getIconForEspece(espece), color: AppTheme.primaryPurple),
             SizedBox(height: 4),
-            Text(especeLabel(espece, l10n), maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTheme.bodyText),
+            Text(especeLabel(espece, l10n),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTheme.bodyText),
             Text('$count', style: AppTheme.bodyTextSecondary),
           ],
         ),
@@ -629,9 +816,12 @@ class _GroupeCard extends StatelessWidget {
 
   IconData _getIconForEspece(String espece) {
     switch (espece.toLowerCase()) {
-      case 'bovin': return Icons.pets;
-      case 'volaille': return Icons.flutter_dash;
-      default: return Icons.pets;
+      case 'bovin':
+        return Icons.pets;
+      case 'volaille':
+        return Icons.flutter_dash;
+      default:
+        return Icons.pets;
     }
   }
 }
@@ -680,14 +870,19 @@ class _ModernStatCard extends StatelessWidget {
                     color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                   ),
-                  child: Icon(icon, color: color, size: AppTheme.iconSizeMedium),
+                  child:
+                      Icon(icon, color: color, size: AppTheme.iconSizeMedium),
                 ),
                 const Spacer(),
-                Text(value, style: AppTheme.sectionTitle.copyWith(color: color)),
+                Text(value,
+                    style: AppTheme.sectionTitle.copyWith(color: color)),
               ],
             ),
             SizedBox(height: AppTheme.spacingSmall),
-            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTheme.bodyTextSecondary),
+            Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTheme.bodyTextSecondary),
           ],
         ),
       ),

@@ -19,6 +19,7 @@ import 'providers/reproduction_provider.dart';
 import 'providers/finance_provider.dart';
 import 'providers/genetic_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/assistant_provider.dart';
 import 'providers/settings_provider.dart';
 import 'screens/auth/pin_screen.dart';
 import 'utils/app_theme.dart';
@@ -121,6 +122,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AssistantProvider()), 
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => AnimalProvider()),
