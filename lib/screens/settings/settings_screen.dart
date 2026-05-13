@@ -426,55 +426,119 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showAboutDialog() {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLarge)),
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingXXLarge),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppTheme.spacingMedium),
-                decoration: const BoxDecoration(
-                  color: AppTheme.lightPurple,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.agriculture, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
-              ),
-              const SizedBox(height: AppTheme.spacingLarge),
-              Text(
-                'umuragizi',
-                style: AppTheme.sectionTitle.copyWith(
-                  fontSize: 24,
-                  color: AppTheme.textPrimaryOf(context),
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingSmall),
-              const Text(
-                'Version 1.0.0',
-                style: AppTheme.bodyTextSecondary,
-              ),
-              const SizedBox(height: AppTheme.spacingMedium),
-              Text(
-                l10n.appDescription,
-                textAlign: TextAlign.center,
-                style: AppTheme.bodyTextSecondary,
-              ),
-              const SizedBox(height: AppTheme.spacingXXLarge),
-              PrimaryButton(
-                text: l10n.close,
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+   void _showAboutDialog() {
+     final l10n = AppLocalizations.of(context)!;
+     showDialog(
+       context: context,
+       builder: (context) => Dialog(
+         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLarge)),
+         child: Padding(
+           padding: const EdgeInsets.all(AppTheme.spacingXXLarge),
+           child: Column(
+             mainAxisSize: MainAxisSize.min,
+             children: [
+               Container(
+                 padding: const EdgeInsets.all(AppTheme.spacingMedium),
+                 decoration: const BoxDecoration(
+                   color: AppTheme.lightPurple,
+                   shape: BoxShape.circle,
+                 ),
+                 child: const Icon(Icons.agriculture, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
+               ),
+               const SizedBox(height: AppTheme.spacingLarge),
+               Text(
+                 'umuragizi',
+                 style: AppTheme.sectionTitle.copyWith(
+                   fontSize: 24,
+                   color: AppTheme.textPrimaryOf(context),
+                 ),
+               ),
+               const SizedBox(height: AppTheme.spacingSmall),
+               const Text(
+                 'Version 1.0.0',
+                 style: AppTheme.bodyTextSecondary,
+               ),
+               const SizedBox(height: AppTheme.spacingMedium),
+               Text(
+                 l10n.appDescription,
+                 textAlign: TextAlign.center,
+                 style: AppTheme.bodyTextSecondary,
+               ),
+               const SizedBox(height: AppTheme.spacingXXLarge),
+               PrimaryButton(
+                 text: l10n.close,
+                 onPressed: () => Navigator.pop(context),
+               ),
+             ],
+           ),
+         ),
+       ),
+     );
+   }
+
+   void _showOpenAISettingsDialog() {
+     final settingsProvider = context.read<SettingsProvider>();
+     final l10n = AppLocalizations.of(context)!;
+     final apiKeyController = TextEditingController(text: settingsProvider.openAIApiKey ?? '');
+
+     showDialog(
+       context: context,
+       builder: (context) => Dialog(
+         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLarge)),
+         child: Padding(
+           padding: const EdgeInsets.all(AppTheme.spacingXLarge),
+           child: Column(
+             mainAxisSize: MainAxisSize.min,
+             children: [
+               Container(
+                 padding: const EdgeInsets.all(AppTheme.spacingMedium),
+                 decoration: const BoxDecoration(
+                   color: AppTheme.lightPurple,
+                   shape: BoxShape.circle,
+                 ),
+                 child: const Icon(Icons.key, size: AppTheme.iconSizeXLarge, color: AppTheme.primaryPurple),
+               ),
+               const SizedBox(height: AppTheme.spacingLarge),
+               Text(
+                 'Clé API OpenAI',
+                 style: AppTheme.sectionTitle.copyWith(color: AppTheme.textPrimaryOf(context)),
+               ),
+               const SizedBox(height: AppTheme.spacingMedium),
+               TextField(
+                 controller: apiKeyController,
+                 decoration: InputDecoration(
+                   labelText: 'Clé API',
+                   border: const OutlineInputBorder(),
+                   hintText: 'Entrez votre clé API OpenAI (sk-...)',
+                 ),
+                 obscureText: true,
+               ),
+               const SizedBox(height: AppTheme.spacingLarge),
+               Row(
+                 mainAxisAlignment: MainAxisAlignment.end,
+                 children: [
+                   TextButton(
+                     onPressed: () => Navigator.pop(context),
+                     child: Text(l10n.cancel),
+                   ),
+                   const SizedBox(width: AppTheme.spacingMedium),
+                    PrimaryButton(
+                      width: 120,
+                      text: 'Enregistrer',
+                      onPressed: () async {
+                        final key = apiKeyController.text.trim();
+                        await settingsProvider.setOpenAIApiKey(key.isEmpty ? null : key);
+                        if (mounted) Navigator.pop(context);
+                      },
+                    ),
+                 ],
+               ),
+             ],
+           ),
+         ),
+       ),
+     );
+   }
 
   @override
   Widget build(BuildContext context) {
@@ -631,13 +695,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: _showThemeDialog,
             trailing: Icon(Icons.chevron_right, color: AppTheme.textLightOf(context)),
           ),
-          const SizedBox(height: AppTheme.spacingXXLarge),
-          Text(
-            l10n.application,
-            style: AppTheme.sectionTitle.copyWith(
-              color: AppTheme.textPrimaryOf(context),
+           const SizedBox(height: AppTheme.spacingXXLarge),
+           Text(
+             'Assistant IA',
+             style: AppTheme.sectionTitle.copyWith(
+               color: AppTheme.textPrimaryOf(context),
+             ),
+           ),
+           const SizedBox(height: AppTheme.spacingMedium),
+            _buildSettingCard(
+              icon: Icons.auto_awesome,
+              iconColor: AppTheme.primaryPurple,
+              title: 'Clé API OpenAI',
+              subtitle: settingsProvider.openAIApiKey != null && settingsProvider.openAIApiKey!.isNotEmpty
+                  ? '••••••••${settingsProvider.openAIApiKey!.substring(settingsProvider.openAIApiKey!.length - 4)}'
+                  : 'Non configurée',
+              onTap: _showOpenAISettingsDialog,
+              trailing: Icon(Icons.edit, color: AppTheme.textLightOf(context)),
             ),
-          ),
+           const SizedBox(height: AppTheme.spacingXXLarge),
+           Text(
+             l10n.application,
+             style: AppTheme.sectionTitle.copyWith(
+               color: AppTheme.textPrimaryOf(context),
+             ),
+           ),
           const SizedBox(height: AppTheme.spacingMedium),
           _buildSettingCard(
             icon: Icons.info_outline,

@@ -1,10 +1,12 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:umuragizi/utils/app_theme.dart';
+import '../../providers/chat_provider.dart';
+import '../../models/chat_message.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -15,36 +17,37 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
-  // ✅ FIX 1 — ScrollController déclaré
   final ScrollController _scrollController = ScrollController();
-
   bool _isRecording = false;
   final AudioRecorder _audioRecorder = AudioRecorder();
 
-  // ✅ FIX 2 — Message initial avec le champ "type"
-  final List<Map<String, dynamic>> _messages = [
-    {
-      "type": "text",
-      "text": "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
-      "isMe": false,
-      "time": null,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Request initial greeting from AI
+    Future.microtask(() {
+      Provider.of<ChatProvider>(context, listen: false).initializeGreeting();
+    });
+  }
+
+  @override
+  void dispose() {
+    _audioRecorder.dispose();
+    _scrollController.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? image =
-        await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
 
     if (image != null) {
-      setState(() {
-        _messages.add({
-          "type": "image",
-          "path": image.path,
-          "isMe": true,
-          "time": DateTime.now(),
-        });
-      });
+      // Send image to AI
+      Provider.of<ChatProvider>(context, listen: false).sendMessage(
+        text: '',
+        imagePath: image.path,
+      );
       _scrollToBottom();
     }
   }
@@ -53,8 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       if (await _audioRecorder.hasPermission()) {
         final directory = await getApplicationDocumentsDirectory();
-        final String path =
-            '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        final String path = '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
         if (!_isRecording) {
           await _audioRecorder.start(const RecordConfig(), path: path);
@@ -64,14 +66,12 @@ class _ChatScreenState extends State<ChatScreen> {
           setState(() => _isRecording = false);
 
           if (pathResult != null) {
-            setState(() {
-              _messages.add({
-                "type": "audio",
-                "path": pathResult,
-                "isMe": true,
-                "time": DateTime.now(),
-              });
-            });
+            // Add audio message (non-AI)
+            Provider.of<ChatProvider>(context, listen: false).addNonAIMessage(
+              text: 'Message vocal',
+              type: MessageType.audio,
+              filePath: pathResult,
+            );
             _scrollToBottom();
           }
         }
@@ -85,16 +85,8 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _messages.add({
-        "type": "text",
-        "text": text,
-        "isMe": true,
-        "time": DateTime.now(),
-      });
-      _messageController.clear();
-    });
-
+    Provider.of<ChatProvider>(context, listen: false).sendMessage(text: text);
+    _messageController.clear();
     _scrollToBottom();
   }
 
@@ -111,14 +103,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   @override
-  void dispose() {
-    _audioRecorder.dispose();
-    _scrollController.dispose();
-    _messageController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColorOf(context),
@@ -126,18 +110,20 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              // ✅ FIX 3 — ScrollController branché
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                // ✅ FIX 4 — On passe tout le message, pas seulement le texte
-                return _buildChatBubble(_messages[index]);
+            child: Consumer<ChatProvider>(
+              builder: (context, chatProvider, child) {
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: chatProvider.messages.length,
+                  itemBuilder: (context, index) {
+                    return _buildChatBubble(chatProvider.messages[index]);
+                  },
+                );
               },
             ),
           ),
-          _buildMessageInput(),
+          _buildMessageInput(chatProvider: Provider.of<ChatProvider>(context, listen: false)),
         ],
       ),
     );
@@ -160,8 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
               shape: BoxShape.rectangle,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(Icons.auto_awesome,
-                color: AppTheme.primaryPurple, size: 18),
+            child: Icon(Icons.auto_awesome, color: AppTheme.primaryPurple, size: 18),
           ),
           const SizedBox(width: 12),
           Column(
@@ -185,8 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Text("En ligne",
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const Text("En ligne", style: TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
             ],
@@ -196,52 +180,45 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // ✅ FIX 5 — Gère text, image et audio
-  Widget _buildChatBubble(Map<String, dynamic> msg) {
-    final bool isMe = msg["isMe"] as bool;
-    final String type = msg["type"] as String? ?? "text";
-
+  Widget _buildChatBubble(ChatMessage msg) {
+    final bool isMe = msg.isUser;
     Widget content;
 
-    switch (type) {
-      case "image":
+    switch (msg.type) {
+      case MessageType.image:
         content = ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.file(
-            File(msg["path"] as String),
+            File(msg.filePath!),
             width: 200,
             height: 200,
             fit: BoxFit.cover,
           ),
         );
         break;
-
-      case "audio":
+      case MessageType.audio:
         content = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.play_circle_fill,
                 color: isMe ? Colors.white : AppTheme.primaryPurple, size: 28),
             const SizedBox(width: 8),
-            Text(
+            const Text(
               "Message vocal",
-              style: TextStyle(
-                color: isMe ? Colors.white : AppTheme.textPrimaryOf(context),
-                fontSize: 14,
-              ),
+              style: TextStyle(fontSize: 14),
             ),
           ],
         );
         break;
-
-      default: // "text"
+      case MessageType.text:
         content = Text(
-          msg["text"] as String? ?? "",
+          msg.text ?? '',
           style: TextStyle(
             color: isMe ? Colors.white : AppTheme.textPrimaryOf(context),
             fontSize: 14,
           ),
         );
+        break;
     }
 
     return Align(
@@ -249,8 +226,7 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        constraints:
-            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
           color: isMe ? AppTheme.primaryPurple : Colors.white,
           borderRadius: BorderRadius.only(
@@ -272,7 +248,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageInput() {
+  Widget _buildMessageInput({required ChatProvider chatProvider}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -318,25 +294,34 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            _messageController.text.isEmpty
-                ? _buildIconButton(
-                    icon: _isRecording
-                        ? Icons.stop_circle_outlined
-                        : Icons.mic_none_rounded,
-                    onPressed: _startRecording,
-                    isCircular: true,
-                  )
-                : Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryPurple,
-                      borderRadius: BorderRadius.circular(12),
+            if (chatProvider.isLoading)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            else
+              _messageController.text.isEmpty
+                  ? _buildIconButton(
+                      icon: _isRecording ? Icons.stop_circle_outlined : Icons.mic_none_rounded,
+                      onPressed: _startRecording,
+                      isCircular: true,
+                    )
+                  : Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryPurple,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                        onPressed: _handleSend,
+                      ),
                     ),
-                    child: IconButton(
-                      icon:
-                          const Icon(Icons.send, color: Colors.white, size: 20),
-                      onPressed: _handleSend,
-                    ),
-                  ),
           ],
         ),
       ),
@@ -348,15 +333,19 @@ class _ChatScreenState extends State<ChatScreen> {
     required VoidCallback onPressed,
     bool isCircular = false,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.primaryPurple.withOpacity(0.1),
-        shape: isCircular ? BoxShape.circle : BoxShape.rectangle,
-        borderRadius: isCircular ? null : BorderRadius.circular(12),
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: AppTheme.primaryPurple, size: 22),
-        onPressed: onPressed,
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.primaryPurple.withOpacity(0.1),
+          shape: isCircular ? BoxShape.circle : BoxShape.rectangle,
+          borderRadius: isCircular ? null : BorderRadius.circular(12),
+        ),
+        child: IconButton(
+          icon: Icon(icon, color: AppTheme.primaryPurple, size: 22),
+          onPressed: onPressed,
+        ),
       ),
     );
   }

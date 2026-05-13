@@ -4,9 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsProvider with ChangeNotifier {
   static const String keyLocale = 'user_locale';
   static const String keyCurrency = 'user_currency';
+  static const String keyOpenAIApiKey = 'openai_api_key';
+  static const String keyAIModel = 'ai_model';
 
   Locale _locale = const Locale('fr');
   String _currency = 'BIF'; // Par défaut Franc Burundais
+  String? _openAIApiKey;
+  String _aiModel = 'gpt-4';
 
   SettingsProvider() {
     _loadSettings();
@@ -14,6 +18,8 @@ class SettingsProvider with ChangeNotifier {
 
   Locale get locale => _locale;
   String get currency => _currency;
+  String? get openAIApiKey => _openAIApiKey;
+  String get aiModel => _aiModel;
 
   /// Retourne un code de locale compatible avec la bibliothèque intl
   String get intlLocale {
@@ -134,6 +140,8 @@ class SettingsProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final localeCode = prefs.getString(keyLocale) ?? 'fr';
     final currencyCode = prefs.getString(keyCurrency) ?? 'BIF';
+    _openAIApiKey = prefs.getString(keyOpenAIApiKey);
+    _aiModel = prefs.getString(keyAIModel) ?? 'gpt-4';
 
     _locale = Locale(localeCode);
     _currency = currencyCode;
@@ -152,6 +160,24 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(keyCurrency, newCurrency);
+  }
+
+  Future<void> setOpenAIApiKey(String? key) async {
+    _openAIApiKey = key;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    if (key != null) {
+      await prefs.setString(keyOpenAIApiKey, key);
+    } else {
+      await prefs.remove(keyOpenAIApiKey);
+    }
+  }
+
+  Future<void> setAIModel(String model) async {
+    _aiModel = model;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(keyAIModel, model);
   }
 
   String get currencySymbol {
